@@ -1,0 +1,388 @@
+import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { api } from '@/lib/axios';
+import { useAuthStore } from '@/store/authStore';
+import { siteConfig } from '@/lib/siteConfig';
+import { cn } from '@/lib/cn';
+import { getErrorMessage } from '@/lib/errorMessage';
+import { useTranslation } from '@/hooks/useTranslation';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+
+const loginSchema = z.object({
+  email: z.string().email('Enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+
+type Mode = 'login' | 'forgot-request' | 'forgot-verify' | 'forgot-reset' | 'forgot-success';
+type Channel = 'EMAIL' | 'MOBILE';
+
+const fieldClasses =
+  'border-gold/20 bg-ink-black text-cream focus:border-gold w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none';
+const labelClasses = 'text-cream/70 mb-1.5 block text-xs font-medium';
+
+export function AdminLoginPage() {
+  const navigate = useNavigate();
+  const login = useAuthStore((s) => s.login);
+  const [mode, setMode] = useState<Mode>('login');
+  const { t } = useTranslation();
+
+  const passwordChecks = (pw: string) => [
+    { label: t('admin.login.check8Chars'), pass: pw.length >= 8 },
+    { label: t('admin.login.checkUppercase'), pass: /[A-Z]/.test(pw) },
+    { label: t('admin.login.checkLowercase'), pass: /[a-z]/.test(pw) },
+    { label: t('admin.login.checkNumber'), pass: /\d/.test(pw) },
+    { label: t('admin.login.checkSpecial'), pass: /[^A-Za-z0-9]/.test(pw) },
+  ];
+
+  // Forgot-password flow state
+  const [channel, setChannel] = useState<Channel>('EMAIL');
+  const [identifier, setIdentifier] = useState('');
+  const [otp, setOtp] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
+
+  async function onSubmit(values: LoginForm) {
+    try {
+      const { data } = await api.post('/admin/auth/login', values);
+      login(data.token, data.admin);
+      navigate('/admin');
+    } catch (error) {
+      toast.error(getErrorMessage(error, t('admin.login.invalidCredentials')));
+    }
+  }
+
+  function resetForgotState() {
+    setChannel('EMAIL');
+    setIdentifier('');
+    setOtp('');
+    setResetToken('');
+    setNewPassword('');
+    setConfirmPassword('');
+  }
+
+  async function handleRequestOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!identifier.trim()) {
+      toast.error(channel === 'EMAIL' ? t('admin.login.enterEmail') : t('admin.login.enterMobile'));
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data } = await api.post('/admin/auth/forgot-password/request', { identifier, channel });
+      toast.success(data.message ?? t('admin.login.otpSentDefault'));
+      setMode('forgot-verify');
+    } catch (error) {
+      toast.error(getErrorMessage(error, t('admin.login.otpSendFailed')));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (otp.trim().length !== 6) {
+      toast.error(t('admin.login.enter6DigitOtp'));
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data } = await api.post('/admin/auth/forgot-password/verify', { identifier, channel, otp });
+      setResetToken(data.resetToken);
+      setMode('forgot-reset');
+    } catch (error) {
+      toast.error(getErrorMessage(error, t('admin.login.otpIncorrect')));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleResendOtp() {
+    setBusy(true);
+    try {
+      const { data } = await api.post('/admin/auth/forgot-password/request', { identifier, channel });
+      toast.success(data.message ?? t('admin.login.otpResentDefault'));
+      setOtp('');
+    } catch (error) {
+      toast.error(getErrorMessage(error, t('admin.login.otpResendFailed')));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    const checks = passwordChecks(newPassword);
+    if (!checks.every((c) => c.pass)) {
+      toast.error(t('admin.login.passwordRulesFailed'));
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error(t('admin.login.passwordsDoNotMatch'));
+      return;
+    }
+    setBusy(true);
+    try {
+      await api.post('/admin/auth/forgot-password/reset', { resetToken, newPassword });
+      setMode('forgot-success');
+    } catch (error) {
+      toast.error(getErrorMessage(error, t('admin.login.resetFailed')));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const checks = passwordChecks(newPassword);
+
+  return (
+    <>
+      <Helmet>
+        <title>Admin Login | {siteConfig.businessName}</title>
+      </Helmet>
+      <div className="bg-[image:var(--gradient-luxury)] flex min-h-screen items-center justify-center px-4 py-10">
+        <div className="border-gold/20 bg-charcoal-2 w-full max-w-sm rounded-2xl border p-8 shadow-2xl">
+          <div className="mb-4 flex justify-center">
+            <LanguageSwitcher mutedClassName="text-cream/70" />
+          </div>
+          <div className="mb-6 flex flex-col items-center gap-2 text-center">
+            <span className="border-gold text-gold font-display flex h-11 w-11 items-center justify-center rounded-full border text-lg font-semibold">
+              MS
+            </span>
+            <h1 className="text-cream text-xl font-semibold">
+              {mode === 'login' && t('admin.login.title')}
+              {mode === 'forgot-request' && t('admin.login.forgotPasswordTitle')}
+              {mode === 'forgot-verify' && t('admin.login.enterOtpTitle')}
+              {mode === 'forgot-reset' && t('admin.login.setNewPasswordTitle')}
+              {mode === 'forgot-success' && t('admin.login.passwordUpdatedTitle')}
+            </h1>
+            <p className="text-cream/50 text-sm">
+              {mode === 'login' && `${t('admin.login.signInSubtitle')} ${siteConfig.businessName}`}
+              {mode === 'forgot-request' && t('admin.login.chooseOtpMethod')}
+              {mode === 'forgot-verify' &&
+                `${t('admin.login.enterCodeSentTo')} ${channel === 'EMAIL' ? t('admin.login.email.lower') : t('admin.login.mobile.lower')}`}
+              {mode === 'forgot-reset' && t('admin.login.createStrongPassword')}
+              {mode === 'forgot-success' && t('admin.login.canSignInNow')}
+            </p>
+          </div>
+
+          {mode === 'login' && (
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+              <div>
+                <label htmlFor="email" className={labelClasses}>
+                  {t('admin.login.email')}
+                </label>
+                <input id="email" type="email" autoComplete="username" className={fieldClasses} {...register('email')} />
+                {errors.email && <p className="text-rose mt-1 text-xs">{errors.email.message}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="password" className={labelClasses}>
+                  {t('admin.login.password')}
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  className={fieldClasses}
+                  {...register('password')}
+                />
+                {errors.password && <p className="text-rose mt-1 text-xs">{errors.password.message}</p>}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  resetForgotState();
+                  setMode('forgot-request');
+                }}
+                className="text-gold self-end text-xs font-medium hover:underline"
+              >
+                {t('admin.login.forgotPassword')}
+              </button>
+
+              <Button type="submit" variant="gold" className="mt-2 w-full" disabled={isSubmitting}>
+                {isSubmitting ? t('wizard.submitting') : t('admin.login.signIn')}
+              </Button>
+            </form>
+          )}
+
+          {mode === 'forgot-request' && (
+            <form onSubmit={handleRequestOtp} className="flex flex-col gap-4">
+              <div className="border-gold/20 flex overflow-hidden rounded-lg border">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChannel('EMAIL');
+                    setIdentifier('');
+                  }}
+                  className={cn(
+                    'flex-1 py-2 text-xs font-semibold',
+                    channel === 'EMAIL' ? 'bg-gold text-ink-black' : 'text-cream/60',
+                  )}
+                >
+                  {t('admin.login.emailTab')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChannel('MOBILE');
+                    setIdentifier('');
+                  }}
+                  className={cn(
+                    'flex-1 py-2 text-xs font-semibold',
+                    channel === 'MOBILE' ? 'bg-gold text-ink-black' : 'text-cream/60',
+                  )}
+                >
+                  {t('admin.login.mobileNumber')}
+                </button>
+              </div>
+
+              <div>
+                <label htmlFor="identifier" className={labelClasses}>
+                  {channel === 'EMAIL' ? t('admin.login.registeredEmail') : t('admin.login.registeredMobile')}
+                </label>
+                <input
+                  id="identifier"
+                  type={channel === 'EMAIL' ? 'email' : 'tel'}
+                  placeholder={channel === 'EMAIL' ? 'harithakotha6131@gmail.com' : '9391522508'}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  className={fieldClasses}
+                />
+              </div>
+
+              <Button type="submit" variant="gold" className="mt-2 w-full" disabled={busy}>
+                {busy ? t('admin.login.sendingOtp') : t('admin.login.generateOtp')}
+              </Button>
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className="text-cream/50 text-xs font-medium hover:underline"
+              >
+                {t('admin.login.backToLogin')}
+              </button>
+            </form>
+          )}
+
+          {mode === 'forgot-verify' && (
+            <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
+              <div>
+                <label htmlFor="otp" className={labelClasses}>
+                  {t('admin.login.otpCode')}
+                </label>
+                <input
+                  id="otp"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="123456"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  className={cn(fieldClasses, 'tracking-[0.5em]')}
+                />
+              </div>
+
+              <Button type="submit" variant="gold" className="mt-2 w-full" disabled={busy}>
+                {busy ? t('admin.login.verifying') : t('admin.login.verifyOtp')}
+              </Button>
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setMode('forgot-request')}
+                  className="text-cream/50 text-xs font-medium hover:underline"
+                >
+                  {channel === 'EMAIL' ? t('admin.login.changeEmail') : t('admin.login.changeNumber')}
+                </button>
+                <button type="button" onClick={handleResendOtp} disabled={busy} className="text-gold text-xs font-medium hover:underline">
+                  {t('admin.login.resendOtp')}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {mode === 'forgot-reset' && (
+            <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
+              <div>
+                <label htmlFor="newPassword" className={labelClasses}>
+                  {t('admin.login.newPassword')}
+                </label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className={fieldClasses}
+                />
+              </div>
+
+              <ul className="grid grid-cols-1 gap-1">
+                {checks.map((c) => (
+                  <li key={c.label} className="flex items-center gap-1.5 text-xs">
+                    {c.pass ? <Check size={13} className="text-emerald-400" /> : <X size={13} className="text-cream/30" />}
+                    <span className={c.pass ? 'text-cream/70' : 'text-cream/40'}>{c.label}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div>
+                <label htmlFor="confirmPassword" className={labelClasses}>
+                  {t('admin.login.confirmNewPassword')}
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={fieldClasses}
+                />
+                {confirmPassword && newPassword !== confirmPassword && (
+                  <p className="text-rose mt-1 text-xs">{t('admin.login.passwordsDoNotMatch')}</p>
+                )}
+              </div>
+
+              <Button type="submit" variant="gold" className="mt-2 w-full" disabled={busy}>
+                {busy ? t('admin.login.updating') : t('admin.login.resetPassword')}
+              </Button>
+            </form>
+          )}
+
+          {mode === 'forgot-success' && (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <span className="bg-emerald-500/10 text-emerald-400 flex h-14 w-14 items-center justify-center rounded-full">
+                <Check size={26} />
+              </span>
+              <Button
+                variant="gold"
+                className="w-full"
+                onClick={() => {
+                  resetForgotState();
+                  setMode('login');
+                }}
+              >
+                {t('admin.login.backToLoginBtn')}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}

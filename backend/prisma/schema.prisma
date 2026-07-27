@@ -1,0 +1,330 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EventType {
+  WEDDING
+  RECEPTION
+  BIRTHDAY
+  HOUSEWARMING
+  ENGAGEMENT
+  CORPORATE
+  ANNIVERSARY
+  NAMING_CEREMONY
+  BABY_SHOWER
+  OTHER
+}
+
+enum PackageTier {
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum ServiceUnit {
+  FLAT
+  PER_GUEST
+}
+
+enum GalleryCategory {
+  FOOD
+  DECORATION
+  EVENT
+}
+
+enum PackageStepKind {
+  FOOD
+  SERVICE_CATEGORY
+}
+
+enum DietaryPreference {
+  VEG
+  NON_VEG
+  BOTH
+}
+
+enum OtpChannel {
+  EMAIL
+  MOBILE
+}
+
+model AdminUser {
+  id              String             @id @default(cuid())
+  name            String
+  email           String             @unique
+  phone           String?            @unique
+  passwordHash    String
+  passwordResets  PasswordResetOtp[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+/// Short-lived OTP issued for the admin "forgot password" flow. The OTP
+/// itself is bcrypt-hashed at rest (never stored in plaintext) and expires
+/// after 10 minutes; `attempts` caps brute-force guessing.
+model PasswordResetOtp {
+  id        String     @id @default(cuid())
+  adminId   String
+  admin     AdminUser  @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  channel   OtpChannel
+  otpHash   String
+  expiresAt DateTime
+  consumed  Boolean    @default(false)
+  attempts  Int        @default(0)
+  createdAt DateTime   @default(now())
+
+  @@index([adminId])
+}
+
+model MenuCategory {
+  id        String     @id @default(cuid())
+  name      String
+  nameTe    String?
+  slug      String     @unique
+  order     Int        @default(0)
+  items     MenuItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model MenuItem {
+  id           String             @id @default(cuid())
+  categoryId   String
+  category     MenuCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name         String
+  nameTe       String?
+  description  String?
+  price        Decimal            @db.Decimal(10, 2)
+  imageUrl     String?
+  isVeg        Boolean            @default(true)
+  isAvailable  Boolean            @default(true)
+  isFeatured   Boolean            @default(false)
+  bookingItems BookingMenuItem[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([categoryId])
+}
+
+model Package {
+  id            String        @id @default(cuid())
+  tier          PackageTier   @unique
+  name          String
+  nameTe        String?
+  description   String
+  descriptionTe String?
+  pricePerGuest Decimal       @db.Decimal(10, 2)
+  imageUrl      String?
+  isActive      Boolean       @default(true)
+  items         PackageItem[]
+  steps         PackageStep[]
+  bookings      Booking[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+/// Included-features bullet list shown on the package card and in the
+/// booking wizard (e.g. "Basic Decoration", "Welcome Drinks", "Event
+/// Manager") — informational only, not individually selectable/priced.
+model PackageItem {
+  id        String  @id @default(cuid())
+  packageId String
+  package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  label     String
+  labelTe   String?
+  order     Int     @default(0)
+
+  @@index([packageId])
+}
+
+/// Defines a package's guided wizard flow: an ordered sequence of steps the
+/// customer walks through when configuring that package (e.g. Silver =
+/// Food -> Welcome Drinks -> Stage Decoration -> Lighting -> DJ & Sound).
+model PackageStep {
+  id                String           @id @default(cuid())
+  packageId         String
+  package           Package          @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  order             Int
+  kind              PackageStepKind
+  serviceCategoryId String?
+  serviceCategory   ServiceCategory? @relation(fields: [serviceCategoryId], references: [id])
+
+  @@index([packageId])
+}
+
+/// Admin-creatable service section shown in the booking wizard (Welcome
+/// Drinks, Stage Decoration, Lighting, DJ & Sound, Furniture, Flowers...).
+/// Not a fixed enum, so admins can add new categories without a code change.
+model ServiceCategory {
+  id            String          @id @default(cuid())
+  name          String
+  nameTe        String?
+  slug          String          @unique
+  description   String?
+  descriptionTe String?
+  imageUrl      String?
+  allowMultiple Boolean         @default(false)
+  isActive      Boolean         @default(true)
+  order         Int             @default(0)
+  options       ServiceOption[]
+  packageSteps  PackageStep[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model ServiceOption {
+  id                String                  @id @default(cuid())
+  categoryId        String
+  category          ServiceCategory         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name              String
+  nameTe            String?
+  description       String?
+  price             Decimal                 @db.Decimal(10, 2)
+  unit              ServiceUnit             @default(FLAT)
+  imageUrl          String?
+  isActive          Boolean                 @default(true)
+  order             Int                     @default(0)
+  bookingSelections BookingServiceOption[]
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@index([categoryId])
+}
+
+model GalleryImage {
+  id        String          @id @default(cuid())
+  category  GalleryCategory
+  imageUrl  String
+  caption   String?
+  captionTe String?
+  order     Int             @default(0)
+  createdAt DateTime        @default(now())
+}
+
+model Testimonial {
+  id           String     @id @default(cuid())
+  customerName String
+  eventType    EventType?
+  rating       Int        @default(5)
+  message      String
+  messageTe    String?
+  imageUrl     String?
+  isPublished  Boolean    @default(true)
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now())
+}
+
+model FAQ {
+  id          String  @id @default(cuid())
+  question    String
+  questionTe  String?
+  answer      String
+  answerTe    String?
+  order       Int     @default(0)
+  isPublished Boolean @default(true)
+}
+
+model SiteSettings {
+  id                   String   @id @default("singleton")
+  businessName         String
+  organiser            String
+  phone                String
+  whatsapp             String
+  email                String
+  address              String
+  mapEmbedUrl          String
+  heroHeadline         String
+  heroHeadlineTe       String?
+  heroSubheadline      String
+  heroSubheadlineTe    String?
+  heroImageUrl         String?
+  businessIntroTitle   String
+  businessIntroTitleTe String?
+  businessIntroText    String
+  businessIntroTextTe  String?
+  updatedAt            DateTime @updatedAt
+}
+
+model ContactEnquiry {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Booking {
+  id          String @id @default(cuid())
+  bookingCode String @unique
+
+  customerName String
+  phone        String
+  altPhone     String?
+  email        String?
+  address      String
+
+  eventDate  DateTime
+  eventTime  String
+  eventType  EventType
+  guestCount Int
+
+  packageId String?
+  package   Package? @relation(fields: [packageId], references: [id])
+
+  dietaryPreference   DietaryPreference?
+  specialRequirements String?
+
+  foodCost    Decimal @db.Decimal(10, 2) @default(0)
+  addOnsCost  Decimal @db.Decimal(10, 2) @default(0)
+  packageCost Decimal @db.Decimal(10, 2) @default(0)
+  grandTotal  Decimal @db.Decimal(10, 2) @default(0)
+
+  status BookingStatus @default(PENDING)
+
+  menuItems      BookingMenuItem[]
+  serviceOptions BookingServiceOption[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([phone])
+  @@index([status])
+  @@index([eventDate])
+}
+
+model BookingMenuItem {
+  id             String   @id @default(cuid())
+  bookingId      String
+  booking        Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  menuItemId     String
+  menuItem       MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity       Int      @default(1)
+  priceAtBooking Decimal  @db.Decimal(10, 2)
+
+  @@index([bookingId])
+}
+
+model BookingServiceOption {
+  id              String        @id @default(cuid())
+  bookingId       String
+  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  serviceOptionId String
+  serviceOption   ServiceOption @relation(fields: [serviceOptionId], references: [id])
+  quantity        Int           @default(1)
+  priceAtBooking  Decimal       @db.Decimal(10, 2)
+
+  @@index([bookingId])
+}

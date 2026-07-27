@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+@import './styles/design-tokens.css';
+
+/* Class-based dark mode: toggled via `document.documentElement.classList` (see store/uiStore.ts) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Brand palette exposed as Tailwind utilities: bg-gold, text-rose, border-ink-black... */
+  --color-ink-black: var(--brand-ink-black);
+  --color-charcoal-2: var(--brand-charcoal-2);
+  --color-gold: var(--brand-gold);
+  --color-gold-bright: var(--brand-gold-bright);
+  --color-rose: var(--brand-rose);
+  --color-rose-deep: var(--brand-rose-deep);
+  --color-cream: var(--brand-cream);
+  --color-brand-white: var(--brand-white);
+
+  /* Semantic palette, swaps with .dark: bg-bg, text-text, border-border... */
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-header-bg: var(--header-bg);
+  --color-header-text: var(--header-text);
+
+  --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+
+  --gradient-luxury: linear-gradient(135deg, #17120f 0%, #3d0e1f 55%, #17120f 100%);
+  --gradient-gold: linear-gradient(135deg, #c9a227 0%, #e3c567 100%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-bg text-text font-body transition-colors duration-300;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+}

@@ -1,0 +1,35 @@
+import { env } from '../config/env';
+import { sendMail } from '../config/mailer';
+
+interface BookingLike {
+  bookingCode: string;
+  customerName: string;
+  phone: string;
+  email: string | null;
+  eventType: string;
+  eventDate: Date;
+  guestCount: number;
+  grandTotal: unknown;
+}
+
+export async function sendBookingNotificationEmail(booking: BookingLike) {
+  if (!env.ADMIN_NOTIFICATION_EMAIL) {
+    console.info(
+      `[emailNotifier] ADMIN_NOTIFICATION_EMAIL not configured — skipping admin notification for booking ${booking.bookingCode}`,
+    );
+    return;
+  }
+
+  await sendMail({
+    to: env.ADMIN_NOTIFICATION_EMAIL,
+    subject: `New Booking Received — ${booking.bookingCode}`,
+    html: `
+      <h2>New booking received</h2>
+      <p><strong>Booking ID:</strong> ${booking.bookingCode}</p>
+      <p><strong>Customer:</strong> ${booking.customerName} (${booking.phone}${booking.email ? `, ${booking.email}` : ''})</p>
+      <p><strong>Event:</strong> ${booking.eventType} on ${new Date(booking.eventDate).toLocaleDateString()}</p>
+      <p><strong>Guests:</strong> ${booking.guestCount}</p>
+      <p><strong>Estimated Total:</strong> ₹${booking.grandTotal}</p>
+    `,
+  });
+}

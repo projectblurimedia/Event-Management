@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Replace https://www.msweddingplanner.example with the real production domain before launch. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.msweddingplanner.example/</loc><priority>1.0</priority></url>
+  <url><loc>https://www.msweddingplanner.example/services</loc><priority>0.8</priority></url>
+  <url><loc>https://www.msweddingplanner.example/packages</loc><priority>0.8</priority></url>
+  <url><loc>https://www.msweddingplanner.example/menu</loc><priority>0.8</priority></url>
+  <url><loc>https://www.msweddingplanner.example/event-types</loc><priority>0.6</priority></url>
+  <url><loc>https://www.msweddingplanner.example/gallery</loc><priority>0.6</priority></url>
+  <url><loc>https://www.msweddingplanner.example/testimonials</loc><priority>0.5</priority></url>
+  <url><loc>https://www.msweddingplanner.example/faq</loc><priority>0.5</priority></url>
+  <url><loc>https://www.msweddingplanner.example/contact</loc><priority>0.7</priority></url>
+  <url><loc>https://www.msweddingplanner.example/booking</loc><priority>0.9</priority></url>
+  <url><loc>https://www.msweddingplanner.example/booking/status</loc><priority>0.3</priority></url>
+</urlset>

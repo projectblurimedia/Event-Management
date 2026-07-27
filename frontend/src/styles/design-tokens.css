@@ -1,0 +1,42 @@
+/**
+ * Brand tokens extracted from the "MS Wedding Planner" brochure:
+ * black & gold luxury base with a rose/magenta script accent.
+ * Dark mode is the brand-authentic look; light mode keeps the same
+ * gold/rose identity on a cream base. Edit this file to re-theme the app.
+ */
+
+:root {
+  /* Static brand colors (do not change between modes) */
+  --brand-ink-black: #17120f;
+  --brand-charcoal-2: #241c18;
+  --brand-gold: #c9a227;
+  --brand-gold-bright: #e3c567;
+  --brand-rose: #e0447f;
+  --brand-rose-deep: #b5245c;
+  --brand-cream: #f6efe0;
+  --brand-white: #ffffff;
+
+  /* Semantic tokens — light mode (default) */
+  --bg: var(--brand-cream);
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: #fbf6ec;
+  --text: #221a15;
+  --text-muted: #6b5d52;
+  --border: #e7d9be;
+  --header-bg: var(--brand-ink-black);
+  --header-text: var(--brand-cream);
+}
+
+.dark {
+  /* Semantic tokens — dark mode (brochure-authentic) */
+  --bg: var(--brand-ink-black);
+  --bg-elevated: var(--brand-charcoal-2);
+  --surface: var(--brand-charcoal-2);
+  --surface-muted: #1d1713;
+  --text: var(--brand-cream);
+  --text-muted: #b9ac9a;
+  --border: #3a2e24;
+  --header-bg: var(--brand-ink-black);
+  --header-text: var(--brand-cream);
+}
