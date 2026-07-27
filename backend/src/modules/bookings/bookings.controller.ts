@@ -1,5 +1,4 @@
 import type { Request, Response } from 'express';
-import { renderToBuffer } from '@react-pdf/renderer';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { ApiError } from '../../utils/ApiError';
 import { QuotationDocument } from '../../templates/QuotationDocument';
@@ -27,8 +26,9 @@ export const downloadQuotationHandler = asyncHandler(async (req: Request, res: R
   const booking = await bookingsService.getBookingForQuotation(req.params.id as string, phone);
   const data = bookingsService.toQuotationData(booking);
   const settings = await getSettings();
+  const { renderToBuffer } = await import('@react-pdf/renderer');
   const buffer = await renderToBuffer(
-    QuotationDocument({
+    await QuotationDocument({
       booking: data,
       business: { name: settings.businessName, phone: settings.phone, address: settings.address },
     }),

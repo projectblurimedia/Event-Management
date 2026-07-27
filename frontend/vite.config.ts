@@ -14,6 +14,7 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true, // bind 0.0.0.0 so devices on the same Wi-Fi (e.g. a phone) can reach the dev server
+    allowedHosts: true, // permit tunnel hostnames (e.g. trycloudflare.com) for temporary public preview links
     proxy: {
       '/api': {
         target: 'http://localhost:4000',

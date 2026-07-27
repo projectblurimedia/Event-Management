@@ -1,5 +1,3 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-
 const colors = {
   inkBlack: '#17120f',
   gold: '#c9a227',
@@ -8,63 +6,6 @@ const colors = {
   border: '#e7d9be',
   textMuted: '#6b5d52',
 };
-
-const styles = StyleSheet.create({
-  page: { padding: 32, fontSize: 10, color: '#221a15', fontFamily: 'Helvetica' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: colors.inkBlack,
-    color: colors.cream,
-    padding: 20,
-    borderRadius: 6,
-    marginBottom: 20,
-  },
-  logoBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    border: `1.5pt solid ${colors.gold}`,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoBadgeText: { fontSize: 13, fontFamily: 'Helvetica-Bold', color: colors.gold },
-  businessName: { fontSize: 20, fontFamily: 'Helvetica-Bold', color: colors.gold },
-  tagline: { fontSize: 9, color: colors.cream, marginTop: 2 },
-  quotationTitle: { fontSize: 12, color: colors.rose, marginTop: 6, fontFamily: 'Helvetica-Bold' },
-  section: { marginBottom: 16 },
-  sectionTitle: {
-    fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
-    color: colors.inkBlack,
-    marginBottom: 6,
-    borderBottom: `1pt solid ${colors.gold}`,
-    paddingBottom: 4,
-  },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  label: { color: colors.textMuted },
-  value: { fontFamily: 'Helvetica-Bold' },
-  table: { borderTop: `1pt solid ${colors.border}` },
-  tableRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 5,
-    borderBottom: `1pt solid ${colors.border}`,
-  },
-  totalsBox: {
-    marginTop: 10,
-    padding: 12,
-    backgroundColor: colors.cream,
-    borderRadius: 4,
-    border: `1pt solid ${colors.gold}`,
-  },
-  grandTotalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  grandTotalLabel: { fontSize: 12, fontFamily: 'Helvetica-Bold' },
-  grandTotalValue: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: colors.rose },
-  terms: { fontSize: 8, color: colors.textMuted, lineHeight: 1.5 },
-  footer: { marginTop: 24, textAlign: 'center', color: colors.textMuted, fontSize: 8 },
-});
 
 const formatCurrency = (value: number) => `Rs. ${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
 
@@ -103,13 +44,73 @@ const TERMS = [
   'Cancellations made less than 7 days before the event date may not be eligible for a full refund.',
 ];
 
-export function QuotationDocument({
+export async function QuotationDocument({
   booking,
   business,
 }: {
   booking: QuotationBookingData;
   business: QuotationBusinessData;
 }) {
+  // @react-pdf/renderer is ESM-only; dynamic import keeps this file loadable from CommonJS.
+  const { Document, Page, Text, View, StyleSheet } = await import('@react-pdf/renderer');
+
+  const styles = StyleSheet.create({
+    page: { padding: 32, fontSize: 10, color: '#221a15', fontFamily: 'Helvetica' },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      backgroundColor: colors.inkBlack,
+      color: colors.cream,
+      padding: 20,
+      borderRadius: 6,
+      marginBottom: 20,
+    },
+    logoBadge: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      border: `1.5pt solid ${colors.gold}`,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    logoBadgeText: { fontSize: 13, fontFamily: 'Helvetica-Bold', color: colors.gold },
+    businessName: { fontSize: 20, fontFamily: 'Helvetica-Bold', color: colors.gold },
+    tagline: { fontSize: 9, color: colors.cream, marginTop: 2 },
+    quotationTitle: { fontSize: 12, color: colors.rose, marginTop: 6, fontFamily: 'Helvetica-Bold' },
+    section: { marginBottom: 16 },
+    sectionTitle: {
+      fontSize: 11,
+      fontFamily: 'Helvetica-Bold',
+      color: colors.inkBlack,
+      marginBottom: 6,
+      borderBottom: `1pt solid ${colors.gold}`,
+      paddingBottom: 4,
+    },
+    row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+    label: { color: colors.textMuted },
+    value: { fontFamily: 'Helvetica-Bold' },
+    table: { borderTop: `1pt solid ${colors.border}` },
+    tableRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 5,
+      borderBottom: `1pt solid ${colors.border}`,
+    },
+    totalsBox: {
+      marginTop: 10,
+      padding: 12,
+      backgroundColor: colors.cream,
+      borderRadius: 4,
+      border: `1pt solid ${colors.gold}`,
+    },
+    grandTotalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
+    grandTotalLabel: { fontSize: 12, fontFamily: 'Helvetica-Bold' },
+    grandTotalValue: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: colors.rose },
+    terms: { fontSize: 8, color: colors.textMuted, lineHeight: 1.5 },
+    footer: { marginTop: 24, textAlign: 'center', color: colors.textMuted, fontSize: 8 },
+  });
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>

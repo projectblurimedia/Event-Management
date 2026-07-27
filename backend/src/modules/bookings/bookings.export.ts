@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
 import ExcelJS from 'exceljs';
-import { renderToBuffer } from '@react-pdf/renderer';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { BookingsExportDocument } from '../../templates/BookingsExportDocument';
 import * as bookingsService from './bookings.service';
@@ -61,7 +60,8 @@ export const exportBookingsPdfHandler = asyncHandler(async (req: Request, res: R
     status: b.status,
   }));
 
-  const buffer = await renderToBuffer(BookingsExportDocument({ bookings: rows }));
+  const { renderToBuffer } = await import('@react-pdf/renderer');
+  const buffer = await renderToBuffer(await BookingsExportDocument({ bookings: rows }));
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'attachment; filename="bookings.pdf"');
   res.send(buffer);

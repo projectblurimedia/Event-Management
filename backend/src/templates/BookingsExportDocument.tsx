@@ -1,24 +1,4 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { env } from '../config/env';
-
-const styles = StyleSheet.create({
-  page: { padding: 28, fontSize: 8, fontFamily: 'Helvetica' },
-  title: { fontSize: 14, fontFamily: 'Helvetica-Bold', marginBottom: 12, color: '#17120f' },
-  headerRow: {
-    flexDirection: 'row',
-    backgroundColor: '#17120f',
-    color: '#f6efe0',
-    paddingVertical: 5,
-    paddingHorizontal: 4,
-  },
-  row: {
-    flexDirection: 'row',
-    borderBottom: '0.5pt solid #e7d9be',
-    paddingVertical: 5,
-    paddingHorizontal: 4,
-  },
-  cell: { flex: 1 },
-});
 
 export interface ExportBookingRow {
   bookingCode: string;
@@ -31,7 +11,29 @@ export interface ExportBookingRow {
   status: string;
 }
 
-export function BookingsExportDocument({ bookings }: { bookings: ExportBookingRow[] }) {
+export async function BookingsExportDocument({ bookings }: { bookings: ExportBookingRow[] }) {
+  // @react-pdf/renderer is ESM-only; dynamic import keeps this file loadable from CommonJS.
+  const { Document, Page, Text, View, StyleSheet } = await import('@react-pdf/renderer');
+
+  const styles = StyleSheet.create({
+    page: { padding: 28, fontSize: 8, fontFamily: 'Helvetica' },
+    title: { fontSize: 14, fontFamily: 'Helvetica-Bold', marginBottom: 12, color: '#17120f' },
+    headerRow: {
+      flexDirection: 'row',
+      backgroundColor: '#17120f',
+      color: '#f6efe0',
+      paddingVertical: 5,
+      paddingHorizontal: 4,
+    },
+    row: {
+      flexDirection: 'row',
+      borderBottom: '0.5pt solid #e7d9be',
+      paddingVertical: 5,
+      paddingHorizontal: 4,
+    },
+    cell: { flex: 1 },
+  });
+
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
