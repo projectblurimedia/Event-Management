@@ -244,20 +244,20 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
             </div>
           </div>
 
-          {/* Approve / Reject / status actions */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-            <div className="flex flex-wrap gap-2">
-              {booking.status !== 'CONFIRMED' && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => changeStatus('CONFIRMED')}
-                  disabled={updateStatus.isPending}
-                >
-                  <CheckCircle2 size={14} /> {t('admin.bookingDetail.approve')}
-                </Button>
-              )}
-              {booking.status !== 'CANCELLED' && (
+          {/* Approve / Reject / status actions — only for bookings that aren't in a final state yet */}
+          {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+              <div className="flex flex-wrap gap-2">
+                {booking.status === 'PENDING' && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => changeStatus('CONFIRMED')}
+                    disabled={updateStatus.isPending}
+                  >
+                    <CheckCircle2 size={14} /> {t('admin.bookingDetail.approve')}
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -267,14 +267,14 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
                 >
                   <XCircle size={14} /> {t('admin.bookingDetail.reject')}
                 </Button>
-              )}
-              {booking.status === 'CONFIRMED' && (
-                <Button variant="gold" size="sm" onClick={() => changeStatus('COMPLETED')} disabled={updateStatus.isPending}>
-                  {t('admin.bookingDetail.markCompleted')}
-                </Button>
-              )}
+                {booking.status === 'CONFIRMED' && (
+                  <Button variant="gold" size="sm" onClick={() => changeStatus('COMPLETED')} disabled={updateStatus.isPending}>
+                    {t('admin.bookingDetail.markCompleted')}
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </Modal>

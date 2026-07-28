@@ -1,5 +1,6 @@
+import { useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Mail, MessageCircle, Phone, RefreshCw, Trash2 } from 'lucide-react';
+import { Mail, MessageCircle, Phone, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { useAdminEnquiries, useMarkEnquiryRead, useDeleteEnquiry } from '@/lib/api/enquiries';
 import { callHref, whatsappHref } from '@/lib/contactActions';
 import { getErrorMessage } from '@/lib/errorMessage';
@@ -12,6 +13,20 @@ export function AdminEnquiriesPage() {
   const { data: enquiries, isLoading, isError, refetch } = useAdminEnquiries();
   const markRead = useMarkEnquiryRead();
   const deleteEnquiry = useDeleteEnquiry();
+
+  const [search, setSearch] = useState('');
+  const filteredEnquiries = useMemo(() => {
+    if (!enquiries) return enquiries;
+    const q = search.trim().toLowerCase();
+    if (!q) return enquiries;
+    return enquiries.filter(
+      (e) =>
+        e.name.toLowerCase().includes(q) ||
+        e.phone.includes(q) ||
+        (e.email ?? '').toLowerCase().includes(q) ||
+        e.message.toLowerCase().includes(q),
+    );
+  }, [enquiries, search]);
 
   const unreadCount = enquiries?.filter((e) => !e.isRead).length ?? 0;
 
@@ -29,7 +44,19 @@ export function AdminEnquiriesPage() {
         )}
       </div>
 
-      <div className="mt-6 flex flex-col gap-3">
+      {!!enquiries?.length && (
+        <div className="relative mt-5 w-full sm:w-80">
+          <Search size={15} className="text-text-muted absolute top-1/2 left-3.5 -translate-y-1/2" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('admin.searchPlaceholder')}
+            className="border-border bg-surface w-full rounded-lg border py-2.5 pr-3 pl-10 text-base outline-none"
+          />
+        </div>
+      )}
+
+      <div className="mt-5 flex flex-col gap-3">
         {isLoading && <p className="text-text-muted text-base">{t('common.loading')}</p>}
         {isError && (
           <div className="border-border bg-surface rounded-2xl border p-6 text-center">
@@ -48,7 +75,12 @@ export function AdminEnquiriesPage() {
             {t('admin.enquiries.noEnquiries')}
           </div>
         )}
-        {enquiries?.map((enq) => (
+        {!isLoading && !isError && !!enquiries?.length && filteredEnquiries?.length === 0 && (
+          <div className="border-border bg-surface text-text-muted rounded-2xl border border-dashed p-10 text-center text-base">
+            {t('admin.noSearchResults')}
+          </div>
+        )}
+        {filteredEnquiries?.map((enq) => (
           <div
             key={enq.id}
             className={cn(

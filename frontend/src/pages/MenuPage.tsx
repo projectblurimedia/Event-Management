@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Search } from 'lucide-react';
 import { PageHero } from '@/components/ui/PageHero';
 import { Container } from '@/components/ui/Container';
 import { LinkButton } from '@/components/ui/Button';
@@ -44,12 +45,20 @@ export function MenuPage() {
   const { data: categories } = menuCategoryHooks.usePublicList();
   const { data: items, isLoading, isError, refetch } = menuItemHooks.usePublicList();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
   const filteredItems = useMemo(() => {
     if (!items) return [];
-    if (!activeCategory) return items;
-    return items.filter((item) => item.categoryId === activeCategory);
-  }, [items, activeCategory]);
+    let result = items;
+    if (activeCategory) result = result.filter((item) => item.categoryId === activeCategory);
+    const q = search.trim().toLowerCase();
+    if (q) {
+      result = result.filter(
+        (item) => item.name.toLowerCase().includes(q) || (item.nameTe ?? '').toLowerCase().includes(q),
+      );
+    }
+    return result;
+  }, [items, activeCategory, search]);
 
   return (
     <>
@@ -67,6 +76,16 @@ export function MenuPage() {
       />
 
       <Container className="py-12">
+        <div className="relative mx-auto mb-6 w-full max-w-md">
+          <Search size={16} className="text-text-muted absolute top-1/2 left-4 -translate-y-1/2" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('page.menu.searchPlaceholder')}
+            className="border-border bg-surface w-full rounded-full border py-3 pr-4 pl-11 text-sm outline-none focus:border-gold"
+          />
+        </div>
+
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
@@ -102,11 +121,15 @@ export function MenuPage() {
           loadingLabel={t('common.loading')}
           errorLabel="Couldn't load the menu. Please check your connection and try again."
         >
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredItems.map((item) => (
-              <MenuItemCard key={item.id} item={item} />
-            ))}
-          </div>
+          {filteredItems.length === 0 ? (
+            <p className="text-text-muted mt-8 text-center text-sm">{t('page.menu.noSearchResults')}</p>
+          ) : (
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredItems.map((item) => (
+                <MenuItemCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
         </AsyncState>
 
         <div className="mt-12 flex justify-center">

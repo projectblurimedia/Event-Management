@@ -24,6 +24,7 @@ import { useUiStore } from '@/store/uiStore';
 import { siteConfig } from '@/lib/siteConfig';
 import { useTranslation } from '@/hooks/useTranslation';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { BackToTopButton } from '@/components/ui/BackToTopButton';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
 const navItems: { to: string; labelKey: TranslationKey; icon: typeof LayoutDashboard; end?: boolean }[] = [
@@ -121,7 +122,7 @@ export function AdminLayout() {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="bg-surface border-border flex h-16 shrink-0 items-center justify-between gap-4 border-b px-4 sm:px-6 lg:px-8">
+        <header className="bg-surface border-border sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b px-4 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
@@ -187,6 +188,7 @@ export function AdminLayout() {
           {siteConfig.businessName} Admin Dashboard · &copy; {new Date().getFullYear()}
         </footer>
       </div>
+      <BackToTopButton />
     </div>
   );
 }

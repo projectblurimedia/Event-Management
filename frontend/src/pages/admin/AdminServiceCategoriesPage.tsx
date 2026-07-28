@@ -11,7 +11,12 @@ export function AdminServiceCategoriesPage() {
     { name: 'name', label: t('admin.serviceCategories.name'), type: 'text', required: true },
     { name: 'nameTe', label: t('admin.serviceCategories.nameTe'), type: 'text' },
     { name: 'slug', label: t('admin.serviceCategories.slug'), type: 'text', required: true },
-    { name: 'allowMultiple', label: t('admin.serviceCategories.allowMultiple'), type: 'checkbox' },
+    {
+      name: 'allowMultiple',
+      label: t('admin.serviceCategories.allowMultiple'),
+      type: 'checkbox',
+      hint: t('admin.serviceCategories.allowMultipleHint'),
+    },
     { name: 'order', label: t('admin.serviceCategories.displayOrder'), type: 'number' },
     { name: 'isActive', label: t('admin.serviceCategories.active'), type: 'checkbox' },
     { name: 'description', label: t('admin.serviceCategories.description'), type: 'textarea' },

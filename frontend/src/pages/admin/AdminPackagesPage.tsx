@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowDown, ArrowUp, Pencil, Plus, RefreshCw, Sparkles, Trash2, UtensilsCrossed, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Pencil, Plus, RefreshCw, Search, Sparkles, Trash2, UtensilsCrossed, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ImageUploadField } from '@/features/admin/ImageUploadField';
@@ -81,6 +81,19 @@ export function AdminPackagesPage() {
   const { data: packages, isLoading, isError, refetch } = packageHooks.useAdminList();
   const { data: categories } = serviceCategoryHooks.useAdminList();
   const { create, update, remove } = usePackageMutations();
+
+  const [search, setSearch] = useState('');
+  const filteredPackages = useMemo(() => {
+    if (!packages) return packages;
+    const q = search.trim().toLowerCase();
+    if (!q) return packages;
+    return packages.filter(
+      (pkg) =>
+        pkg.name.toLowerCase().includes(q) ||
+        (pkg.nameTe ?? '').toLowerCase().includes(q) ||
+        pkg.tier.toLowerCase().includes(q),
+    );
+  }, [packages, search]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Package | null>(null);
@@ -238,8 +251,20 @@ export function AdminPackagesPage() {
         <Button onClick={openCreate}>{t('common.addNew')}</Button>
       </div>
 
+      {!!packages?.length && (
+        <div className="relative mt-5 w-full sm:w-80">
+          <Search size={15} className="text-text-muted absolute top-1/2 left-3.5 -translate-y-1/2" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('admin.searchPlaceholder')}
+            className="border-border bg-surface w-full rounded-lg border py-2.5 pr-3 pl-10 text-base outline-none"
+          />
+        </div>
+      )}
+
       {/* Mobile / tablet: card list */}
-      <div className="mt-6 flex flex-col gap-3 lg:hidden">
+      <div className="mt-5 flex flex-col gap-3 lg:hidden">
         {isLoading && <p className="text-text-muted py-10 text-center text-base">{t('common.loading')}</p>}
         {isError && (
           <div className="border-border bg-surface rounded-2xl border p-6 text-center">
@@ -253,7 +278,12 @@ export function AdminPackagesPage() {
             </button>
           </div>
         )}
-        {packages?.map((pkg) => (
+        {!isLoading && !isError && !!packages?.length && filteredPackages?.length === 0 && (
+          <div className="border-border bg-surface text-text-muted rounded-2xl border p-10 text-center text-base">
+            {t('admin.noSearchResults')}
+          </div>
+        )}
+        {filteredPackages?.map((pkg) => (
           <div key={pkg.id} className="border-border bg-surface rounded-2xl border p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -299,7 +329,7 @@ export function AdminPackagesPage() {
       </div>
 
       {/* Desktop: table */}
-      <div className="border-border bg-surface mt-6 hidden overflow-x-auto rounded-2xl border lg:block">
+      <div className="border-border bg-surface mt-5 hidden overflow-x-auto rounded-2xl border lg:block">
         <table className="w-full text-left text-base">
           <thead className="bg-surface-muted text-text-muted text-sm uppercase">
             <tr>
@@ -333,7 +363,14 @@ export function AdminPackagesPage() {
                 </td>
               </tr>
             )}
-            {packages?.map((pkg) => (
+            {!isLoading && !isError && !!packages?.length && filteredPackages?.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-text-muted px-5 py-10 text-center">
+                  {t('admin.noSearchResults')}
+                </td>
+              </tr>
+            )}
+            {filteredPackages?.map((pkg) => (
               <tr key={pkg.id} className="border-border border-t">
                 <td className="px-5 py-3.5">{pkg.tier}</td>
                 <td className="px-5 py-3.5">{tf(pkg.name, pkg.nameTe)}</td>

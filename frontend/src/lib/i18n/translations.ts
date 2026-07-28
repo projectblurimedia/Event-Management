@@ -149,6 +149,8 @@ export const translations = {
     'admin.isRequiredSuffix': 'is required',
     'admin.uploading': 'Uploading…',
     'admin.uploadImage': 'Upload image',
+    'admin.searchPlaceholder': 'Search…',
+    'admin.noSearchResults': 'No results found. Try a different search.',
 
     // Booking status values (shown to both customers and admin)
     'status.PENDING': 'Pending',
@@ -293,6 +295,8 @@ export const translations = {
     'admin.serviceCategories.nameTe': 'Category Name (Telugu, optional)',
     'admin.serviceCategories.slug': 'Slug',
     'admin.serviceCategories.allowMultiple': 'Allow multiple selections in wizard',
+    'admin.serviceCategories.allowMultipleHint':
+      "When ON: customers can pick more than one option from this category while booking (e.g. combine two decoration styles). When OFF: they can only pick one option from this category.",
     'admin.serviceCategories.displayOrder': 'Display Order',
     'admin.serviceCategories.active': 'Active',
     'admin.serviceCategories.description': 'Description',
@@ -424,6 +428,8 @@ export const translations = {
     'page.menu.title': 'Our Menu',
     'page.menu.description':
       "Browse every category below — you'll pick your Veg, Non-Veg or Both preference and choose exact items with quantities during the booking wizard.",
+    'page.menu.searchPlaceholder': 'Search dishes…',
+    'page.menu.noSearchResults': 'No dishes found. Try a different search.',
     'page.packages.eyebrow': 'Curated Packages',
     'page.packages.title': 'Silver, Gold & Platinum',
     'page.packages.description':
@@ -741,6 +747,8 @@ export const translations = {
     'admin.isRequiredSuffix': 'అవసరం',
     'admin.uploading': 'అప్‌లోడ్ అవుతోంది…',
     'admin.uploadImage': 'చిత్రాన్ని అప్‌లోడ్ చేయండి',
+    'admin.searchPlaceholder': 'శోధించండి…',
+    'admin.noSearchResults': 'ఫలితాలు కనుగొనబడలేదు. వేరే పదంతో శోధించండి.',
 
     'status.PENDING': 'పెండింగ్‌లో',
     'status.CONFIRMED': 'నిర్ధారించబడింది',
@@ -879,6 +887,8 @@ export const translations = {
     'admin.serviceCategories.nameTe': 'కేటగిరీ పేరు (తెలుగు, ఐచ్ఛికం)',
     'admin.serviceCategories.slug': 'స్లగ్',
     'admin.serviceCategories.allowMultiple': 'విజార్డ్‌లో బహుళ ఎంపికలను అనుమతించండి',
+    'admin.serviceCategories.allowMultipleHint':
+      'ఆన్ చేస్తే: బుకింగ్ చేసేటప్పుడు కస్టమర్‌లు ఈ కేటగిరీ నుండి ఒకటి కంటే ఎక్కువ ఎంపికలను ఎంచుకోవచ్చు (ఉదా. రెండు అలంకరణ శైలులను కలపడం). ఆఫ్ చేస్తే: వారు ఈ కేటగిరీ నుండి ఒక్క ఎంపిక మాత్రమే ఎంచుకోగలరు.',
     'admin.serviceCategories.displayOrder': 'ప్రదర్శన క్రమం',
     'admin.serviceCategories.active': 'యాక్టివ్',
     'admin.serviceCategories.description': 'వివరణ',
@@ -1005,6 +1015,8 @@ export const translations = {
     'page.menu.title': 'మా మెనూ',
     'page.menu.description':
       'క్రింద ప్రతి కేటగిరీని చూడండి — బుకింగ్ విజార్డ్‌లో మీరు వెజ్, నాన్-వెజ్ లేదా రెండూ ఎంపిక చేసుకుని, ఖచ్చితమైన అంశాలను పరిమాణాలతో ఎంచుకోవచ్చు.',
+    'page.menu.searchPlaceholder': 'వంటకాలను శోధించండి…',
+    'page.menu.noSearchResults': 'వంటకాలు కనుగొనబడలేదు. వేరే పదంతో శోధించండి.',
     'page.packages.eyebrow': 'ప్రత్యేక ప్యాకేజీలు',
     'page.packages.title': 'సిల్వర్, గోల్డ్ & ప్లాటినం',
     'page.packages.description':

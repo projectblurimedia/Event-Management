@@ -1,6 +1,6 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import toast from 'react-hot-toast';
-import { Pencil, RefreshCw, Trash2 } from 'lucide-react';
+import { Pencil, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ImageUploadField } from './ImageUploadField';
@@ -19,6 +19,8 @@ export interface EntityField<T> {
   /** Labels for the true/false options when type is 'boolean-select'. */
   trueLabel?: string;
   falseLabel?: string;
+  /** Short helper text shown under the field, for anything non-obvious. */
+  hint?: string;
 }
 
 /** Only undefined/null/'' count as "not filled in" — `false` is a real answer. */
@@ -60,6 +62,23 @@ export function AdminEntityManager<T extends { id: string }>({
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<T | null>(null);
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
+  const [search, setSearch] = useState('');
+
+  const filteredItems = useMemo(() => {
+    if (!items) return items;
+    const q = search.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((item) =>
+      columns
+        .map((c) => {
+          const rendered = c.render?.(item);
+          return typeof rendered === 'string' ? rendered : String(item[c.key] ?? '');
+        })
+        .join(' ')
+        .toLowerCase()
+        .includes(q),
+    );
+  }, [items, search, columns]);
 
   function openCreate() {
     const defaults: Record<string, unknown> = {};
@@ -127,8 +146,20 @@ export function AdminEntityManager<T extends { id: string }>({
         <Button onClick={openCreate}>{t('common.addNew')}</Button>
       </div>
 
+      {!!items?.length && (
+        <div className="relative mt-5 w-full sm:w-80">
+          <Search size={15} className="text-text-muted absolute top-1/2 left-3.5 -translate-y-1/2" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('admin.searchPlaceholder')}
+            className="border-border bg-surface w-full rounded-lg border py-2.5 pr-3 pl-10 text-base outline-none"
+          />
+        </div>
+      )}
+
       {/* Mobile / tablet: card list */}
-      <div className="mt-6 flex flex-col gap-3 lg:hidden">
+      <div className="mt-5 flex flex-col gap-3 lg:hidden">
         {isLoading && <p className="text-text-muted py-10 text-center text-base">{t('common.loading')}</p>}
         {isError && (
           <div className="border-border bg-surface rounded-2xl border p-6 text-center">
@@ -147,7 +178,12 @@ export function AdminEntityManager<T extends { id: string }>({
             {t('admin.noItemsYet')}
           </div>
         )}
-        {items?.map((item) => (
+        {!isLoading && !isError && !!items?.length && filteredItems?.length === 0 && (
+          <div className="border-border bg-surface text-text-muted rounded-2xl border p-10 text-center text-base">
+            {t('admin.noSearchResults')}
+          </div>
+        )}
+        {filteredItems?.map((item) => (
           <div key={item.id} className="border-border bg-surface rounded-2xl border p-5">
             <div className="text-base font-semibold">
               {titleColumn.render ? titleColumn.render(item) : String(item[titleColumn.key] ?? '-')}
@@ -183,7 +219,7 @@ export function AdminEntityManager<T extends { id: string }>({
       </div>
 
       {/* Desktop: table */}
-      <div className="border-border bg-surface mt-6 hidden overflow-x-auto rounded-2xl border lg:block">
+      <div className="border-border bg-surface mt-5 hidden overflow-x-auto rounded-2xl border lg:block">
         <table className="w-full text-left text-base">
           <thead className="bg-surface-muted text-text-muted text-sm uppercase">
             <tr>
@@ -224,7 +260,14 @@ export function AdminEntityManager<T extends { id: string }>({
                 </td>
               </tr>
             )}
-            {items?.map((item) => (
+            {!isLoading && !isError && !!items?.length && filteredItems?.length === 0 && (
+              <tr>
+                <td colSpan={columns.length + 1} className="text-text-muted px-5 py-10 text-center">
+                  {t('admin.noSearchResults')}
+                </td>
+              </tr>
+            )}
+            {filteredItems?.map((item) => (
               <tr key={item.id} className="border-border border-t">
                 {columns.map((c) => (
                   <td key={c.key} className="px-5 py-3.5">
@@ -264,6 +307,7 @@ export function AdminEntityManager<T extends { id: string }>({
               <label htmlFor={`field-${f.name}`} className={labelClass}>
                 {f.label}
               </label>
+              {f.hint && <p className="text-text-muted -mt-1 mb-1.5 text-xs">{f.hint}</p>}
               {f.type === 'textarea' && (
                 <textarea
                   id={`field-${f.name}`}
