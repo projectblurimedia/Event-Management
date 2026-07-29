@@ -166,7 +166,7 @@ export function AdminItemsPage() {
       description: form.description || undefined,
       price: Number(form.price),
       images: form.images,
-      isVeg: selectedCategory?.isFood ? form.isVeg : undefined,
+      isVeg: selectedCategory?.pricingMode === 'PER_PERSON' ? form.isVeg : undefined,
       isAvailable: form.isAvailable,
       isFeatured: form.isFeatured,
       order: Number(form.order),
@@ -368,7 +368,15 @@ export function AdminItemsPage() {
               <select
                 className={inputClass}
                 value={form.categoryId}
-                onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value, categoryTypeId: '' }))}
+                onChange={(e) => {
+                  const categoryId = e.target.value;
+                  const soleType = types?.filter((ty) => ty.categoryId === categoryId) ?? [];
+                  setForm((f) => ({
+                    ...f,
+                    categoryId,
+                    categoryTypeId: soleType.length === 1 ? soleType[0].id : '',
+                  }));
+                }}
               >
                 <option value="">{t('admin.selectPlaceholder')}</option>
                 {availableCategories.map((c) => (
@@ -381,25 +389,26 @@ export function AdminItemsPage() {
                 <p className="text-text-muted mt-1 text-xs">{t('admin.items.packageHasNoCategories')}</p>
               )}
             </div>
-            <div>
-              <label className={labelClass}>{t('admin.categories.type.name')}</label>
-              <select
-                className={inputClass}
-                value={form.categoryTypeId}
-                disabled={!form.categoryId}
-                onChange={(e) => setForm((f) => ({ ...f, categoryTypeId: e.target.value }))}
-              >
-                <option value="">{t('admin.selectPlaceholder')}</option>
-                {typesForCategory.map((ty) => (
-                  <option key={ty.id} value={ty.id}>
-                    {tf(ty.name, ty.nameTe)}
-                  </option>
-                ))}
-              </select>
-              {form.categoryId && typesForCategory.length === 0 && (
-                <p className="text-text-muted mt-1 text-xs">{t('admin.items.noTypesYet')}</p>
-              )}
-            </div>
+            {typesForCategory.length > 1 && (
+              <div>
+                <label className={labelClass}>{t('admin.categories.type.name')}</label>
+                <select
+                  className={inputClass}
+                  value={form.categoryTypeId}
+                  onChange={(e) => setForm((f) => ({ ...f, categoryTypeId: e.target.value }))}
+                >
+                  <option value="">{t('admin.selectPlaceholder')}</option>
+                  {typesForCategory.map((ty) => (
+                    <option key={ty.id} value={ty.id}>
+                      {tf(ty.name, ty.nameTe)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {form.categoryId && typesForCategory.length === 0 && (
+              <p className="text-text-muted -mt-2 text-xs sm:col-span-2">{t('admin.items.noTypesYet')}</p>
+            )}
             <div>
               <label className={labelClass}>{t('admin.items.name')}</label>
               <input className={inputClass} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
@@ -438,7 +447,7 @@ export function AdminItemsPage() {
           </div>
 
           <div className="flex flex-wrap gap-6">
-            {selectedCategory?.isFood && (
+            {selectedCategory?.pricingMode === 'PER_PERSON' && (
               <div>
                 <label className={labelClass}>{t('admin.menu.vegNonVeg')}</label>
                 <select

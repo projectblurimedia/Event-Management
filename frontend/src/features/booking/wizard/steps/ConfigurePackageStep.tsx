@@ -63,7 +63,7 @@ function FixedPackageFlow({ packageId }: { packageId: string }) {
         <h2 className="mt-1 text-xl font-semibold">{tf(current.category.name, current.category.nameTe)}</h2>
       </div>
 
-      <CategoryItemPanel category={current.category} />
+      <CategoryItemPanel key={current.category.id} category={current.category} />
 
       <div className="mt-8 flex items-center justify-between">
         <Button variant="outline" onClick={prevConfigureCategory} disabled={configureCategoryIndex === 0}>

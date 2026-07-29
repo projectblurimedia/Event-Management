@@ -55,7 +55,13 @@ export function quotationDownloadUrl(bookingId: string, phone: string) {
   return `${base}/bookings/${bookingId}/quotation.pdf?phone=${encodeURIComponent(phone)}`;
 }
 
-export function useAdminBookings(filters: { status?: BookingStatus }) {
+export interface AdminBookingsFilters {
+  status?: BookingStatus;
+  from?: string;
+  to?: string;
+}
+
+export function useAdminBookings(filters: AdminBookingsFilters) {
   return useQuery({
     queryKey: ['bookings', 'admin', 'list', filters],
     queryFn: async () => (await api.get<Booking[]>('/admin/bookings', { params: filters })).data,
@@ -86,7 +92,7 @@ export function useUpdateBookingStatus() {
  * the Authorization header — fetch as a blob via the authenticated `api`
  * client instead and trigger the download manually.
  */
-export async function downloadBookingsExport(type: 'xlsx' | 'pdf', filters: { status?: BookingStatus }) {
+export async function downloadBookingsExport(type: 'xlsx' | 'pdf', filters: AdminBookingsFilters) {
   const response = await api.get(`/admin/bookings/export.${type}`, {
     params: filters,
     responseType: 'blob',

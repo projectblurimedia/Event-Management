@@ -35,8 +35,9 @@ export const downloadQuotationHandler = asyncHandler(async (req: Request, res: R
     }),
   );
 
+  const safeBusinessName = settings.businessName.trim().replace(/[^a-zA-Z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'Quotation';
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="${booking.bookingCode}-quotation.pdf"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${safeBusinessName}-Quotation-${booking.bookingCode}.pdf"`);
   res.send(buffer);
 });
 

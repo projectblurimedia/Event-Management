@@ -3,6 +3,7 @@ import { ApiError } from '../../utils/ApiError';
 import { calculatePricing } from '../../utils/pricingEngine';
 import { generateBookingCode } from '../../utils/bookingCode';
 import { sendBookingNotificationEmail } from '../../jobs/emailNotifier';
+import { getSettings } from '../settings/settings.service';
 import type { CreateBookingInput, QuoteInput } from './bookings.validator';
 
 const bookingInclude = {
@@ -52,13 +53,14 @@ export async function getQuote(input: QuoteInput) {
 }
 
 export async function createBooking(input: CreateBookingInput) {
-  const { pkg, itemMap, pricing } = await resolveSelection(input);
+  const [{ pkg, itemMap, pricing }, settings] = await Promise.all([resolveSelection(input), getSettings()]);
+  const businessName = settings?.businessName ?? '';
 
-  let bookingCode = generateBookingCode();
+  let bookingCode = generateBookingCode(businessName);
   for (let attempt = 0; attempt < 5; attempt++) {
     const existing = await prisma.booking.findUnique({ where: { bookingCode } });
     if (!existing) break;
-    bookingCode = generateBookingCode();
+    bookingCode = generateBookingCode(businessName);
   }
 
   const booking = await prisma.booking.create({

@@ -4,9 +4,7 @@ import {
   Boxes,
   CalendarCheck,
   ChevronDown,
-  ClipboardList,
   ExternalLink,
-  Image,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -14,7 +12,6 @@ import {
   Moon,
   Package,
   Settings,
-  Sparkles,
   Sun,
   UtensilsCrossed,
   X,
@@ -39,9 +36,6 @@ const navItems: { to: string; labelKey: TranslationKey; icon: typeof LayoutDashb
   { to: '/admin/categories', labelKey: 'admin.nav.categories', icon: Boxes },
   { to: '/admin/items', labelKey: 'admin.nav.items', icon: UtensilsCrossed },
   { to: '/admin/packages', labelKey: 'admin.nav.packages', icon: Package },
-  { to: '/admin/gallery', labelKey: 'admin.nav.gallery', icon: Image },
-  { to: '/admin/testimonials', labelKey: 'admin.nav.testimonials', icon: Sparkles },
-  { to: '/admin/faqs', labelKey: 'admin.nav.faqs', icon: ClipboardList },
   { to: '/admin/settings', labelKey: 'admin.nav.settings', icon: Settings },
 ];
 

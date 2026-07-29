@@ -4,11 +4,18 @@ import { authRateLimiter } from '../../middlewares/rateLimiter';
 import { loginSchema } from './auth.validator';
 import { loginHandler } from './auth.controller';
 import { requestOtpSchema, resetPasswordSchema, verifyOtpSchema } from './passwordReset.validator';
-import { requestOtpHandler, resetPasswordHandler, verifyOtpHandler } from './passwordReset.controller';
+import {
+  registeredEmailHandler,
+  requestOtpHandler,
+  resetPasswordHandler,
+  verifyOtpHandler,
+} from './passwordReset.controller';
 
 export const authRouter = Router();
 
 authRouter.post('/login', authRateLimiter, validateRequest({ body: loginSchema }), loginHandler);
+
+authRouter.get('/forgot-password/identifier', authRateLimiter, registeredEmailHandler);
 
 authRouter.post(
   '/forgot-password/request',

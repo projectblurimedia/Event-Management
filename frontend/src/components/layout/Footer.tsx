@@ -10,7 +10,6 @@ const quickLinks: { to: string; labelKey: TranslationKey }[] = [
   { to: '/services', labelKey: 'nav.services' },
   { to: '/packages', labelKey: 'nav.packages' },
   { to: '/menu', labelKey: 'nav.menu' },
-  { to: '/gallery', labelKey: 'nav.gallery' },
 ];
 
 const eventTypeLinks: { to: string; labelKey: TranslationKey }[] = [

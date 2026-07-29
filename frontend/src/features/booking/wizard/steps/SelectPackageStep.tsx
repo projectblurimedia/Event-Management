@@ -12,7 +12,7 @@ import { cn } from '@/lib/cn';
 export function SelectPackageStep() {
   const { t, tf } = useTranslation();
   const { data: packages, isLoading, isError, refetch } = packageHooks.usePublicList();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const packageId = useBookingCartStore((s) => s.packageId);
   const isCustom = useBookingCartStore((s) => s.isCustom);
   const selectPackage = useBookingCartStore((s) => s.selectPackage);
@@ -20,9 +20,20 @@ export function SelectPackageStep() {
 
   useEffect(() => {
     const packageParam = searchParams.get('package');
-    if (packageParam && packages && !packageId && !isCustom) {
-      const match = packages.find((p) => p.id === packageParam);
-      if (match) selectPackage(match.id, false);
+    if (!packageParam || !packages) return;
+
+    if (packageParam === 'custom') {
+      selectPackage(null, true);
+      setSearchParams({}, { replace: true });
+      goToStep('CONFIGURE');
+      return;
+    }
+
+    const match = packages.find((p) => p.id === packageParam);
+    if (match) {
+      selectPackage(match.id, false);
+      setSearchParams({}, { replace: true });
+      goToStep('CONFIGURE');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [packages]);

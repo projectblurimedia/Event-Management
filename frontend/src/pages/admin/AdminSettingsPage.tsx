@@ -152,16 +152,8 @@ export function AdminSettingsPage() {
               <input className={inputClass} value={form.heroHeadline} onChange={(e) => setForm({ ...form, heroHeadline: e.target.value })} />
             </div>
             <div>
-              <label className={labelClass}>{t('admin.settings.heroHeadlineTe')}</label>
-              <input className={inputClass} value={form.heroHeadlineTe ?? ''} onChange={(e) => setForm({ ...form, heroHeadlineTe: e.target.value })} />
-            </div>
-            <div>
               <label className={labelClass}>{t('admin.settings.heroSubheadline')}</label>
               <textarea rows={3} className={inputClass} value={form.heroSubheadline} onChange={(e) => setForm({ ...form, heroSubheadline: e.target.value })} />
-            </div>
-            <div>
-              <label className={labelClass}>{t('admin.settings.heroSubheadlineTe')}</label>
-              <textarea rows={3} className={inputClass} value={form.heroSubheadlineTe ?? ''} onChange={(e) => setForm({ ...form, heroSubheadlineTe: e.target.value })} />
             </div>
           </div>
           <div>
@@ -178,16 +170,8 @@ export function AdminSettingsPage() {
               <input className={inputClass} value={form.businessIntroTitle} onChange={(e) => setForm({ ...form, businessIntroTitle: e.target.value })} />
             </div>
             <div>
-              <label className={labelClass}>{t('admin.settings.introTitleTe')}</label>
-              <input className={inputClass} value={form.businessIntroTitleTe ?? ''} onChange={(e) => setForm({ ...form, businessIntroTitleTe: e.target.value })} />
-            </div>
-            <div>
               <label className={labelClass}>{t('admin.settings.introText')}</label>
               <textarea rows={4} className={inputClass} value={form.businessIntroText} onChange={(e) => setForm({ ...form, businessIntroText: e.target.value })} />
-            </div>
-            <div>
-              <label className={labelClass}>{t('admin.settings.introTextTe')}</label>
-              <textarea rows={4} className={inputClass} value={form.businessIntroTextTe ?? ''} onChange={(e) => setForm({ ...form, businessIntroTextTe: e.target.value })} />
             </div>
           </div>
         </div>

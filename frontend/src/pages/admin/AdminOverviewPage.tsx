@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { CalendarClock, CheckCircle2, Clock3, IndianRupee, RefreshCw, TrendingUp, XCircle } from 'lucide-react';
 import { useDashboardOverview } from '@/lib/api/dashboard';
 import { useAuthStore } from '@/store/authStore';
@@ -25,12 +26,13 @@ export function AdminOverviewPage() {
     value: number | undefined;
     icon: typeof CalendarClock;
     tone: keyof typeof statCardStyles;
+    to: string;
   }[] = [
-    { labelKey: 'admin.overview.todayBookings', value: data?.todayBookings, icon: CalendarClock, tone: 'neutral' },
-    { labelKey: 'admin.overview.pendingBookings', value: data?.pendingBookings, icon: Clock3, tone: 'amber' },
-    { labelKey: 'admin.overview.confirmedBookings', value: data?.confirmedBookings, icon: CheckCircle2, tone: 'emerald' },
-    { labelKey: 'admin.overview.cancelledBookings', value: data?.cancelledBookings, icon: XCircle, tone: 'rose' },
-    { labelKey: 'admin.overview.completedEvents', value: data?.completedEvents, icon: TrendingUp, tone: 'gold' },
+    { labelKey: 'admin.overview.todayBookings', value: data?.todayBookings, icon: CalendarClock, tone: 'neutral', to: '/admin/bookings?date=today' },
+    { labelKey: 'admin.overview.pendingBookings', value: data?.pendingBookings, icon: Clock3, tone: 'amber', to: '/admin/bookings?status=PENDING' },
+    { labelKey: 'admin.overview.confirmedBookings', value: data?.confirmedBookings, icon: CheckCircle2, tone: 'emerald', to: '/admin/bookings?status=CONFIRMED' },
+    { labelKey: 'admin.overview.cancelledBookings', value: data?.cancelledBookings, icon: XCircle, tone: 'rose', to: '/admin/bookings?status=CANCELLED' },
+    { labelKey: 'admin.overview.completedEvents', value: data?.completedEvents, icon: TrendingUp, tone: 'gold', to: '/admin/bookings?status=COMPLETED' },
   ];
 
   return (
@@ -78,14 +80,18 @@ export function AdminOverviewPage() {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-5">
-        {stats.map(({ labelKey, value, icon: Icon, tone }) => (
-          <div key={labelKey} className="border-border bg-surface rounded-2xl border p-5">
+        {stats.map(({ labelKey, value, icon: Icon, tone, to }) => (
+          <Link
+            key={labelKey}
+            to={to}
+            className="border-border bg-surface hover:border-gold hover:shadow-gold/10 rounded-2xl border p-5 transition-all hover:shadow-lg"
+          >
             <span className={cn('flex h-9 w-9 items-center justify-center rounded-full', statCardStyles[tone].icon)}>
               <Icon size={18} />
             </span>
             <p className="mt-4 text-2xl font-semibold">{isLoading ? '—' : (value ?? 0)}</p>
             <p className="text-text-muted text-sm">{t(labelKey)}</p>
-          </div>
+          </Link>
         ))}
       </div>
 

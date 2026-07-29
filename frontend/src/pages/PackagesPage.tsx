@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { Check } from 'lucide-react';
+import { Check, Sparkles } from 'lucide-react';
 import { LinkButton } from '@/components/ui/Button';
 import { PageHero } from '@/components/ui/PageHero';
 import { Container } from '@/components/ui/Container';
@@ -35,7 +35,7 @@ export function PackagesPage() {
           loadingLabel={t('common.loading')}
           errorLabel="Couldn't load packages right now. Please check your connection and try again."
         >
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {packages?.map((pkg) => (
             <div
               key={pkg.id}
@@ -70,6 +70,16 @@ export function PackagesPage() {
               </div>
             </div>
           ))}
+          <div className="border-border bg-surface flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-6 text-center">
+            <span className="bg-rose/10 text-rose flex h-11 w-11 items-center justify-center rounded-full">
+              <Sparkles size={20} />
+            </span>
+            <h3 className="text-xl font-semibold">{t('wizard.customPackageTitle')}</h3>
+            <p className="text-text-muted text-sm">{t('wizard.customPackageDesc')}</p>
+            <LinkButton to="/booking?package=custom" variant="outline" className="mt-2 w-full">
+              {t('packages.chooseThisPackage')}
+            </LinkButton>
+          </div>
         </div>
         </AsyncState>
       </Container>

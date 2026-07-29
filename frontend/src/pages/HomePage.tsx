@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Award, Check, Clock, HeartHandshake, Mail, MapPin, Phone, ShieldCheck, Star } from 'lucide-react';
+import { Award, Check, Clock, HeartHandshake, Mail, MapPin, Phone, ShieldCheck, Sparkles, Star } from 'lucide-react';
 import { LinkButton, Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -11,12 +11,10 @@ import { ContactModal } from '@/features/booking/ContactModal';
 import { useSettings } from '@/lib/api/settings';
 import {
   packageHooks,
-  galleryHooks,
   testimonialHooks,
   categoryHooks,
   categoryTypeHooks,
   itemHooks,
-  faqHooks,
 } from '@/lib/api/resources';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -34,12 +32,10 @@ export function HomePage() {
   const { t, tf } = useTranslation();
   const { data: settings } = useSettings();
   const { data: packages } = packageHooks.usePublicList();
-  const { data: gallery } = galleryHooks.usePublicList();
   const { data: testimonials } = testimonialHooks.usePublicList();
   const { data: categories } = categoryHooks.usePublicList();
   const { data: categoryTypes } = categoryTypeHooks.usePublicList();
   const { data: items } = itemHooks.usePublicList();
-  const { data: faqs } = faqHooks.usePublicList();
   const [contactOpen, setContactOpen] = useState(false);
   const [activeServiceTab, setActiveServiceTab] = useState<string | null>(null);
 
@@ -227,7 +223,7 @@ export function HomePage() {
             <FadeIn>
               <SectionHeading eyebrow={t('home.curatedForYou')} title={t('nav.packages')} linkTo="/packages" />
             </FadeIn>
-            <div className="mt-10 grid gap-8 lg:grid-cols-3">
+            <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {packages.slice(0, 3).map((pkg) => (
                 <div
                   key={pkg.id}
@@ -262,28 +258,16 @@ export function HomePage() {
                   </div>
                 </div>
               ))}
-            </div>
-          </Container>
-        </section>
-      )}
-
-      {/* Gallery */}
-      {!!gallery?.length && (
-        <section className="py-20">
-          <Container>
-            <FadeIn>
-              <SectionHeading eyebrow={t('home.ourWork')} title={t('nav.gallery')} linkTo="/gallery" />
-            </FadeIn>
-            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {gallery.slice(0, 8).map((img) => (
-                <img
-                  key={img.id}
-                  src={img.imageUrl}
-                  alt={tf(img.caption ?? '', img.captionTe)}
-                  loading="lazy"
-                  className="aspect-square w-full rounded-xl object-cover"
-                />
-              ))}
+              <div className="border-border bg-surface flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-6 text-center">
+                <span className="bg-rose/10 text-rose flex h-11 w-11 items-center justify-center rounded-full">
+                  <Sparkles size={20} />
+                </span>
+                <h3 className="text-lg font-semibold">{t('wizard.customPackageTitle')}</h3>
+                <p className="text-text-muted text-sm">{t('wizard.customPackageDesc')}</p>
+                <LinkButton to="/booking?package=custom" variant="outline" className="mt-2 w-full">
+                  {t('packages.chooseThisPackage')}
+                </LinkButton>
+              </div>
             </div>
           </Container>
         </section>
@@ -306,25 +290,6 @@ export function HomePage() {
                   </div>
                   <p className="text-sm italic">&ldquo;{tf(item.message, item.messageTe)}&rdquo;</p>
                   <p className="text-sm font-semibold">{item.customerName}</p>
-                </div>
-              ))}
-            </div>
-          </Container>
-        </section>
-      )}
-
-      {/* FAQ */}
-      {!!faqs?.length && (
-        <section className="py-20">
-          <Container className="max-w-3xl">
-            <FadeIn>
-              <SectionHeading eyebrow={t('page.faq.eyebrow')} title={t('page.faq.title')} linkTo="/faq" />
-            </FadeIn>
-            <div className="border-border bg-surface mt-10 divide-y rounded-2xl border">
-              {faqs.slice(0, 4).map((faq) => (
-                <div key={faq.id} className="px-6 py-4">
-                  <p className="text-sm font-semibold">{tf(faq.question, faq.questionTe)}</p>
-                  <p className="text-text-muted mt-1 text-sm">{tf(faq.answer, faq.answerTe)}</p>
                 </div>
               ))}
             </div>

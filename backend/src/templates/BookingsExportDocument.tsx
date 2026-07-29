@@ -1,5 +1,3 @@
-import { env } from '../config/env';
-
 export interface ExportBookingRow {
   bookingCode: string;
   customerName: string;
@@ -11,7 +9,13 @@ export interface ExportBookingRow {
   status: string;
 }
 
-export async function BookingsExportDocument({ bookings }: { bookings: ExportBookingRow[] }) {
+export async function BookingsExportDocument({
+  bookings,
+  businessName,
+}: {
+  bookings: ExportBookingRow[];
+  businessName: string;
+}) {
   // @react-pdf/renderer is ESM-only; dynamic import keeps this file loadable from CommonJS.
   const { Document, Page, Text, View, StyleSheet } = await import('@react-pdf/renderer');
 
@@ -35,9 +39,9 @@ export async function BookingsExportDocument({ bookings }: { bookings: ExportBoo
   });
 
   return (
-    <Document>
+    <Document title={`${businessName} — Bookings Export`}>
       <Page size="A4" orientation="landscape" style={styles.page}>
-        <Text style={styles.title}>{env.BUSINESS_NAME} — Bookings Export</Text>
+        <Text style={styles.title}>{businessName} — Bookings Export</Text>
         <View style={styles.headerRow}>
           <Text style={styles.cell}>Booking ID</Text>
           <Text style={styles.cell}>Customer</Text>

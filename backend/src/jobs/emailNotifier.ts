@@ -1,5 +1,6 @@
 import { env } from '../config/env';
 import { sendMail } from '../config/mailer';
+import { getSettings } from '../modules/settings/settings.service';
 
 interface BookingLike {
   bookingCode: string;
@@ -20,9 +21,12 @@ export async function sendBookingNotificationEmail(booking: BookingLike) {
     return;
   }
 
+  const settings = await getSettings();
+
   await sendMail({
     to: env.ADMIN_NOTIFICATION_EMAIL,
     subject: `New Booking Received — ${booking.bookingCode}`,
+    fromName: settings?.businessName,
     html: `
       <h2>New booking received</h2>
       <p><strong>Booking ID:</strong> ${booking.bookingCode}</p>

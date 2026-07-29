@@ -19,6 +19,11 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().optional().default(587),
   SMTP_USER: z.string().optional().default(''),
   SMTP_PASS: z.string().optional().default(''),
+  // The SMTP login (SMTP_USER) is often just an opaque auth credential (e.g.
+  // Brevo's generated login), not a real mailbox — the "From" address must be
+  // the actual verified sender identity, which can differ. Falls back to
+  // SMTP_USER when unset (true for providers like Gmail where they're the same).
+  SMTP_FROM_EMAIL: z.string().optional().default(''),
   ADMIN_NOTIFICATION_EMAIL: z.string().optional().default(''),
 
   FAST2SMS_API_KEY: z.string().optional().default(''),

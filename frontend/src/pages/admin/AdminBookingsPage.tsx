@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Download, Eye, MessageCircle, Phone, RefreshCw, Search } from 'lucide-react';
 import { useAdminBookings, downloadBookingsExport } from '@/lib/api/bookings';
@@ -12,6 +13,14 @@ import { cn } from '@/lib/cn';
 import type { Booking, BookingStatus } from '@/types/api';
 
 const statusOptions: BookingStatus[] = ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'];
+
+function todayRange() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return { from: `${y}-${m}-${d}T00:00:00`, to: `${y}-${m}-${d}T23:59:59` };
+}
 
 const statusStyles: Record<BookingStatus, string> = {
   PENDING: 'bg-amber-500/10 text-amber-600',
@@ -51,12 +60,33 @@ function ContactButtons({ booking, onView }: { booking: Booking; onView: () => v
   );
 }
 
+function isBookingStatus(value: string | null): value is BookingStatus {
+  return !!value && (statusOptions as string[]).includes(value);
+}
+
 export function AdminBookingsPage() {
   const { t } = useTranslation();
-  const [statusFilter, setStatusFilter] = useState<BookingStatus | undefined>(undefined);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialStatus = searchParams.get('status');
+  const isToday = searchParams.get('date') === 'today';
+  const [statusFilter, setStatusFilter] = useState<BookingStatus | undefined>(
+    isBookingStatus(initialStatus) ? initialStatus : undefined,
+  );
   const [search, setSearch] = useState('');
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
-  const { data: bookings, isLoading, isError, refetch } = useAdminBookings({ status: statusFilter });
+  const dateRange = isToday ? todayRange() : undefined;
+  const { data: bookings, isLoading, isError, refetch } = useAdminBookings({
+    status: statusFilter,
+    from: dateRange?.from,
+    to: dateRange?.to,
+  });
+
+  function changeStatusFilter(status: BookingStatus | undefined) {
+    setStatusFilter(status);
+    // Any manual status click overrides an incoming "today" deep link so the
+    // two filters don't silently stack in a way the pill buttons can't show.
+    if (searchParams.get('date')) setSearchParams({}, { replace: true });
+  }
 
   const filteredBookings = useMemo(() => {
     if (!bookings) return [];
@@ -72,7 +102,7 @@ export function AdminBookingsPage() {
 
   async function handleExport(type: 'xlsx' | 'pdf') {
     try {
-      await downloadBookingsExport(type, { status: statusFilter });
+      await downloadBookingsExport(type, { status: statusFilter, from: dateRange?.from, to: dateRange?.to });
     } catch (error) {
       toast.error(getErrorMessage(error, t('admin.bookings.exportFailed')));
     }
@@ -115,10 +145,10 @@ export function AdminBookingsPage() {
         </div>
         <button
           type="button"
-          onClick={() => setStatusFilter(undefined)}
+          onClick={() => changeStatusFilter(undefined)}
           className={cn(
             'rounded-full border px-4 py-2 text-sm font-medium',
-            !statusFilter ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
+            !statusFilter && !isToday ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
           )}
         >
           {t('common.all')}
@@ -127,7 +157,7 @@ export function AdminBookingsPage() {
           <button
             key={s}
             type="button"
-            onClick={() => setStatusFilter(s)}
+            onClick={() => changeStatusFilter(s)}
             className={cn(
               'rounded-full border px-4 py-2 text-sm font-medium',
               statusFilter === s ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
@@ -136,6 +166,11 @@ export function AdminBookingsPage() {
             {t(statusLabelKeys[s])}
           </button>
         ))}
+        {isToday && (
+          <span className="bg-gold/15 text-gold rounded-full px-4 py-2 text-sm font-medium">
+            {t('admin.bookings.todayFilter')}
+          </span>
+        )}
       </div>
 
       {/* Mobile / tablet: card list */}

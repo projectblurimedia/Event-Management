@@ -86,6 +86,7 @@ export const translations = {
     'admin.login.canSignInNow': 'You can now sign in with your new password',
     'admin.login.mobileNumber': 'Mobile Number',
     'admin.login.registeredEmail': 'Registered Email',
+    'admin.login.noRegisteredEmail': 'No registered admin email found.',
     'admin.login.registeredMobile': 'Registered Mobile Number',
     'admin.login.sendingOtp': 'Sending OTP…',
     'admin.login.generateOtp': 'Generate OTP',
@@ -162,7 +163,7 @@ export const translations = {
     'admin.nav.gallery': 'Gallery',
     'admin.nav.testimonials': 'Testimonials',
     'admin.nav.faqs': 'FAQs',
-    'admin.nav.settings': 'Edit',
+    'admin.nav.settings': 'Edit Details',
     'admin.nav.logout': 'Log out',
 
     // Admin common
@@ -219,6 +220,7 @@ export const translations = {
     'admin.bookings.excel': 'Excel',
     'admin.bookings.pdf': 'PDF',
     'admin.bookings.searchPlaceholder': 'Search by name, phone or booking ID…',
+    'admin.bookings.todayFilter': "Today's bookings",
     'admin.bookings.noBookingsFound': 'No bookings found.',
     'admin.bookings.couldNotLoad': "Couldn't load bookings. Please check your connection.",
     'admin.bookings.bookingId': 'Booking ID',
@@ -286,7 +288,7 @@ export const translations = {
 
     // Admin packages
     'admin.packages.title': 'Packages',
-    'admin.packages.subtitle': 'Manage Silver, Gold and Platinum packages — which bulletins (categories) each one includes.',
+    'admin.packages.subtitle': 'Manage your packages — which categories each one includes.',
     'admin.packages.couldNotLoad': "Couldn't load packages. Please check your connection.",
     'admin.packages.priceGuest': 'Price / Guest',
     'admin.packages.categoriesCol': 'Categories',
@@ -461,7 +463,7 @@ export const translations = {
     'admin.faqs.colPublished': 'Published',
 
     // Admin settings
-    'admin.settings.title': 'Settings',
+    'admin.settings.title': 'Edit Details',
     'admin.settings.subtitle': 'Update contact information, hero banner, and business details shown across the site.',
     'admin.settings.couldNotLoad': "Couldn't load settings. Please check your connection.",
     'admin.settings.updated': 'Settings updated',
@@ -538,9 +540,9 @@ export const translations = {
     'page.menu.searchPlaceholder': 'Search dishes…',
     'page.menu.noSearchResults': 'No dishes found. Try a different search.',
     'page.packages.eyebrow': 'Curated Packages',
-    'page.packages.title': 'Silver, Gold & Platinum',
+    'page.packages.title': 'Our Packages',
     'page.packages.description':
-      'Ready-made packages with transparent pricing and included items — start our guided booking wizard to configure one for your event.',
+      'Ready-made packages with everything included — start our guided booking wizard to configure one for your event.',
     'page.services.eyebrow': 'What We Offer',
     'page.services.title': 'Services',
     'page.services.description':
@@ -571,7 +573,7 @@ export const translations = {
 
     // Services page
     'services.completePackage': 'Complete Package',
-    'services.completePackageDesc': 'Silver, Gold or Platinum — food, decoration, lighting and more bundled together at a per-guest price.',
+    'services.completePackageDesc': 'Food, decoration, lighting and more bundled together in one ready-made package.',
     'services.viewPackages': 'View Packages',
     'services.customPackage': 'Custom Package',
     'services.customPackageDesc': 'Pick exactly what you need in our guided booking wizard — decoration, photography, DJ, lighting and more.',
@@ -671,6 +673,7 @@ export const translations = {
     'wizard.itemsSelected': 'selected',
     'wizard.allowMultipleHint': 'You can select more than one option.',
     'wizard.noOptionsAvailable': 'No options available in this category yet.',
+    'wizard.searchItems': 'Search…',
     'wizard.bookingSuccessful': 'Booking Successful!',
     'wizard.saveBookingId': "Please save this Booking ID for future reference — you'll need it along with your phone number to check your booking status.",
     'wizard.yourBookingReference': 'Your booking reference is',
@@ -792,6 +795,7 @@ export const translations = {
     'admin.login.canSignInNow': 'ఇప్పుడు మీరు మీ కొత్త పాస్‌వర్డ్‌తో సైన్ ఇన్ చేయవచ్చు',
     'admin.login.mobileNumber': 'మొబైల్ నంబర్',
     'admin.login.registeredEmail': 'నమోదిత ఇమెయిల్',
+    'admin.login.noRegisteredEmail': 'నమోదిత అడ్మిన్ ఇమెయిల్ కనుగొనబడలేదు.',
     'admin.login.registeredMobile': 'నమోదిత మొబైల్ నంబర్',
     'admin.login.sendingOtp': 'OTP పంపుతోంది…',
     'admin.login.generateOtp': 'OTP సృష్టించండి',
@@ -868,7 +872,7 @@ export const translations = {
     'admin.nav.gallery': 'గ్యాలరీ',
     'admin.nav.testimonials': 'అభిప్రాయాలు',
     'admin.nav.faqs': 'ప్రశ్నలు',
-    'admin.nav.settings': 'సవరించు',
+    'admin.nav.settings': 'వివరాలు సవరించండి',
     'admin.nav.logout': 'లాగ్ అవుట్',
 
     // Admin common
@@ -923,6 +927,7 @@ export const translations = {
     'admin.bookings.excel': 'ఎక్సెల్',
     'admin.bookings.pdf': 'PDF',
     'admin.bookings.searchPlaceholder': 'పేరు, ఫోన్ లేదా బుకింగ్ ఐడి ద్వారా శోధించండి…',
+    'admin.bookings.todayFilter': 'నేటి బుకింగ్‌లు',
     'admin.bookings.noBookingsFound': 'బుకింగ్‌లు కనుగొనబడలేదు.',
     'admin.bookings.couldNotLoad': 'బుకింగ్‌లను లోడ్ చేయలేకపోయాము. దయచేసి మీ ఇంటర్నెట్ కనెక్షన్‌ని తనిఖీ చేయండి.',
     'admin.bookings.bookingId': 'బుకింగ్ ఐడి',
@@ -986,8 +991,7 @@ export const translations = {
     'admin.menu.colAvailable': 'లభ్యం',
 
     'admin.packages.title': 'ప్యాకేజీలు',
-    'admin.packages.subtitle':
-      'సిల్వర్, గోల్డ్ మరియు ప్లాటినం ప్యాకేజీలను నిర్వహించండి — ధర, చేర్చిన అంశాలు, చిత్రాలు మరియు విజార్డ్ ఫ్లో.',
+    'admin.packages.subtitle': 'మీ ప్యాకేజీలను నిర్వహించండి — ఒక్కొక్కటి ఏ కేటగిరీలను కలిగి ఉందో.',
     'admin.packages.couldNotLoad': 'ప్యాకేజీలను లోడ్ చేయలేకపోయాము. దయచేసి మీ ఇంటర్నెట్ కనెక్షన్‌ని తనిఖీ చేయండి.',
     'admin.packages.priceGuest': 'ధర / అతిథికి',
     'admin.packages.categoriesCol': 'కేటగిరీలు',
@@ -1157,7 +1161,7 @@ export const translations = {
     'admin.faqs.colQuestion': 'ప్రశ్న',
     'admin.faqs.colPublished': 'ప్రచురించబడింది',
 
-    'admin.settings.title': 'సెట్టింగ్‌లు',
+    'admin.settings.title': 'వివరాలు సవరించండి',
     'admin.settings.subtitle': 'వెబ్‌సైట్ అంతటా చూపించే సంప్రదింపు సమాచారం, హీరో బ్యానర్ మరియు వ్యాపార వివరాలను నవీకరించండి.',
     'admin.settings.couldNotLoad': 'సెట్టింగ్‌లను లోడ్ చేయలేకపోయాము. దయచేసి మీ ఇంటర్నెట్ కనెక్షన్‌ని తనిఖీ చేయండి.',
     'admin.settings.updated': 'సెట్టింగ్‌లు నవీకరించబడ్డాయి',
@@ -1233,9 +1237,9 @@ export const translations = {
     'page.menu.searchPlaceholder': 'వంటకాలను శోధించండి…',
     'page.menu.noSearchResults': 'వంటకాలు కనుగొనబడలేదు. వేరే పదంతో శోధించండి.',
     'page.packages.eyebrow': 'ప్రత్యేక ప్యాకేజీలు',
-    'page.packages.title': 'సిల్వర్, గోల్డ్ & ప్లాటినం',
+    'page.packages.title': 'మా ప్యాకేజీలు',
     'page.packages.description':
-      'పారదర్శక ధర మరియు చేర్చిన అంశాలతో సిద్ధంగా ఉన్న ప్యాకేజీలు — మీ ఈవెంట్ కోసం కాన్ఫిగర్ చేయడానికి మా గైడెడ్ బుకింగ్ విజార్డ్‌ను ప్రారంభించండి.',
+      'ప్రతిదీ చేర్చిన సిద్ధంగా ఉన్న ప్యాకేజీలు — మీ ఈవెంట్ కోసం కాన్ఫిగర్ చేయడానికి మా గైడెడ్ బుకింగ్ విజార్డ్‌ను ప్రారంభించండి.',
     'page.services.eyebrow': 'మేము అందించేవి',
     'page.services.title': 'సేవలు',
     'page.services.description':
@@ -1266,7 +1270,7 @@ export const translations = {
 
     // Services page
     'services.completePackage': 'కంప్లీట్ ప్యాకేజీ',
-    'services.completePackageDesc': 'సిల్వర్, గోల్డ్ లేదా ప్లాటినం — ఆహారం, అలంకరణ, లైటింగ్ మరియు మరిన్ని ఒక్కో అతిథి ధరలో కలిపి.',
+    'services.completePackageDesc': 'ఆహారం, అలంకరణ, లైటింగ్ మరియు మరిన్ని ఒకే సిద్ధమైన ప్యాకేజీలో కలిపి.',
     'services.viewPackages': 'ప్యాకేజీలు చూడండి',
     'services.customPackage': 'కస్టమ్ ప్యాకేజీ',
     'services.customPackageDesc': 'మా గైడెడ్ బుకింగ్ విజార్డ్‌లో మీకు కావాల్సినది ఖచ్చితంగా ఎంచుకోండి — అలంకరణ, ఫోటోగ్రఫీ, డిజె, లైటింగ్ మరియు మరిన్ని.',
@@ -1365,6 +1369,7 @@ export const translations = {
     'wizard.itemsSelected': 'ఎంపిక చేయబడింది',
     'wizard.allowMultipleHint': 'మీరు ఒకటి కంటే ఎక్కువ ఎంపికలను ఎంచుకోవచ్చు.',
     'wizard.noOptionsAvailable': 'ఈ వర్గంలో ఇంకా ఎంపికలు అందుబాటులో లేవు.',
+    'wizard.searchItems': 'శోధించండి…',
     'wizard.bookingSuccessful': 'బుకింగ్ విజయవంతమైంది!',
     'wizard.saveBookingId':
       'దయచేసి భవిష్యత్ సూచన కోసం ఈ బుకింగ్ ఐడిని సేవ్ చేసుకోండి — మీ బుకింగ్ స్థితిని తనిఖీ చేయడానికి మీ ఫోన్ నంబర్‌తో పాటు ఇది మీకు అవసరం.',

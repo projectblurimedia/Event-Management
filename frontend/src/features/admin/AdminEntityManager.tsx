@@ -135,6 +135,8 @@ export function AdminEntityManager<T extends { id: string }>({
   }
 
   const [titleColumn, ...restColumns] = columns;
+  const checkboxFields = fields.filter((f) => f.type === 'checkbox');
+  const otherFields = fields.filter((f) => f.type !== 'checkbox');
 
   return (
     <div>
@@ -300,82 +302,98 @@ export function AdminEntityManager<T extends { id: string }>({
         title={editing ? `${t('common.edit')} ${title}` : `${t('common.create')} ${title}`}
         size="lg"
       >
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-          {fields.map((f) => (
-            <div key={f.name} className={f.type === 'textarea' || f.type === 'image' ? 'sm:col-span-2' : undefined}>
-              <label htmlFor={`field-${f.name}`} className={labelClass}>
-                {f.label}
-              </label>
-              {f.hint && <p className="text-text-muted -mt-1 mb-1.5 text-xs">{f.hint}</p>}
-              {f.type === 'textarea' && (
-                <textarea
-                  id={`field-${f.name}`}
-                  rows={3}
-                  className={inputClass}
-                  value={String(formValues[f.name] ?? '')}
-                  onChange={(e) => setFormValues((v) => ({ ...v, [f.name]: e.target.value }))}
-                />
-              )}
-              {f.type === 'select' && (
-                <select
-                  id={`field-${f.name}`}
-                  className={inputClass}
-                  value={String(formValues[f.name] ?? '')}
-                  onChange={(e) => setFormValues((v) => ({ ...v, [f.name]: e.target.value }))}
-                >
-                  <option value="">{t('admin.selectPlaceholder')}</option>
-                  {f.options?.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {f.type === 'boolean-select' && (
-                <select
-                  id={`field-${f.name}`}
-                  className={inputClass}
-                  value={formValues[f.name] === undefined || formValues[f.name] === '' ? '' : String(formValues[f.name])}
-                  onChange={(e) =>
-                    setFormValues((v) => ({
-                      ...v,
-                      [f.name]: e.target.value === '' ? '' : e.target.value === 'true',
-                    }))
-                  }
-                >
-                  <option value="">{t('admin.selectPlaceholder')}</option>
-                  <option value="true">{f.trueLabel ?? t('common.yes')}</option>
-                  <option value="false">{f.falseLabel ?? t('common.no')}</option>
-                </select>
-              )}
-              {f.type === 'checkbox' && (
-                <input
-                  id={`field-${f.name}`}
-                  type="checkbox"
-                  className="accent-gold h-5 w-5"
-                  checked={Boolean(formValues[f.name])}
-                  onChange={(e) => setFormValues((v) => ({ ...v, [f.name]: e.target.checked }))}
-                />
-              )}
-              {f.type === 'image' && (
-                <ImageUploadField
-                  value={String(formValues[f.name] ?? '')}
-                  onChange={(url) => setFormValues((v) => ({ ...v, [f.name]: url }))}
-                />
-              )}
-              {(f.type === 'text' || f.type === 'number') && (
-                <input
-                  id={`field-${f.name}`}
-                  type={f.type}
-                  className={inputClass}
-                  value={String(formValues[f.name] ?? '')}
-                  onChange={(e) => setFormValues((v) => ({ ...v, [f.name]: e.target.value }))}
-                />
-              )}
-            </div>
-          ))}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+            {otherFields.map((f) => (
+              <div key={f.name} className={f.type === 'textarea' || f.type === 'image' ? 'sm:col-span-2' : undefined}>
+                <label htmlFor={`field-${f.name}`} className={labelClass}>
+                  {f.label}
+                </label>
+                {f.type === 'textarea' && (
+                  <textarea
+                    id={`field-${f.name}`}
+                    rows={3}
+                    className={inputClass}
+                    value={String(formValues[f.name] ?? '')}
+                    onChange={(e) => setFormValues((v) => ({ ...v, [f.name]: e.target.value }))}
+                  />
+                )}
+                {f.type === 'select' && (
+                  <select
+                    id={`field-${f.name}`}
+                    className={inputClass}
+                    value={String(formValues[f.name] ?? '')}
+                    onChange={(e) => setFormValues((v) => ({ ...v, [f.name]: e.target.value }))}
+                  >
+                    <option value="">{t('admin.selectPlaceholder')}</option>
+                    {f.options?.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {f.type === 'boolean-select' && (
+                  <select
+                    id={`field-${f.name}`}
+                    className={inputClass}
+                    value={formValues[f.name] === undefined || formValues[f.name] === '' ? '' : String(formValues[f.name])}
+                    onChange={(e) =>
+                      setFormValues((v) => ({
+                        ...v,
+                        [f.name]: e.target.value === '' ? '' : e.target.value === 'true',
+                      }))
+                    }
+                  >
+                    <option value="">{t('admin.selectPlaceholder')}</option>
+                    <option value="true">{f.trueLabel ?? t('common.yes')}</option>
+                    <option value="false">{f.falseLabel ?? t('common.no')}</option>
+                  </select>
+                )}
+                {f.type === 'image' && (
+                  <ImageUploadField
+                    value={String(formValues[f.name] ?? '')}
+                    onChange={(url) => setFormValues((v) => ({ ...v, [f.name]: url }))}
+                  />
+                )}
+                {(f.type === 'text' || f.type === 'number') && (
+                  <input
+                    id={`field-${f.name}`}
+                    type={f.type}
+                    className={inputClass}
+                    value={String(formValues[f.name] ?? '')}
+                    onChange={(e) => setFormValues((v) => ({ ...v, [f.name]: e.target.value }))}
+                  />
+                )}
+                {f.hint && <p className="text-text-muted mt-1.5 text-xs">{f.hint}</p>}
+              </div>
+            ))}
           </div>
+
+          {checkboxFields.length > 0 && (
+            <div className="border-border bg-surface-muted flex flex-wrap gap-x-6 gap-y-3 rounded-xl border p-4">
+              {checkboxFields.map((f) => (
+                <label
+                  key={f.name}
+                  htmlFor={`field-${f.name}`}
+                  className="flex min-w-0 max-w-full items-start gap-2.5 text-sm font-medium"
+                >
+                  <input
+                    id={`field-${f.name}`}
+                    type="checkbox"
+                    className="accent-gold mt-0.5 h-5 w-5 shrink-0"
+                    checked={Boolean(formValues[f.name])}
+                    onChange={(e) => setFormValues((v) => ({ ...v, [f.name]: e.target.checked }))}
+                  />
+                  <span>
+                    {f.label}
+                    {f.hint && <span className="text-text-muted mt-0.5 block text-xs font-normal">{f.hint}</span>}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+
           <Button
             type="submit"
             variant="primary"

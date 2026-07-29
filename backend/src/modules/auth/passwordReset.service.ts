@@ -5,6 +5,7 @@ import { prisma } from '../../config/prisma';
 import { env } from '../../config/env';
 import { sendMail } from '../../config/mailer';
 import { sendSms } from '../../config/sms';
+import { getSettings } from '../settings/settings.service';
 import { ApiError } from '../../utils/ApiError';
 import { compareOtp, generateOtp, hashOtp, OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS } from '../../utils/otp';
 import { isStrongPassword, PASSWORD_RULES_DESCRIPTION } from '../../utils/passwordPolicy';
@@ -14,6 +15,14 @@ const GENERIC_REQUEST_MESSAGE =
   'If an admin account matches those details, an OTP has been sent. Please check and enter it below.';
 
 const RESET_TOKEN_PURPOSE = 'password-reset';
+
+/** For the forgot-password screen to display the registered email without
+ * making the admin type it blind — this is a single-admin app, so there's
+ * exactly one account to resolve. */
+export async function getRegisteredEmail() {
+  const admin = await prisma.adminUser.findFirst({ select: { email: true } });
+  return { email: admin?.email ?? null };
+}
 
 function findAdminByIdentifier(identifier: string, channel: OtpChannel) {
   return channel === 'EMAIL'
@@ -61,10 +70,14 @@ export async function requestPasswordResetOtp({ identifier, channel }: RequestOt
     data: { adminId: admin.id, channel, otpHash, expiresAt },
   });
 
+  const settings = await getSettings();
+  const businessName = settings?.businessName || env.BUSINESS_NAME;
+
   if (channel === 'EMAIL') {
     await sendMail({
       to: admin.email,
       subject: 'Your password reset OTP',
+      fromName: businessName,
       html: `
         <h2>Password reset requested</h2>
         <p>Your OTP is:</p>
@@ -73,7 +86,7 @@ export async function requestPasswordResetOtp({ identifier, channel }: RequestOt
       `,
     });
   } else if (admin.phone) {
-    await sendSms(admin.phone, `${otp} is your ${env.BUSINESS_NAME} admin password reset OTP. Valid for ${OTP_EXPIRY_MINUTES} minutes.`);
+    await sendSms(admin.phone, `${otp} is your ${businessName} admin password reset OTP. Valid for ${OTP_EXPIRY_MINUTES} minutes.`);
   }
 
   return { message: GENERIC_REQUEST_MESSAGE };

@@ -23,7 +23,6 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 type Mode = 'login' | 'forgot-request' | 'forgot-verify' | 'forgot-reset' | 'forgot-success';
-type Channel = 'EMAIL' | 'MOBILE';
 
 const fieldClasses =
   'border-gold/20 bg-ink-black text-cream focus:border-gold w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none';
@@ -56,9 +55,10 @@ export function AdminLoginPage() {
     { label: t('admin.login.checkSpecial'), pass: /[^A-Za-z0-9]/.test(pw) },
   ];
 
-  // Forgot-password flow state
-  const [channel, setChannel] = useState<Channel>('EMAIL');
+  // Forgot-password flow state — email is fetched from the admin's own
+  // registered account (there's only ever one admin), not typed by hand.
   const [identifier, setIdentifier] = useState('');
+  const [identifierLoading, setIdentifierLoading] = useState(false);
   const [otp, setOtp] = useState('');
   const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -82,7 +82,6 @@ export function AdminLoginPage() {
   }
 
   function resetForgotState() {
-    setChannel('EMAIL');
     setIdentifier('');
     setOtp('');
     setResetToken('');
@@ -90,15 +89,29 @@ export function AdminLoginPage() {
     setConfirmPassword('');
   }
 
+  async function openForgotPassword() {
+    resetForgotState();
+    setMode('forgot-request');
+    setIdentifierLoading(true);
+    try {
+      const { data } = await api.get('/admin/auth/forgot-password/identifier');
+      setIdentifier(data.email ?? '');
+    } catch {
+      setIdentifier('');
+    } finally {
+      setIdentifierLoading(false);
+    }
+  }
+
   async function handleRequestOtp(e: React.FormEvent) {
     e.preventDefault();
     if (!identifier.trim()) {
-      toast.error(channel === 'EMAIL' ? t('admin.login.enterEmail') : t('admin.login.enterMobile'));
+      toast.error(t('admin.login.noRegisteredEmail'));
       return;
     }
     setBusy(true);
     try {
-      const { data } = await api.post('/admin/auth/forgot-password/request', { identifier, channel });
+      const { data } = await api.post('/admin/auth/forgot-password/request', { identifier, channel: 'EMAIL' });
       toast.success(data.message ?? t('admin.login.otpSentDefault'));
       setMode('forgot-verify');
     } catch (error) {
@@ -116,7 +129,7 @@ export function AdminLoginPage() {
     }
     setBusy(true);
     try {
-      const { data } = await api.post('/admin/auth/forgot-password/verify', { identifier, channel, otp });
+      const { data } = await api.post('/admin/auth/forgot-password/verify', { identifier, channel: 'EMAIL', otp });
       setResetToken(data.resetToken);
       setMode('forgot-reset');
     } catch (error) {
@@ -129,7 +142,7 @@ export function AdminLoginPage() {
   async function handleResendOtp() {
     setBusy(true);
     try {
-      const { data } = await api.post('/admin/auth/forgot-password/request', { identifier, channel });
+      const { data } = await api.post('/admin/auth/forgot-password/request', { identifier, channel: 'EMAIL' });
       toast.success(data.message ?? t('admin.login.otpResentDefault'));
       setOtp('');
     } catch (error) {
@@ -191,8 +204,7 @@ export function AdminLoginPage() {
             <p className="text-cream/50 text-sm">
               {mode === 'login' && `${t('admin.login.signInSubtitle')} ${businessName}`}
               {mode === 'forgot-request' && t('admin.login.chooseOtpMethod')}
-              {mode === 'forgot-verify' &&
-                `${t('admin.login.enterCodeSentTo')} ${channel === 'EMAIL' ? t('admin.login.email.lower') : t('admin.login.mobile.lower')}`}
+              {mode === 'forgot-verify' && `${t('admin.login.enterCodeSentTo')} ${t('admin.login.email.lower')}`}
               {mode === 'forgot-reset' && t('admin.login.createStrongPassword')}
               {mode === 'forgot-success' && t('admin.login.canSignInNow')}
             </p>
@@ -235,10 +247,7 @@ export function AdminLoginPage() {
 
               <button
                 type="button"
-                onClick={() => {
-                  resetForgotState();
-                  setMode('forgot-request');
-                }}
+                onClick={openForgotPassword}
                 className="text-gold self-end text-xs font-medium hover:underline"
               >
                 {t('admin.login.forgotPassword')}
@@ -252,50 +261,21 @@ export function AdminLoginPage() {
 
           {mode === 'forgot-request' && (
             <form onSubmit={handleRequestOtp} className="flex flex-col gap-4">
-              <div className="border-gold/20 flex overflow-hidden rounded-lg border">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setChannel('EMAIL');
-                    setIdentifier('');
-                  }}
-                  className={cn(
-                    'flex-1 py-2 text-xs font-semibold',
-                    channel === 'EMAIL' ? 'bg-gold text-ink-black' : 'text-cream/60',
-                  )}
-                >
-                  {t('admin.login.emailTab')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setChannel('MOBILE');
-                    setIdentifier('');
-                  }}
-                  className={cn(
-                    'flex-1 py-2 text-xs font-semibold',
-                    channel === 'MOBILE' ? 'bg-gold text-ink-black' : 'text-cream/60',
-                  )}
-                >
-                  {t('admin.login.mobileNumber')}
-                </button>
-              </div>
-
               <div>
                 <label htmlFor="identifier" className={labelClasses}>
-                  {channel === 'EMAIL' ? t('admin.login.registeredEmail') : t('admin.login.registeredMobile')}
+                  {t('admin.login.registeredEmail')}
                 </label>
                 <input
                   id="identifier"
-                  type={channel === 'EMAIL' ? 'email' : 'tel'}
-                  placeholder={channel === 'EMAIL' ? 'harithakotha6131@gmail.com' : '9391522508'}
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  className={fieldClasses}
+                  type="email"
+                  readOnly
+                  disabled={identifierLoading}
+                  value={identifierLoading ? t('common.loading') : identifier || t('admin.login.noRegisteredEmail')}
+                  className={cn(fieldClasses, 'cursor-not-allowed opacity-80')}
                 />
               </div>
 
-              <Button type="submit" variant="gold" className="mt-2 w-full" disabled={busy}>
+              <Button type="submit" variant="gold" className="mt-2 w-full" disabled={busy || identifierLoading || !identifier}>
                 {busy ? t('admin.login.sendingOtp') : t('admin.login.generateOtp')}
               </Button>
               <button
@@ -335,7 +315,7 @@ export function AdminLoginPage() {
                   onClick={() => setMode('forgot-request')}
                   className="text-cream/50 text-xs font-medium hover:underline"
                 >
-                  {channel === 'EMAIL' ? t('admin.login.changeEmail') : t('admin.login.changeNumber')}
+                  {t('admin.login.changeEmail')}
                 </button>
                 <button type="button" onClick={handleResendOtp} disabled={busy} className="text-gold text-xs font-medium hover:underline">
                   {t('admin.login.resendOtp')}

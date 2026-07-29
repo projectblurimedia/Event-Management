@@ -109,7 +109,7 @@ export async function QuotationDocument({
   });
 
   return (
-    <Document>
+    <Document title={`${business.name} - Quotation ${booking.bookingCode}`}>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View style={styles.logoBadge}>

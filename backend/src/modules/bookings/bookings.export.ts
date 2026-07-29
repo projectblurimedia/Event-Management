@@ -2,10 +2,19 @@ import type { Request, Response } from 'express';
 import ExcelJS from 'exceljs';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { BookingsExportDocument } from '../../templates/BookingsExportDocument';
+import { getSettings } from '../settings/settings.service';
 import * as bookingsService from './bookings.service';
 
+function safeFilenamePart(businessName: string) {
+  return businessName.trim().replace(/[^a-zA-Z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'Bookings';
+}
+
 export const exportBookingsExcelHandler = asyncHandler(async (req: Request, res: Response) => {
-  const bookings = await bookingsService.listBookings(req.validatedQuery as never);
+  const [bookings, settings] = await Promise.all([
+    bookingsService.listBookings(req.validatedQuery as never),
+    getSettings(),
+  ]);
+  const businessName = settings?.businessName ?? 'Bookings';
 
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Bookings');
@@ -42,13 +51,17 @@ export const exportBookingsExcelHandler = asyncHandler(async (req: Request, res:
     'Content-Type',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   );
-  res.setHeader('Content-Disposition', 'attachment; filename="bookings.xlsx"');
+  res.setHeader('Content-Disposition', `attachment; filename="${safeFilenamePart(businessName)}-Bookings.xlsx"`);
   await workbook.xlsx.write(res);
   res.end();
 });
 
 export const exportBookingsPdfHandler = asyncHandler(async (req: Request, res: Response) => {
-  const bookings = await bookingsService.listBookings(req.validatedQuery as never);
+  const [bookings, settings] = await Promise.all([
+    bookingsService.listBookings(req.validatedQuery as never),
+    getSettings(),
+  ]);
+  const businessName = settings?.businessName ?? 'Bookings';
   const rows = bookings.map((b) => ({
     bookingCode: b.bookingCode,
     customerName: b.customerName,
@@ -61,8 +74,8 @@ export const exportBookingsPdfHandler = asyncHandler(async (req: Request, res: R
   }));
 
   const { renderToBuffer } = await import('@react-pdf/renderer');
-  const buffer = await renderToBuffer(await BookingsExportDocument({ bookings: rows }));
+  const buffer = await renderToBuffer(await BookingsExportDocument({ bookings: rows, businessName }));
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'attachment; filename="bookings.pdf"');
+  res.setHeader('Content-Disposition', `attachment; filename="${safeFilenamePart(businessName)}-Bookings.pdf"`);
   res.send(buffer);
 });

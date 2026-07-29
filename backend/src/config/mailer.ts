@@ -17,16 +17,20 @@ interface SendMailInput {
   to: string;
   subject: string;
   html: string;
+  /** Sender display name — pass the live business name from Site Settings.
+   * Falls back to env.BUSINESS_NAME only when settings aren't available yet
+   * (e.g. before initial setup has run). */
+  fromName?: string;
 }
 
-export async function sendMail({ to, subject, html }: SendMailInput) {
+export async function sendMail({ to, subject, html, fromName }: SendMailInput) {
   if (!mailTransporter) {
     console.info(`[mailer] SMTP not configured — skipping email to ${to} (${subject})`);
     return;
   }
 
   await mailTransporter.sendMail({
-    from: `"${env.BUSINESS_NAME}" <${env.SMTP_USER}>`,
+    from: `"${fromName || env.BUSINESS_NAME}" <${env.SMTP_FROM_EMAIL || env.SMTP_USER}>`,
     to,
     subject,
     html,

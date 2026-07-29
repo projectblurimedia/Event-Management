@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Check, Minus, Plus } from 'lucide-react';
+import { Check, Minus, Plus, Search } from 'lucide-react';
 import { categoryTypeHooks, itemHooks } from '@/lib/api/resources';
 import { useBookingCartStore } from '@/store/bookingCartStore';
 import { AsyncState } from '@/components/ui/AsyncState';
@@ -125,18 +125,32 @@ export function CategoryItemPanel({ category }: { category: Category }) {
   const { data: allTypes } = categoryTypeHooks.usePublicList();
   const { data: allItems, isLoading, isError, refetch } = itemHooks.usePublicList();
   const [activeType, setActiveType] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const selectedItems = useBookingCartStore((s) => s.selectedItems);
 
   const types = useMemo(() => allTypes?.filter((ty) => ty.categoryId === category.id) ?? [], [allTypes, category.id]);
   const typeIds = useMemo(() => new Set(types.map((ty) => ty.id)), [types]);
   const categoryItems = useMemo(() => allItems?.filter((i) => typeIds.has(i.categoryTypeId)) ?? [], [allItems, typeIds]);
+  const selectedIds = useMemo(
+    () => new Set(selectedItems.filter((s) => s.categoryId === category.id).map((s) => s.itemId)),
+    [selectedItems, category.id],
+  );
 
   const filteredItems = useMemo(() => {
     let result = categoryItems;
     if (category.isFood && dietaryPreference === 'VEG') result = result.filter((i) => i.isVeg);
     if (category.isFood && dietaryPreference === 'NON_VEG') result = result.filter((i) => !i.isVeg);
     if (activeType) result = result.filter((i) => i.categoryTypeId === activeType);
-    return result;
-  }, [categoryItems, dietaryPreference, activeType, category.isFood]);
+    const q = search.trim().toLowerCase();
+    if (q) {
+      result = result.filter(
+        (i) => i.name.toLowerCase().includes(q) || (i.nameTe ?? '').toLowerCase().includes(q),
+      );
+    }
+    // Stable sort: already-selected items float to the top so the customer
+    // can see their picks at a glance in long lists.
+    return [...result].sort((a, b) => Number(selectedIds.has(b.id)) - Number(selectedIds.has(a.id)));
+  }, [categoryItems, dietaryPreference, activeType, category.isFood, search, selectedIds]);
 
   if (category.isFood && !dietaryPreference) {
     return (
@@ -185,6 +199,19 @@ export function CategoryItemPanel({ category }: { category: Category }) {
         </div>
       ) : (
         category.allowMultiple && <p className="text-gold mb-4 text-sm font-medium">{t('wizard.allowMultipleHint')}</p>
+      )}
+
+      {categoryItems.length > 6 && (
+        <div className="relative mb-4">
+          <Search size={15} className="text-text-muted absolute top-1/2 left-3.5 -translate-y-1/2" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('wizard.searchItems')}
+            className="border-border bg-bg focus:border-gold w-full rounded-lg border py-2.5 pr-3 pl-10 text-sm outline-none"
+          />
+        </div>
       )}
 
       {types.length > 0 && (

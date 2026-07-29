@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { MessageCircle, Phone, RefreshCw } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown, MessageCircle, Phone, RefreshCw } from 'lucide-react';
 import { useDashboardAnalytics } from '@/lib/api/dashboard';
 import { callHref, whatsappHref } from '@/lib/contactActions';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -58,8 +58,56 @@ const monthNames = [
 function yearOptions() {
   const current = new Date().getFullYear();
   const years: number[] = [];
-  for (let y = current - 4; y <= current + 1; y++) years.push(y);
+  for (let y = current; y >= 2000; y--) years.push(y);
   return years;
+}
+
+/** Native <select> popups can't be height-limited by CSS — use a small
+ * scrollable listbox instead so the year list (2000..current) stays compact. */
+function YearDropdown({ value, onChange }: { value: string | number; onChange: (year: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="border-border bg-bg flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm outline-none"
+      >
+        {value}
+        <ChevronDown size={14} className="text-text-muted" />
+      </button>
+      {open && (
+        <div className="border-border bg-surface absolute top-full left-0 z-20 mt-1 max-h-48 w-24 overflow-y-auto rounded-lg border shadow-lg">
+          {yearOptions().map((y) => (
+            <button
+              key={y}
+              type="button"
+              onClick={() => {
+                onChange(String(y));
+                setOpen(false);
+              }}
+              className={cn(
+                'block w-full px-3 py-2 text-left text-sm',
+                String(y) === String(value) ? 'bg-gold/15 text-gold font-semibold' : 'hover:bg-surface-muted',
+              )}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function AdminAnalyticsSection() {
@@ -129,32 +177,13 @@ export function AdminAnalyticsSection() {
                   </option>
                 ))}
               </select>
-              <select
+              <YearDropdown
                 value={value.split('-')[0]}
-                onChange={(e) => setValue(`${e.target.value}-${value.split('-')[1]}`)}
-                className="border-border bg-bg rounded-lg border px-3 py-2 text-sm outline-none"
-              >
-                {yearOptions().map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
+                onChange={(year) => setValue(`${year}-${value.split('-')[1]}`)}
+              />
             </>
           )}
-          {mode === 'year' && (
-            <select
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              className="border-border bg-bg rounded-lg border px-3 py-2 text-sm outline-none"
-            >
-              {yearOptions().map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          )}
+          {mode === 'year' && <YearDropdown value={value} onChange={setValue} />}
           <button type="button" onClick={() => changeMode('day')} className="text-gold text-sm font-semibold underline">
             {t('admin.analytics.today')}
           </button>

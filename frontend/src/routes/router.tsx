@@ -9,9 +9,7 @@ import { ServicesPage } from '@/pages/ServicesPage';
 import { PackagesPage } from '@/pages/PackagesPage';
 import { MenuPage } from '@/pages/MenuPage';
 import { EventTypesPage } from '@/pages/EventTypesPage';
-import { GalleryPage } from '@/pages/GalleryPage';
 import { TestimonialsPage } from '@/pages/TestimonialsPage';
-import { FaqPage } from '@/pages/FaqPage';
 import { ContactPage } from '@/pages/ContactPage';
 import { BookingPage } from '@/pages/BookingPage';
 import { BookingStatusPage } from '@/pages/BookingStatusPage';
@@ -27,9 +25,6 @@ const AdminEnquiriesPage = lazy(() => import('@/pages/admin/AdminEnquiriesPage')
 const AdminCategoriesPage = lazy(() => import('@/pages/admin/AdminCategoriesPage').then((m) => ({ default: m.AdminCategoriesPage })));
 const AdminItemsPage = lazy(() => import('@/pages/admin/AdminItemsPage').then((m) => ({ default: m.AdminItemsPage })));
 const AdminPackagesPage = lazy(() => import('@/pages/admin/AdminPackagesPage').then((m) => ({ default: m.AdminPackagesPage })));
-const AdminGalleryPage = lazy(() => import('@/pages/admin/AdminGalleryPage').then((m) => ({ default: m.AdminGalleryPage })));
-const AdminTestimonialsPage = lazy(() => import('@/pages/admin/AdminTestimonialsPage').then((m) => ({ default: m.AdminTestimonialsPage })));
-const AdminFaqsPage = lazy(() => import('@/pages/admin/AdminFaqsPage').then((m) => ({ default: m.AdminFaqsPage })));
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage').then((m) => ({ default: m.AdminSettingsPage })));
 
 function withSuspense(node: React.ReactNode) {
@@ -45,9 +40,7 @@ export const router = createBrowserRouter([
       { path: '/packages', element: <PackagesPage /> },
       { path: '/menu', element: <MenuPage /> },
       { path: '/event-types', element: <EventTypesPage /> },
-      { path: '/gallery', element: <GalleryPage /> },
       { path: '/testimonials', element: <TestimonialsPage /> },
-      { path: '/faq', element: <FaqPage /> },
       { path: '/contact', element: <ContactPage /> },
       { path: '/booking', element: <BookingPage /> },
       { path: '/booking/status', element: <BookingStatusPage /> },
@@ -68,9 +61,6 @@ export const router = createBrowserRouter([
           { path: 'categories', element: withSuspense(<AdminCategoriesPage />) },
           { path: 'items', element: withSuspense(<AdminItemsPage />) },
           { path: 'packages', element: withSuspense(<AdminPackagesPage />) },
-          { path: 'gallery', element: withSuspense(<AdminGalleryPage />) },
-          { path: 'testimonials', element: withSuspense(<AdminTestimonialsPage />) },
-          { path: 'faqs', element: withSuspense(<AdminFaqsPage />) },
           { path: 'settings', element: withSuspense(<AdminSettingsPage />) },
         ],
       },
