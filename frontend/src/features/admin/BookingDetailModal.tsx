@@ -4,6 +4,7 @@ import { CheckCircle2, Download, MessageCircle, Phone, RefreshCw, XCircle } from
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useAdminBooking, useUpdateBookingStatus, quotationDownloadUrl } from '@/lib/api/bookings';
+import { useSettings } from '@/lib/api/settings';
 import { callHref, whatsappHref } from '@/lib/contactActions';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -29,17 +30,19 @@ interface BookingDetailModalProps {
 export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalProps) {
   const { t, tf } = useTranslation();
   const { data: booking, isLoading, isError, refetch } = useAdminBooking(bookingId ?? undefined);
+  const { data: settings } = useSettings();
   const updateStatus = useUpdateBookingStatus();
 
-  const groupedServices = useMemo(() => {
+  const groupedItems = useMemo(() => {
     if (!booking) return [];
     const groups = new Map<string, { name: string; nameTe: string | null; quantity: number; priceAtBooking: string }[]>();
-    for (const sel of booking.serviceOptions) {
-      const categoryName = tf(sel.serviceOption.category.name, sel.serviceOption.category.nameTe);
+    for (const sel of booking.items) {
+      const category = sel.item.categoryType?.category;
+      const categoryName = category ? tf(category.name, category.nameTe) : '—';
       const list = groups.get(categoryName) ?? [];
       list.push({
-        name: sel.serviceOption.name,
-        nameTe: sel.serviceOption.nameTe,
+        name: sel.item.name,
+        nameTe: sel.item.nameTe,
         quantity: sel.quantity,
         priceAtBooking: sel.priceAtBooking,
       });
@@ -99,7 +102,7 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
             <a
               href={whatsappHref(
                 booking.phone,
-                `Hi ${booking.customerName}, this is regarding your booking ${booking.bookingCode} with MS Wedding Planner.`,
+                `Hi ${booking.customerName}, this is regarding your booking ${booking.bookingCode}${settings?.businessName ? ` with ${settings.businessName}` : ''}.`,
               )}
               target="_blank"
               rel="noopener noreferrer"
@@ -176,25 +179,8 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
             </div>
           </div>
 
-          {/* Food */}
-          {booking.menuItems.length > 0 && (
-            <div>
-              <h3 className="text-text-muted mb-2 text-sm font-semibold tracking-wide uppercase">{t('admin.bookingDetail.foodSelection')}</h3>
-              <ul className="border-border divide-border divide-y rounded-xl border text-sm">
-                {booking.menuItems.map((mi) => (
-                  <li key={mi.id} className="flex justify-between gap-3 px-4 py-2.5">
-                    <span className="min-w-0">
-                      {tf(mi.menuItem.name, mi.menuItem.nameTe)} × {mi.quantity}
-                    </span>
-                    <span className="shrink-0 font-medium">{currency(Number(mi.priceAtBooking) * mi.quantity)}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Services grouped by category */}
-          {groupedServices.map(([categoryName, items]) => (
+          {/* Selections grouped by category */}
+          {groupedItems.map(([categoryName, items]) => (
             <div key={categoryName}>
               <h3 className="text-text-muted mb-2 text-sm font-semibold tracking-wide uppercase">{categoryName}</h3>
               <ul className="border-border divide-border divide-y rounded-xl border text-sm">
@@ -226,16 +212,12 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
           <div className="border-gold/30 bg-surface-muted rounded-xl border p-4">
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between">
-                <span className="text-text-muted">{t('admin.bookingDetail.packageCost')}</span>
-                <span>{currency(booking.packageCost)}</span>
+                <span className="text-text-muted">{t('admin.bookingDetail.perPersonCost')}</span>
+                <span>{currency(booking.perPersonCost)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">{t('admin.bookingDetail.foodCost')}</span>
-                <span>{currency(booking.foodCost)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">{t('admin.bookingDetail.servicesCost')}</span>
-                <span>{currency(booking.addOnsCost)}</span>
+                <span className="text-text-muted">{t('admin.bookingDetail.flatCost')}</span>
+                <span>{currency(booking.flatCost)}</span>
               </div>
               <div className="border-border mt-2 flex justify-between border-t pt-2 text-base font-semibold">
                 <span>{t('admin.bookingDetail.grandTotal')}</span>

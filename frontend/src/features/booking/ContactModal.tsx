@@ -1,7 +1,6 @@
 import { Phone } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useSettings } from '@/lib/api/settings';
-import { siteConfig } from '@/lib/siteConfig';
 import { useTranslation } from '@/hooks/useTranslation';
 
 function WhatsAppIcon() {
@@ -21,8 +20,8 @@ interface ContactModalProps {
 export function ContactModal({ open, onClose }: ContactModalProps) {
   const { t } = useTranslation();
   const { data: settings } = useSettings();
-  const phone = settings?.phone ?? siteConfig.phone;
-  const whatsapp = settings?.whatsapp ?? `91${siteConfig.phone}`;
+  const phone = settings?.phone ?? '';
+  const whatsapp = settings?.whatsapp ?? '';
 
   return (
     <Modal open={open} onClose={onClose} title={t('contactModal.title')}>

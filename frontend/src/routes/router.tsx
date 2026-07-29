@@ -24,11 +24,9 @@ const AdminLoginPage = lazy(() => import('@/pages/admin/AdminLoginPage').then((m
 const AdminOverviewPage = lazy(() => import('@/pages/admin/AdminOverviewPage').then((m) => ({ default: m.AdminOverviewPage })));
 const AdminBookingsPage = lazy(() => import('@/pages/admin/AdminBookingsPage').then((m) => ({ default: m.AdminBookingsPage })));
 const AdminEnquiriesPage = lazy(() => import('@/pages/admin/AdminEnquiriesPage').then((m) => ({ default: m.AdminEnquiriesPage })));
-const AdminMenuPage = lazy(() => import('@/pages/admin/AdminMenuPage').then((m) => ({ default: m.AdminMenuPage })));
+const AdminCategoriesPage = lazy(() => import('@/pages/admin/AdminCategoriesPage').then((m) => ({ default: m.AdminCategoriesPage })));
+const AdminItemsPage = lazy(() => import('@/pages/admin/AdminItemsPage').then((m) => ({ default: m.AdminItemsPage })));
 const AdminPackagesPage = lazy(() => import('@/pages/admin/AdminPackagesPage').then((m) => ({ default: m.AdminPackagesPage })));
-const AdminServiceCategoriesPage = lazy(() =>
-  import('@/pages/admin/AdminServiceCategoriesPage').then((m) => ({ default: m.AdminServiceCategoriesPage })),
-);
 const AdminGalleryPage = lazy(() => import('@/pages/admin/AdminGalleryPage').then((m) => ({ default: m.AdminGalleryPage })));
 const AdminTestimonialsPage = lazy(() => import('@/pages/admin/AdminTestimonialsPage').then((m) => ({ default: m.AdminTestimonialsPage })));
 const AdminFaqsPage = lazy(() => import('@/pages/admin/AdminFaqsPage').then((m) => ({ default: m.AdminFaqsPage })));
@@ -67,9 +65,9 @@ export const router = createBrowserRouter([
           { index: true, element: withSuspense(<AdminOverviewPage />) },
           { path: 'bookings', element: withSuspense(<AdminBookingsPage />) },
           { path: 'enquiries', element: withSuspense(<AdminEnquiriesPage />) },
-          { path: 'menu', element: withSuspense(<AdminMenuPage />) },
+          { path: 'categories', element: withSuspense(<AdminCategoriesPage />) },
+          { path: 'items', element: withSuspense(<AdminItemsPage />) },
           { path: 'packages', element: withSuspense(<AdminPackagesPage />) },
-          { path: 'service-categories', element: withSuspense(<AdminServiceCategoriesPage />) },
           { path: 'gallery', element: withSuspense(<AdminGalleryPage />) },
           { path: 'testimonials', element: withSuspense(<AdminTestimonialsPage />) },
           { path: 'faqs', element: withSuspense(<AdminFaqsPage />) },

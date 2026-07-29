@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { Logo } from './Logo';
 import { Container } from '@/components/ui/Container';
-import { siteConfig } from '@/lib/siteConfig';
+import { useSettings } from '@/lib/api/settings';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
@@ -22,6 +22,11 @@ const eventTypeLinks: { to: string; labelKey: TranslationKey }[] = [
 
 export function Footer() {
   const { t } = useTranslation();
+  const { data: settings } = useSettings();
+  const phone = settings?.phone ?? '';
+  const email = settings?.email ?? '';
+  const address = settings?.address ?? '';
+  const businessName = settings?.businessName ?? '';
 
   return (
     <footer className="bg-ink-black text-cream border-gold/20 border-t">
@@ -71,22 +76,22 @@ export function Footer() {
           <ul className="space-y-3 text-sm">
             <li>
               <a
-                href={`tel:+91${siteConfig.phone}`}
+                href={`tel:+91${phone}`}
                 className="text-cream/70 hover:text-gold flex items-center gap-2.5 transition-colors"
               >
-                <Phone size={16} className="text-gold shrink-0" /> {siteConfig.phoneDisplay}
+                <Phone size={16} className="text-gold shrink-0" /> +91 {phone}
               </a>
             </li>
             <li>
               <a
-                href={`mailto:${siteConfig.email}`}
+                href={`mailto:${email}`}
                 className="text-cream/70 hover:text-gold flex items-center gap-2.5 transition-colors"
               >
-                <Mail size={16} className="text-gold shrink-0" /> {siteConfig.email}
+                <Mail size={16} className="text-gold shrink-0" /> {email}
               </a>
             </li>
             <li className="text-cream/70 flex items-start gap-2.5">
-              <MapPin size={16} className="text-gold mt-0.5 shrink-0" /> {siteConfig.address}
+              <MapPin size={16} className="text-gold mt-0.5 shrink-0" /> {address}
             </li>
           </ul>
         </div>
@@ -95,7 +100,7 @@ export function Footer() {
       <div className="border-gold/10 border-t py-5">
         <Container className="flex flex-col items-center justify-between gap-2 text-xs sm:flex-row">
           <p className="text-cream/50">
-            &copy; {new Date().getFullYear()} {siteConfig.businessName}. {t('footer.rightsReserved')}
+            &copy; {new Date().getFullYear()} {businessName}. {t('footer.rightsReserved')}
           </p>
           <Link to="/booking/status" className="text-cream/50 hover:text-gold transition-colors">
             {t('nav.checkStatus')}

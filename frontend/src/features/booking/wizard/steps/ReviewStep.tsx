@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useBookingCartStore } from '@/store/bookingCartStore';
 import { useQuote } from '@/lib/api/bookings';
-import { packageHooks, menuItemHooks, serviceCategoryHooks, serviceOptionHooks } from '@/lib/api/resources';
+import { packageHooks, categoryHooks, itemHooks } from '@/lib/api/resources';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const currency = (value: number) => `₹${value.toLocaleString('en-IN')}`;
@@ -12,15 +12,13 @@ export function ReviewStep() {
   const packageId = useBookingCartStore((s) => s.packageId);
   const isCustom = useBookingCartStore((s) => s.isCustom);
   const guestCount = useBookingCartStore((s) => s.guestCount) ?? 0;
-  const menuItems = useBookingCartStore((s) => s.menuItems);
-  const selectedOptions = useBookingCartStore((s) => s.selectedOptions);
+  const selectedItems = useBookingCartStore((s) => s.selectedItems);
   const goToStep = useBookingCartStore((s) => s.goToStep);
   const setConfigureCategoryIndex = useBookingCartStore((s) => s.setConfigureCategoryIndex);
 
   const { data: packages } = packageHooks.usePublicList();
-  const { data: allMenuItems } = menuItemHooks.usePublicList();
-  const { data: categories } = serviceCategoryHooks.usePublicList();
-  const { data: options } = serviceOptionHooks.usePublicList();
+  const { data: categories } = categoryHooks.usePublicList();
+  const { data: allItems } = itemHooks.usePublicList();
 
   const pkg = packages?.find((p) => p.id === packageId);
 
@@ -28,40 +26,31 @@ export function ReviewStep() {
     () => ({
       guestCount,
       packageId: packageId ?? undefined,
-      menuItems,
-      serviceOptions: selectedOptions.map((o) => ({ serviceOptionId: o.optionId, quantity: o.quantity })),
+      items: selectedItems.map((i) => ({ itemId: i.itemId, quantity: i.quantity })),
     }),
-    [guestCount, packageId, menuItems, selectedOptions],
+    [guestCount, packageId, selectedItems],
   );
   const { data: pricing, isFetching, isError: quoteError, refetch: refetchQuote } = useQuote(selection, guestCount > 0);
 
-  const groupedOptions = useMemo(() => {
-    if (!categories || !options) return [];
+  const groupedSelections = useMemo(() => {
+    if (!categories || !allItems) return [];
     return categories
       .map((cat) => ({
         category: cat,
-        items: selectedOptions
-          .filter((o) => o.categoryId === cat.id)
-          .map((o) => {
-            const option = options.find((opt) => opt.id === o.optionId);
-            return option ? { ...option, quantity: o.quantity } : null;
+        items: selectedItems
+          .filter((s) => s.categoryId === cat.id)
+          .map((s) => {
+            const item = allItems.find((i) => i.id === s.itemId);
+            return item ? { ...item, quantity: s.quantity } : null;
           })
-          .filter((o): o is NonNullable<typeof o> => !!o),
+          .filter((i): i is NonNullable<typeof i> => !!i),
       }))
       .filter((g) => g.items.length > 0);
-  }, [categories, options, selectedOptions]);
-
-  function editFood() {
-    if (!isCustom && pkg) {
-      const idx = pkg.steps.findIndex((s) => s.kind === 'FOOD');
-      if (idx >= 0) setConfigureCategoryIndex(idx);
-    }
-    goToStep('CONFIGURE');
-  }
+  }, [categories, allItems, selectedItems]);
 
   function editCategory(categoryId: string) {
     if (!isCustom && pkg) {
-      const idx = pkg.steps.findIndex((s) => s.serviceCategoryId === categoryId);
+      const idx = pkg.categories.findIndex((pc) => pc.categoryId === categoryId);
       if (idx >= 0) setConfigureCategoryIndex(idx);
     }
     goToStep('CONFIGURE');
@@ -92,31 +81,7 @@ export function ReviewStep() {
           <span className="text-sm font-semibold">{guestCount}</span>
         </div>
 
-        {menuItems.length > 0 && (
-          <div className="px-6 py-4">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-text-muted text-sm">{t('wizard.foodSelection')}</span>
-              <button type="button" onClick={editFood} className="text-gold text-sm underline">
-                {t('common.edit')}
-              </button>
-            </div>
-            <ul className="space-y-1">
-              {menuItems.map((mi) => {
-                const item = allMenuItems?.find((m) => m.id === mi.menuItemId);
-                return item ? (
-                  <li key={mi.menuItemId} className="flex justify-between gap-3 text-sm">
-                    <span className="min-w-0">
-                      {tf(item.name, item.nameTe)} × {mi.quantity}
-                    </span>
-                    <span className="shrink-0">{currency(Number(item.price) * mi.quantity)}</span>
-                  </li>
-                ) : null;
-              })}
-            </ul>
-          </div>
-        )}
-
-        {groupedOptions.map((group) => (
+        {groupedSelections.map((group) => (
           <div key={group.category.id} className="px-6 py-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-text-muted text-sm">{tf(group.category.name, group.category.nameTe)}</span>
@@ -125,13 +90,13 @@ export function ReviewStep() {
               </button>
             </div>
             <ul className="space-y-1">
-              {group.items.map((opt) => (
-                <li key={opt.id} className="flex justify-between gap-3 text-sm">
+              {group.items.map((item) => (
+                <li key={item.id} className="flex justify-between gap-3 text-sm">
                   <span className="min-w-0">
-                    {tf(opt.name, opt.nameTe)}
-                    {opt.quantity > 1 && ` × ${opt.quantity}`}
+                    {tf(item.name, item.nameTe)}
+                    {item.quantity > 1 && ` × ${item.quantity}`}
                   </span>
-                  <span className="shrink-0">{currency(Number(opt.price) * opt.quantity)}</span>
+                  <span className="shrink-0">{currency(Number(item.price) * item.quantity)}</span>
                 </li>
               ))}
             </ul>

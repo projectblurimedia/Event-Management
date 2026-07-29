@@ -1,31 +1,40 @@
-export type ServiceUnit = 'FLAT' | 'PER_GUEST';
+export type PricingMode = 'FLAT' | 'PER_PERSON';
 
 export interface PricingInput {
-  guestCount: number;
-  package: { pricePerGuest: number } | null;
-  menuItems: { price: number; quantity: number }[];
-  serviceOptions: { price: number; unit: ServiceUnit; quantity: number }[];
+  items: { price: number; pricingMode: PricingMode; quantity: number }[];
 }
 
 export interface PricingBreakdown {
-  packageCost: number;
-  foodCost: number;
-  addOnsCost: number;
+  perPersonCost: number;
+  flatCost: number;
   grandTotal: number;
 }
 
+/**
+ * Packages carry no price of their own — the total is purely the sum of
+ * whatever items the customer selects. Each item's pricing mode comes from
+ * its parent Category (set once by the admin, not chosen per item); for
+ * PER_PERSON items, `quantity` is expected to already reflect the guest
+ * count (mirrors how per-plate food quantities worked previously).
+ */
 export function calculatePricing(input: PricingInput): PricingBreakdown {
-  const packageCost = input.package ? round(input.package.pricePerGuest * input.guestCount) : 0;
+  let perPersonCost = 0;
+  let flatCost = 0;
 
-  const foodCost = round(
-    input.menuItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
-  );
+  for (const item of input.items) {
+    const lineTotal = item.price * item.quantity;
+    if (item.pricingMode === 'PER_PERSON') {
+      perPersonCost += lineTotal;
+    } else {
+      flatCost += lineTotal;
+    }
+  }
 
-  const addOnsCost = round(input.serviceOptions.reduce((sum, s) => sum + s.price * s.quantity, 0));
-
-  const grandTotal = round(packageCost + foodCost + addOnsCost);
-
-  return { packageCost, foodCost, addOnsCost, grandTotal };
+  return {
+    perPersonCost: round(perPersonCost),
+    flatCost: round(flatCost),
+    grandTotal: round(perPersonCost + flatCost),
+  };
 }
 
 function round(value: number): number {

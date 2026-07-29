@@ -41,8 +41,8 @@ export async function getOverview() {
       orderBy: { _count: { packageId: 'desc' } },
       take: 5,
     }),
-    prisma.bookingMenuItem.groupBy({
-      by: ['menuItemId'],
+    prisma.bookingItem.groupBy({
+      by: ['itemId'],
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: 'desc' } },
       take: 5,
@@ -58,12 +58,12 @@ export async function getOverview() {
     bookingCount: g._count.packageId,
   }));
 
-  const menuItemIds = menuItemGroups.map((g) => g.menuItemId);
-  const menuItems = menuItemIds.length
-    ? await prisma.menuItem.findMany({ where: { id: { in: menuItemIds } } })
+  const itemIds = menuItemGroups.map((g) => g.itemId);
+  const popularItems = itemIds.length
+    ? await prisma.item.findMany({ where: { id: { in: itemIds } } })
     : [];
   const popularFoodItems = menuItemGroups.map((g) => ({
-    menuItem: menuItems.find((m) => m.id === g.menuItemId) ?? null,
+    menuItem: popularItems.find((m) => m.id === g.itemId) ?? null,
     totalQuantity: g._sum.quantity ?? 0,
   }));
 

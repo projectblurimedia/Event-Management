@@ -19,12 +19,6 @@ enum EventType {
   OTHER
 }
 
-enum PackageTier {
-  SILVER
-  GOLD
-  PLATINUM
-}
-
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -32,20 +26,19 @@ enum BookingStatus {
   COMPLETED
 }
 
-enum ServiceUnit {
+/// How an Item's price is applied: FLAT is a single fee for the whole
+/// booking (e.g. decoration theme); PER_PERSON multiplies by guest count
+/// (e.g. a food dish, a welcome drink). Set once on the Category — every
+/// Item under it follows automatically, no per-item choice needed.
+enum PricingMode {
   FLAT
-  PER_GUEST
+  PER_PERSON
 }
 
 enum GalleryCategory {
   FOOD
   DECORATION
   EVENT
-}
-
-enum PackageStepKind {
-  FOOD
-  SERVICE_CATEGORY
 }
 
 enum DietaryPreference {
@@ -87,119 +80,104 @@ model PasswordResetOtp {
   @@index([adminId])
 }
 
-model MenuCategory {
-  id        String     @id @default(cuid())
-  name      String
-  nameTe    String?
-  slug      String     @unique
-  order     Int        @default(0)
-  items     MenuItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
-model MenuItem {
-  id           String             @id @default(cuid())
-  categoryId   String
-  category     MenuCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  name         String
-  nameTe       String?
-  description  String?
-  price        Decimal            @db.Decimal(10, 2)
-  imageUrl     String?
-  isVeg        Boolean            @default(true)
-  isAvailable  Boolean            @default(true)
-  isFeatured   Boolean            @default(false)
-  bookingItems BookingMenuItem[]
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-
-  @@index([categoryId])
-}
-
-model Package {
-  id            String        @id @default(cuid())
-  tier          PackageTier   @unique
+/// A "bulletin" — the top-level admin-creatable section customers browse
+/// and packages are built from (Food, Decoration, Welcome Drinks, DJ &
+/// Sound...). Not a fixed enum, so admins can add new ones without a code
+/// change. pricingMode decides how every Item underneath it is priced;
+/// isFood gates the veg/non-veg dietary question + badge in the wizard.
+model Category {
+  id            String            @id @default(cuid())
   name          String
   nameTe        String?
-  description   String
-  descriptionTe String?
-  pricePerGuest Decimal       @db.Decimal(10, 2)
-  imageUrl      String?
-  isActive      Boolean       @default(true)
-  items         PackageItem[]
-  steps         PackageStep[]
-  bookings      Booking[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-}
-
-/// Included-features bullet list shown on the package card and in the
-/// booking wizard (e.g. "Basic Decoration", "Welcome Drinks", "Event
-/// Manager") — informational only, not individually selectable/priced.
-model PackageItem {
-  id        String  @id @default(cuid())
-  packageId String
-  package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
-  label     String
-  labelTe   String?
-  order     Int     @default(0)
-
-  @@index([packageId])
-}
-
-/// Defines a package's guided wizard flow: an ordered sequence of steps the
-/// customer walks through when configuring that package (e.g. Silver =
-/// Food -> Welcome Drinks -> Stage Decoration -> Lighting -> DJ & Sound).
-model PackageStep {
-  id                String           @id @default(cuid())
-  packageId         String
-  package           Package          @relation(fields: [packageId], references: [id], onDelete: Cascade)
-  order             Int
-  kind              PackageStepKind
-  serviceCategoryId String?
-  serviceCategory   ServiceCategory? @relation(fields: [serviceCategoryId], references: [id])
-
-  @@index([packageId])
-}
-
-/// Admin-creatable service section shown in the booking wizard (Welcome
-/// Drinks, Stage Decoration, Lighting, DJ & Sound, Furniture, Flowers...).
-/// Not a fixed enum, so admins can add new categories without a code change.
-model ServiceCategory {
-  id            String          @id @default(cuid())
-  name          String
-  nameTe        String?
-  slug          String          @unique
+  slug          String            @unique
   description   String?
   descriptionTe String?
   imageUrl      String?
-  allowMultiple Boolean         @default(false)
-  isActive      Boolean         @default(true)
-  order         Int             @default(0)
-  options       ServiceOption[]
-  packageSteps  PackageStep[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  pricingMode   PricingMode       @default(FLAT)
+  isFood        Boolean           @default(false)
+  allowMultiple Boolean           @default(false)
+  isActive      Boolean           @default(true)
+  order         Int               @default(0)
+  types         CategoryType[]
+  packageLinks  PackageCategory[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 }
 
-model ServiceOption {
-  id                String                  @id @default(cuid())
-  categoryId        String
-  category          ServiceCategory         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  name              String
-  nameTe            String?
-  description       String?
-  price             Decimal                 @db.Decimal(10, 2)
-  unit              ServiceUnit             @default(FLAT)
-  imageUrl          String?
-  isActive          Boolean                 @default(true)
-  order             Int                     @default(0)
-  bookingSelections BookingServiceOption[]
-  createdAt         DateTime                @default(now())
-  updatedAt         DateTime                @updatedAt
+/// A sub-classification within a Category (Sweet/Hot/Flavoured Rice under
+/// Food; Birthday/Marriage under Decoration). Items always belong to a type,
+/// never directly to a category.
+model CategoryType {
+  id         String   @id @default(cuid())
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name       String
+  nameTe     String?
+  order      Int      @default(0)
+  items      Item[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([categoryId])
+}
+
+/// The actual purchasable/selectable thing a customer picks in the wizard
+/// (a dish, a decoration theme, a DJ package...). Pricing unit (flat vs per
+/// person) is inherited from the parent Category, not set per item.
+model Item {
+  id             String        @id @default(cuid())
+  categoryTypeId String
+  categoryType   CategoryType  @relation(fields: [categoryTypeId], references: [id], onDelete: Cascade)
+  name           String
+  nameTe         String?
+  description    String?
+  price          Decimal       @db.Decimal(10, 2)
+  /// Up to 4 image URLs (Cloudinary), enforced at the API layer.
+  images         String[]      @default([])
+  /// Only meaningful when the parent Category has isFood = true.
+  isVeg          Boolean?
+  isAvailable    Boolean       @default(true)
+  isFeatured     Boolean       @default(false)
+  order          Int           @default(0)
+  bookingItems   BookingItem[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([categoryTypeId])
+}
+
+/// A package is just a name plus an ordered list of bulletins (categories)
+/// it includes — no price of its own. The booking total is always the sum
+/// of whatever items the customer selects within those categories. No fixed
+/// tier enum — the admin types whatever name they want ("Silver", "Gold",
+/// or anything else); isFeatured drives the "Most Popular" highlight.
+model Package {
+  id         String            @id @default(cuid())
+  name       String
+  nameTe     String?
+  imageUrl   String?
+  isFeatured Boolean           @default(false)
+  isActive   Boolean           @default(true)
+  order      Int               @default(0)
+  categories PackageCategory[]
+  bookings   Booking[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+}
+
+/// The ordered bulletin list a package walks the customer through in the
+/// wizard (e.g. Silver = Food -> Decoration -> Welcome Drinks). "Custom
+/// Package" has no Package row at all — the wizard shows every active
+/// Category freely instead.
+model PackageCategory {
+  id         String   @id @default(cuid())
+  packageId  String
+  package    Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  order      Int      @default(0)
+
+  @@index([packageId])
 }
 
 model GalleryImage {
@@ -238,12 +216,19 @@ model FAQ {
 model SiteSettings {
   id                   String   @id @default("singleton")
   businessName         String
+  logoUrl              String?
   organiser            String
   phone                String
   whatsapp             String
   email                String
   address              String
-  mapEmbedUrl          String
+  /// Precise coordinates from the browser Geolocation API (captured during
+  /// setup or updated later) — mapEmbedUrl is only derived and shown on the
+  /// public site when both are present, since a manually-typed address
+  /// alone isn't reliable enough to geocode into an accurate pin.
+  latitude             Float?
+  longitude            Float?
+  mapEmbedUrl          String?
   heroHeadline         String
   heroHeadlineTe       String?
   heroSubheadline      String
@@ -287,15 +272,15 @@ model Booking {
   dietaryPreference   DietaryPreference?
   specialRequirements String?
 
-  foodCost    Decimal @db.Decimal(10, 2) @default(0)
-  addOnsCost  Decimal @db.Decimal(10, 2) @default(0)
-  packageCost Decimal @db.Decimal(10, 2) @default(0)
-  grandTotal  Decimal @db.Decimal(10, 2) @default(0)
+  /// Sum of selected items priced PER_PERSON (already multiplied by guestCount).
+  perPersonCost Decimal @db.Decimal(10, 2) @default(0)
+  /// Sum of selected items priced FLAT.
+  flatCost      Decimal @db.Decimal(10, 2) @default(0)
+  grandTotal    Decimal @db.Decimal(10, 2) @default(0)
 
   status BookingStatus @default(PENDING)
 
-  menuItems      BookingMenuItem[]
-  serviceOptions BookingServiceOption[]
+  items BookingItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -305,26 +290,18 @@ model Booking {
   @@index([eventDate])
 }
 
-model BookingMenuItem {
-  id             String   @id @default(cuid())
+/// priceAtBooking + quantity snapshot so historical quotations stay
+/// accurate even if catalogue prices change later. For PER_PERSON items,
+/// quantity is the guest count at time of booking (mirrors the old
+/// per-plate model); for FLAT items it's normally 1.
+model BookingItem {
+  id             String  @id @default(cuid())
   bookingId      String
-  booking        Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  menuItemId     String
-  menuItem       MenuItem @relation(fields: [menuItemId], references: [id])
-  quantity       Int      @default(1)
-  priceAtBooking Decimal  @db.Decimal(10, 2)
-
-  @@index([bookingId])
-}
-
-model BookingServiceOption {
-  id              String        @id @default(cuid())
-  bookingId       String
-  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  serviceOptionId String
-  serviceOption   ServiceOption @relation(fields: [serviceOptionId], references: [id])
-  quantity        Int           @default(1)
-  priceAtBooking  Decimal       @db.Decimal(10, 2)
+  booking        Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  itemId         String
+  item           Item    @relation(fields: [itemId], references: [id])
+  quantity       Int     @default(1)
+  priceAtBooking Decimal @db.Decimal(10, 2)
 
   @@index([bookingId])
 }

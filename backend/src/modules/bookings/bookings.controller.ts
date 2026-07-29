@@ -26,6 +26,7 @@ export const downloadQuotationHandler = asyncHandler(async (req: Request, res: R
   const booking = await bookingsService.getBookingForQuotation(req.params.id as string, phone);
   const data = bookingsService.toQuotationData(booking);
   const settings = await getSettings();
+  if (!settings) throw ApiError.badRequest('Business profile is not configured yet');
   const { renderToBuffer } = await import('@react-pdf/renderer');
   const buffer = await renderToBuffer(
     await QuotationDocument({

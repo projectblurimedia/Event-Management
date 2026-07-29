@@ -3,13 +3,13 @@ import { Helmet } from 'react-helmet-async';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Check, X } from 'lucide-react';
+import { Check, X, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/axios';
 import { useAuthStore } from '@/store/authStore';
-import { siteConfig } from '@/lib/siteConfig';
+import { useSettings } from '@/lib/api/settings';
 import { cn } from '@/lib/cn';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -32,8 +32,21 @@ const labelClasses = 'text-cream/70 mb-1.5 block text-xs font-medium';
 export function AdminLoginPage() {
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [mode, setMode] = useState<Mode>('login');
   const { t } = useTranslation();
+  const { data: settings } = useSettings();
+  const businessName = settings?.businessName ?? '';
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Already signed in (e.g. navigated here directly, or clicked the header
+  // Admin link while the session from earlier today/this week is still
+  // valid) — skip straight to the dashboard instead of re-prompting.
+  if (isAuthenticated) {
+    return <Navigate to="/admin" replace />;
+  }
 
   const passwordChecks = (pw: string) => [
     { label: t('admin.login.check8Chars'), pass: pw.length >= 8 },
@@ -153,7 +166,7 @@ export function AdminLoginPage() {
   return (
     <>
       <Helmet>
-        <title>Admin Login | {siteConfig.businessName}</title>
+        <title>Admin Login{businessName ? ` | ${businessName}` : ''}</title>
       </Helmet>
       <div className="bg-[image:var(--gradient-luxury)] flex min-h-screen items-center justify-center px-4 py-10">
         <div className="border-gold/20 bg-charcoal-2 w-full max-w-sm rounded-2xl border p-8 shadow-2xl">
@@ -161,9 +174,13 @@ export function AdminLoginPage() {
             <LanguageSwitcher mutedClassName="text-cream/70" />
           </div>
           <div className="mb-6 flex flex-col items-center gap-2 text-center">
-            <span className="border-gold text-gold font-display flex h-11 w-11 items-center justify-center rounded-full border text-lg font-semibold">
-              MS
-            </span>
+            {settings?.logoUrl ? (
+              <img src={settings.logoUrl} alt={businessName} className="h-11 w-11 rounded-full object-cover" />
+            ) : (
+              <span className="border-gold text-gold font-display flex h-11 w-11 items-center justify-center rounded-full border text-lg font-semibold">
+                {businessName.trim().charAt(0).toUpperCase() || '—'}
+              </span>
+            )}
             <h1 className="text-cream text-xl font-semibold">
               {mode === 'login' && t('admin.login.title')}
               {mode === 'forgot-request' && t('admin.login.forgotPasswordTitle')}
@@ -172,7 +189,7 @@ export function AdminLoginPage() {
               {mode === 'forgot-success' && t('admin.login.passwordUpdatedTitle')}
             </h1>
             <p className="text-cream/50 text-sm">
-              {mode === 'login' && `${t('admin.login.signInSubtitle')} ${siteConfig.businessName}`}
+              {mode === 'login' && `${t('admin.login.signInSubtitle')} ${businessName}`}
               {mode === 'forgot-request' && t('admin.login.chooseOtpMethod')}
               {mode === 'forgot-verify' &&
                 `${t('admin.login.enterCodeSentTo')} ${channel === 'EMAIL' ? t('admin.login.email.lower') : t('admin.login.mobile.lower')}`}
@@ -195,13 +212,24 @@ export function AdminLoginPage() {
                 <label htmlFor="password" className={labelClasses}>
                   {t('admin.login.password')}
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  className={fieldClasses}
-                  {...register('password')}
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    className={cn(fieldClasses, 'pr-10')}
+                    {...register('password')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="text-cream/50 hover:text-cream absolute inset-y-0 right-0 flex w-10 items-center justify-center"
+                    aria-label={showPassword ? t('admin.login.hidePassword') : t('admin.login.showPassword')}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 {errors.password && <p className="text-rose mt-1 text-xs">{errors.password.message}</p>}
               </div>
 
@@ -322,14 +350,25 @@ export function AdminLoginPage() {
                 <label htmlFor="newPassword" className={labelClasses}>
                   {t('admin.login.newPassword')}
                 </label>
-                <input
-                  id="newPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className={fieldClasses}
-                />
+                <div className="relative">
+                  <input
+                    id="newPassword"
+                    type={showNewPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className={cn(fieldClasses, 'pr-10')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((v) => !v)}
+                    className="text-cream/50 hover:text-cream absolute inset-y-0 right-0 flex w-10 items-center justify-center"
+                    aria-label={showNewPassword ? t('admin.login.hidePassword') : t('admin.login.showPassword')}
+                    tabIndex={-1}
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <ul className="grid grid-cols-1 gap-1">
@@ -345,14 +384,25 @@ export function AdminLoginPage() {
                 <label htmlFor="confirmPassword" className={labelClasses}>
                   {t('admin.login.confirmNewPassword')}
                 </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={fieldClasses}
-                />
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={cn(fieldClasses, 'pr-10')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    className="text-cream/50 hover:text-cream absolute inset-y-0 right-0 flex w-10 items-center justify-center"
+                    aria-label={showConfirmPassword ? t('admin.login.hidePassword') : t('admin.login.showPassword')}
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 {confirmPassword && newPassword !== confirmPassword && (
                   <p className="text-rose mt-1 text-xs">{t('admin.login.passwordsDoNotMatch')}</p>
                 )}

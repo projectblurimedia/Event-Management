@@ -46,8 +46,7 @@ export function CustomerDetailsStep() {
   const setGuestCount = useBookingCartStore((s) => s.setGuestCount);
   const packageId = useBookingCartStore((s) => s.packageId);
   const dietaryPreference = useBookingCartStore((s) => s.dietaryPreference);
-  const menuItems = useBookingCartStore((s) => s.menuItems);
-  const selectedOptions = useBookingCartStore((s) => s.selectedOptions);
+  const selectedItems = useBookingCartStore((s) => s.selectedItems);
   const goToStep = useBookingCartStore((s) => s.goToStep);
   const recordSubmittedBooking = useBookingCartStore((s) => s.recordSubmittedBooking);
   const createBooking = useCreateBooking();
@@ -76,8 +75,7 @@ export function CustomerDetailsStep() {
         guestCount,
         packageId: packageId ?? undefined,
         dietaryPreference: dietaryPreference ?? undefined,
-        menuItems,
-        serviceOptions: selectedOptions.map((o) => ({ serviceOptionId: o.optionId, quantity: o.quantity })),
+        items: selectedItems.map((i) => ({ itemId: i.itemId, quantity: i.quantity })),
       });
       recordSubmittedBooking({ id: booking.id, bookingCode: booking.bookingCode, phone: booking.phone });
     } catch (error) {

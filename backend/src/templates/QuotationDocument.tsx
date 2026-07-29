@@ -19,15 +19,13 @@ export interface QuotationBookingData {
   eventTime: string;
   eventType: string;
   guestCount: number;
-  package: { name: string; pricePerGuest: number } | null;
-  menuItems: { name: string; quantity: number; priceAtBooking: number }[];
-  groupedServices: {
+  package: { name: string } | null;
+  groupedItems: {
     categoryName: string;
     items: { name: string; quantity: number; priceAtBooking: number }[];
   }[];
-  foodCost: number;
-  addOnsCost: number;
-  packageCost: number;
+  perPersonCost: number;
+  flatCost: number;
   grandTotal: number;
 }
 
@@ -76,7 +74,6 @@ export async function QuotationDocument({
     },
     logoBadgeText: { fontSize: 13, fontFamily: 'Helvetica-Bold', color: colors.gold },
     businessName: { fontSize: 20, fontFamily: 'Helvetica-Bold', color: colors.gold },
-    tagline: { fontSize: 9, color: colors.cream, marginTop: 2 },
     quotationTitle: { fontSize: 12, color: colors.rose, marginTop: 6, fontFamily: 'Helvetica-Bold' },
     section: { marginBottom: 16 },
     sectionTitle: {
@@ -116,11 +113,10 @@ export async function QuotationDocument({
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View style={styles.logoBadge}>
-            <Text style={styles.logoBadgeText}>MS</Text>
+            <Text style={styles.logoBadgeText}>{business.name.trim().charAt(0).toUpperCase()}</Text>
           </View>
           <View>
             <Text style={styles.businessName}>{business.name}</Text>
-            <Text style={styles.tagline}>Premium Wedding Planning &amp; Catering</Text>
             <Text style={styles.quotationTitle}>Booking Quotation — {booking.bookingCode}</Text>
           </View>
         </View>
@@ -170,30 +166,11 @@ export async function QuotationDocument({
             <Text style={styles.sectionTitle}>Package</Text>
             <View style={styles.tableRow}>
               <Text>{booking.package.name}</Text>
-              <Text>
-                {formatCurrency(booking.package.pricePerGuest)} x {booking.guestCount} guests
-              </Text>
             </View>
           </View>
         )}
 
-        {booking.menuItems.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Food Selection</Text>
-            <View style={styles.table}>
-              {booking.menuItems.map((item, i) => (
-                <View style={styles.tableRow} key={i}>
-                  <Text>
-                    {item.name} x {item.quantity}
-                  </Text>
-                  <Text>{formatCurrency(item.priceAtBooking * item.quantity)}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {booking.groupedServices.map((group) => (
+        {booking.groupedItems.map((group) => (
           <View style={styles.section} key={group.categoryName}>
             <Text style={styles.sectionTitle}>{group.categoryName}</Text>
             <View style={styles.table}>
@@ -212,16 +189,12 @@ export async function QuotationDocument({
 
         <View style={styles.totalsBox}>
           <View style={styles.row}>
-            <Text style={styles.label}>Package Cost</Text>
-            <Text>{formatCurrency(booking.packageCost)}</Text>
+            <Text style={styles.label}>Per-Person Items (x {booking.guestCount} guests)</Text>
+            <Text>{formatCurrency(booking.perPersonCost)}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Food Cost</Text>
-            <Text>{formatCurrency(booking.foodCost)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Selected Services Cost</Text>
-            <Text>{formatCurrency(booking.addOnsCost)}</Text>
+            <Text style={styles.label}>Flat-Priced Items</Text>
+            <Text>{formatCurrency(booking.flatCost)}</Text>
           </View>
           <View style={styles.grandTotalRow}>
             <Text style={styles.grandTotalLabel}>Grand Total</Text>

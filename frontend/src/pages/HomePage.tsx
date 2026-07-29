@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Award, Clock, HeartHandshake, Mail, MapPin, Phone, ShieldCheck, Star } from 'lucide-react';
+import { Award, Check, Clock, HeartHandshake, Mail, MapPin, Phone, ShieldCheck, Star } from 'lucide-react';
 import { LinkButton, Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -13,11 +13,12 @@ import {
   packageHooks,
   galleryHooks,
   testimonialHooks,
-  serviceCategoryHooks,
-  serviceOptionHooks,
+  categoryHooks,
+  categoryTypeHooks,
+  itemHooks,
   faqHooks,
 } from '@/lib/api/resources';
-import { siteConfig } from '@/lib/siteConfig';
+import { PageLoader } from '@/components/ui/PageLoader';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import { cn } from '@/lib/cn';
@@ -35,37 +36,33 @@ export function HomePage() {
   const { data: packages } = packageHooks.usePublicList();
   const { data: gallery } = galleryHooks.usePublicList();
   const { data: testimonials } = testimonialHooks.usePublicList();
-  const { data: serviceCategories } = serviceCategoryHooks.usePublicList();
-  const { data: serviceOptions } = serviceOptionHooks.usePublicList();
+  const { data: categories } = categoryHooks.usePublicList();
+  const { data: categoryTypes } = categoryTypeHooks.usePublicList();
+  const { data: items } = itemHooks.usePublicList();
   const { data: faqs } = faqHooks.usePublicList();
   const [contactOpen, setContactOpen] = useState(false);
   const [activeServiceTab, setActiveServiceTab] = useState<string | null>(null);
-  const activeServiceCategory =
-    serviceCategories?.find((c) => c.id === activeServiceTab) ?? serviceCategories?.[0];
-  const activeServiceOptions = serviceOptions?.filter((o) => o.categoryId === activeServiceCategory?.id) ?? [];
 
-  const heroHeadline = settings
-    ? tf(settings.heroHeadline, settings.heroHeadlineTe)
-    : 'Crafting Unforgettable Weddings & Celebrations';
-  const heroSubheadline = settings
-    ? tf(settings.heroSubheadline, settings.heroSubheadlineTe)
-    : 'Full-service wedding planning, catering, decoration and event management — from an intimate housewarming to a grand wedding reception.';
-  const introTitle = settings
-    ? tf(settings.businessIntroTitle, settings.businessIntroTitleTe)
-    : 'A Premium Event Partner for Every Occasion';
-  const introText = settings
-    ? tf(settings.businessIntroText, settings.businessIntroTextTe)
-    : `${siteConfig.businessName} brings together catering, decoration, photography and entertainment under one roof.`;
+  const serviceCategories = categories?.filter((c) => !c.isFood) ?? [];
+  const activeServiceCategory = serviceCategories.find((c) => c.id === activeServiceTab) ?? serviceCategories[0];
+  const activeServiceCategoryTypeIds = new Set(
+    categoryTypes?.filter((ty) => ty.categoryId === activeServiceCategory?.id).map((ty) => ty.id) ?? [],
+  );
+  const activeServiceItems = items?.filter((i) => activeServiceCategoryTypeIds.has(i.categoryTypeId)) ?? [];
 
-  const phone = settings?.phone ?? siteConfig.phone;
-  const email = settings?.email ?? siteConfig.email;
-  const address = settings?.address ?? siteConfig.address;
-  const mapEmbedUrl = settings?.mapEmbedUrl ?? siteConfig.mapEmbedUrl;
+  if (!settings) return <PageLoader />;
+
+  const heroHeadline = tf(settings.heroHeadline, settings.heroHeadlineTe);
+  const heroSubheadline = tf(settings.heroSubheadline, settings.heroSubheadlineTe);
+  const introTitle = tf(settings.businessIntroTitle, settings.businessIntroTitleTe);
+  const introText = tf(settings.businessIntroText, settings.businessIntroTextTe);
+
+  const { phone, email, address, mapEmbedUrl, businessName, organiser } = settings;
 
   return (
     <>
       <Helmet>
-        <title>{siteConfig.businessName} | Premium Event Management &amp; Catering</title>
+        <title>{businessName} | Premium Event Management &amp; Catering</title>
         <meta
           name="description"
           content="Premium wedding planning, catering and event management for weddings, birthdays, housewarmings, engagements and corporate events."
@@ -74,7 +71,7 @@ export function HomePage() {
           {JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'EventPlanner',
-            name: settings?.businessName ?? siteConfig.businessName,
+            name: businessName,
             telephone: `+91${phone}`,
             email,
             address,
@@ -95,7 +92,7 @@ export function HomePage() {
             transition={{ duration: 0.5 }}
             className="text-gold text-sm font-semibold tracking-[0.35em] uppercase"
           >
-            {settings?.organiser ?? siteConfig.organiser} Presents
+            {organiser} Presents
           </motion.span>
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
@@ -160,7 +157,7 @@ export function HomePage() {
       </section>
 
       {/* Our Services */}
-      {!!serviceCategories?.length && (
+      {!!serviceCategories.length && (
         <section className="py-20">
           <Container>
             <FadeIn>
@@ -196,17 +193,19 @@ export function HomePage() {
                   )}
                 </div>
 
-                {activeServiceOptions.length > 0 ? (
+                {activeServiceItems.length > 0 ? (
                   <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {activeServiceOptions.map((opt) => (
-                      <div key={opt.id} className="border-border bg-bg flex flex-col overflow-hidden rounded-xl border">
-                        <ImageOrPlaceholder src={opt.imageUrl} alt={opt.name} className="h-28 w-full object-cover" />
+                    {activeServiceItems.map((item) => (
+                      <div key={item.id} className="border-border bg-bg flex flex-col overflow-hidden rounded-xl border">
+                        <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="h-28 w-full object-cover" />
                         <div className="flex flex-1 flex-col p-4">
-                          <h4 className="text-sm font-semibold">{tf(opt.name, opt.nameTe)}</h4>
-                          {opt.description && <p className="text-text-muted mt-1 text-sm">{opt.description}</p>}
+                          <h4 className="text-sm font-semibold">{tf(item.name, item.nameTe)}</h4>
+                          {item.description && <p className="text-text-muted mt-1 text-sm">{item.description}</p>}
                           <p className="text-gold mt-3 text-sm font-semibold">
-                            ₹{Number(opt.price).toLocaleString('en-IN')}
-                            {opt.unit === 'PER_GUEST' && <span className="text-text-muted text-sm"> {t('common.perGuest')}</span>}
+                            ₹{Number(item.price).toLocaleString('en-IN')}
+                            {activeServiceCategory.pricingMode === 'PER_PERSON' && (
+                              <span className="text-text-muted text-sm"> {t('common.perGuest')}</span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -228,15 +227,38 @@ export function HomePage() {
             <FadeIn>
               <SectionHeading eyebrow={t('home.curatedForYou')} title={t('nav.packages')} linkTo="/packages" />
             </FadeIn>
-            <div className="mt-10 grid gap-6 sm:grid-cols-3">
+            <div className="mt-10 grid gap-8 lg:grid-cols-3">
               {packages.slice(0, 3).map((pkg) => (
-                <div key={pkg.id} className="border-border bg-surface overflow-hidden rounded-2xl border">
+                <div
+                  key={pkg.id}
+                  className={cn(
+                    'border-border bg-surface flex flex-col overflow-hidden rounded-2xl border',
+                    pkg.isFeatured && 'border-gold shadow-xl shadow-gold/10 lg:-translate-y-3',
+                  )}
+                >
                   <ImageOrPlaceholder src={pkg.imageUrl} alt={pkg.name} className="h-40 w-full object-cover" />
-                  <div className="p-5">
-                    <h3 className="font-semibold">{tf(pkg.name, pkg.nameTe)}</h3>
-                    <p className="text-gold mt-1 text-sm font-semibold">
-                      ₹{Number(pkg.pricePerGuest).toLocaleString('en-IN')} {t('common.perGuest')}
-                    </p>
+                  <div className="flex flex-1 flex-col p-6">
+                    {pkg.isFeatured && (
+                      <span className="bg-gold text-ink-black mb-2 w-fit rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase">
+                        {t('packages.mostPopular')}
+                      </span>
+                    )}
+                    <h3 className="mt-1 text-lg font-semibold">{tf(pkg.name, pkg.nameTe)}</h3>
+                    <ul className="mt-4 flex-1 space-y-2">
+                      {pkg.categories.map((pc) => (
+                        <li key={pc.id} className="flex items-start gap-2 text-sm">
+                          <Check size={14} className="text-gold mt-0.5 shrink-0" />
+                          {tf(pc.category.name, pc.category.nameTe)}
+                        </li>
+                      ))}
+                    </ul>
+                    <LinkButton
+                      to={`/booking?package=${pkg.id}`}
+                      variant={pkg.isFeatured ? 'gold' : 'outline'}
+                      className="mt-5 w-full"
+                    >
+                      {t('packages.chooseThisPackage')}
+                    </LinkButton>
                   </div>
                 </div>
               ))}
@@ -316,8 +338,8 @@ export function HomePage() {
           <FadeIn>
             <SectionHeading eyebrow={t('home.getInTouch')} title={t('home.contactInformation')} linkTo="/contact" />
           </FadeIn>
-          <div className="mt-10 grid gap-10 lg:grid-cols-2">
-            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+          <div className={cn('mt-10 grid gap-10', mapEmbedUrl && 'lg:grid-cols-2')}>
+            <div className={cn('grid gap-4 sm:grid-cols-3', mapEmbedUrl && 'lg:grid-cols-1')}>
               <a
                 href={`tel:+91${phone}`}
                 className="border-border bg-surface hover:border-gold flex items-center gap-3 rounded-2xl border p-5 transition-colors"
@@ -352,15 +374,17 @@ export function HomePage() {
                 </div>
               </div>
             </div>
-            <div className="border-gold/30 aspect-video w-full overflow-hidden rounded-2xl border lg:aspect-auto">
-              <iframe
-                title="Business location"
-                src={mapEmbedUrl}
-                className="h-full min-h-72 w-full border-0"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
+            {mapEmbedUrl && (
+              <div className="border-gold/30 aspect-video w-full overflow-hidden rounded-2xl border lg:aspect-auto">
+                <iframe
+                  title="Business location"
+                  src={mapEmbedUrl}
+                  className="h-full min-h-72 w-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            )}
           </div>
         </Container>
       </section>

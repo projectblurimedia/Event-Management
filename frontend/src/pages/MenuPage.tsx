@@ -6,18 +6,18 @@ import { Container } from '@/components/ui/Container';
 import { LinkButton } from '@/components/ui/Button';
 import { AsyncState } from '@/components/ui/AsyncState';
 import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
-import { menuCategoryHooks, menuItemHooks } from '@/lib/api/resources';
-import { siteConfig } from '@/lib/siteConfig';
+import { categoryHooks, categoryTypeHooks, itemHooks } from '@/lib/api/resources';
+import { useSettings } from '@/lib/api/settings';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/cn';
-import type { MenuItem } from '@/types/api';
+import type { Item } from '@/types/api';
 
-function MenuItemCard({ item }: { item: MenuItem }) {
+function MenuItemCard({ item }: { item: Item }) {
   const { t, tf } = useTranslation();
   return (
     <div className="border-border bg-surface flex gap-4 rounded-xl border p-4">
       <ImageOrPlaceholder
-        src={item.imageUrl}
+        src={item.images[0] ?? null}
         alt={item.name}
         className="h-20 w-20 shrink-0 rounded-lg object-cover"
       />
@@ -27,14 +27,16 @@ function MenuItemCard({ item }: { item: MenuItem }) {
           <span className="text-gold shrink-0 text-sm font-semibold">₹{Number(item.price).toLocaleString('en-IN')}</span>
         </div>
         {item.description && <p className="text-text-muted mt-1 text-sm">{item.description}</p>}
-        <span
-          className={cn(
-            'mt-auto w-fit rounded-full px-2 py-0.5 pt-2 text-[10px] font-semibold tracking-wide uppercase',
-            item.isVeg ? 'text-emerald-600' : 'text-rose',
-          )}
-        >
-          {item.isVeg ? t('common.veg') : t('common.nonVeg')}
-        </span>
+        {item.isVeg !== null && (
+          <span
+            className={cn(
+              'mt-auto w-fit rounded-full px-2 py-0.5 pt-2 text-[10px] font-semibold tracking-wide uppercase',
+              item.isVeg ? 'text-emerald-600' : 'text-rose',
+            )}
+          >
+            {item.isVeg ? t('common.veg') : t('common.nonVeg')}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -42,15 +44,24 @@ function MenuItemCard({ item }: { item: MenuItem }) {
 
 export function MenuPage() {
   const { t, tf } = useTranslation();
-  const { data: categories } = menuCategoryHooks.usePublicList();
-  const { data: items, isLoading, isError, refetch } = menuItemHooks.usePublicList();
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const { data: settings } = useSettings();
+  const { data: categories } = categoryHooks.usePublicList();
+  const { data: allTypes } = categoryTypeHooks.usePublicList();
+  const { data: allItems, isLoading, isError, refetch } = itemHooks.usePublicList();
+  const [activeType, setActiveType] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
+  const foodCategory = categories?.find((c) => c.isFood);
+  const types = useMemo(
+    () => allTypes?.filter((ty) => ty.categoryId === foodCategory?.id) ?? [],
+    [allTypes, foodCategory?.id],
+  );
+  const typeIds = useMemo(() => new Set(types.map((ty) => ty.id)), [types]);
+  const foodItems = useMemo(() => allItems?.filter((i) => typeIds.has(i.categoryTypeId)) ?? [], [allItems, typeIds]);
+
   const filteredItems = useMemo(() => {
-    if (!items) return [];
-    let result = items;
-    if (activeCategory) result = result.filter((item) => item.categoryId === activeCategory);
+    let result = foodItems;
+    if (activeType) result = result.filter((item) => item.categoryTypeId === activeType);
     const q = search.trim().toLowerCase();
     if (q) {
       result = result.filter(
@@ -58,12 +69,12 @@ export function MenuPage() {
       );
     }
     return result;
-  }, [items, activeCategory, search]);
+  }, [foodItems, activeType, search]);
 
   return (
     <>
       <Helmet>
-        <title>Menu | {siteConfig.businessName}</title>
+        <title>Menu{settings?.businessName ? ` | ${settings.businessName}` : ''}</title>
         <meta
           name="description"
           content="Browse sweets, snacks, biryani, curries and more — then build your event menu in our guided booking wizard."
@@ -89,27 +100,25 @@ export function MenuPage() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => setActiveCategory(null)}
+            onClick={() => setActiveType(null)}
             className={cn(
               'rounded-full border px-4 py-1.5 text-sm font-medium tracking-wide uppercase',
-              activeCategory === null ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
+              activeType === null ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
             )}
           >
             {t('common.all')}
           </button>
-          {categories?.map((cat) => (
+          {types.map((ty) => (
             <button
-              key={cat.id}
+              key={ty.id}
               type="button"
-              onClick={() => setActiveCategory(cat.id)}
+              onClick={() => setActiveType(ty.id)}
               className={cn(
                 'rounded-full border px-4 py-1.5 text-sm font-medium tracking-wide uppercase',
-                activeCategory === cat.id
-                  ? 'bg-gold text-ink-black border-gold'
-                  : 'border-border text-text-muted',
+                activeType === ty.id ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
               )}
             >
-              {tf(cat.name, cat.nameTe)}
+              {tf(ty.name, ty.nameTe)}
             </button>
           ))}
         </div>

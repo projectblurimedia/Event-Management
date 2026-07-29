@@ -7,52 +7,43 @@ import type { CreateBookingInput, QuoteInput } from './bookings.validator';
 
 const bookingInclude = {
   package: true,
-  menuItems: { include: { menuItem: true } },
-  serviceOptions: { include: { serviceOption: { include: { category: true } } } },
+  items: { include: { item: { include: { categoryType: { include: { category: true } } } } } },
 };
 
 async function resolveSelection(input: QuoteInput) {
-  const [pkg, menuItemRows, serviceOptionRows] = await Promise.all([
+  const [pkg, itemRows] = await Promise.all([
     input.packageId
       ? prisma.package.findUnique({ where: { id: input.packageId } })
       : Promise.resolve(null),
-    input.menuItems.length
-      ? prisma.menuItem.findMany({ where: { id: { in: input.menuItems.map((m) => m.menuItemId) } } })
-      : Promise.resolve([]),
-    input.serviceOptions.length
-      ? prisma.serviceOption.findMany({ where: { id: { in: input.serviceOptions.map((s) => s.serviceOptionId) } } })
+    input.items.length
+      ? prisma.item.findMany({
+          where: { id: { in: input.items.map((i) => i.itemId) } },
+          include: { categoryType: { include: { category: true } } },
+        })
       : Promise.resolve([]),
   ]);
 
   if (input.packageId && !pkg) throw ApiError.badRequest('Selected package does not exist');
 
-  const menuItemMap = new Map(menuItemRows.map((item) => [item.id, item]));
-  for (const sel of input.menuItems) {
-    if (!menuItemMap.has(sel.menuItemId)) {
-      throw ApiError.badRequest(`Menu item ${sel.menuItemId} does not exist`);
-    }
-  }
-  const serviceOptionMap = new Map(serviceOptionRows.map((s) => [s.id, s]));
-  for (const sel of input.serviceOptions) {
-    if (!serviceOptionMap.has(sel.serviceOptionId)) {
-      throw ApiError.badRequest(`Service option ${sel.serviceOptionId} does not exist`);
+  const itemMap = new Map(itemRows.map((item) => [item.id, item]));
+  for (const sel of input.items) {
+    if (!itemMap.has(sel.itemId)) {
+      throw ApiError.badRequest(`Item ${sel.itemId} does not exist`);
     }
   }
 
   const pricing = calculatePricing({
-    guestCount: input.guestCount,
-    package: pkg ? { pricePerGuest: Number(pkg.pricePerGuest) } : null,
-    menuItems: input.menuItems.map((sel) => ({
-      price: Number(menuItemMap.get(sel.menuItemId)!.price),
-      quantity: sel.quantity,
-    })),
-    serviceOptions: input.serviceOptions.map((sel) => {
-      const option = serviceOptionMap.get(sel.serviceOptionId)!;
-      return { price: Number(option.price), unit: option.unit, quantity: sel.quantity };
+    items: input.items.map((sel) => {
+      const item = itemMap.get(sel.itemId)!;
+      return {
+        price: Number(item.price),
+        pricingMode: item.categoryType.category.pricingMode,
+        quantity: sel.quantity,
+      };
     }),
   });
 
-  return { pkg, menuItemMap, serviceOptionMap, pricing };
+  return { pkg, itemMap, pricing };
 }
 
 export async function getQuote(input: QuoteInput) {
@@ -61,7 +52,7 @@ export async function getQuote(input: QuoteInput) {
 }
 
 export async function createBooking(input: CreateBookingInput) {
-  const { pkg, menuItemMap, serviceOptionMap, pricing } = await resolveSelection(input);
+  const { pkg, itemMap, pricing } = await resolveSelection(input);
 
   let bookingCode = generateBookingCode();
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -85,22 +76,14 @@ export async function createBooking(input: CreateBookingInput) {
       packageId: pkg?.id,
       dietaryPreference: input.dietaryPreference,
       specialRequirements: input.specialRequirements,
-      foodCost: pricing.foodCost,
-      addOnsCost: pricing.addOnsCost,
-      packageCost: pricing.packageCost,
+      perPersonCost: pricing.perPersonCost,
+      flatCost: pricing.flatCost,
       grandTotal: pricing.grandTotal,
-      menuItems: {
-        create: input.menuItems.map((sel) => ({
-          menuItemId: sel.menuItemId,
+      items: {
+        create: input.items.map((sel) => ({
+          itemId: sel.itemId,
           quantity: sel.quantity,
-          priceAtBooking: menuItemMap.get(sel.menuItemId)!.price,
-        })),
-      },
-      serviceOptions: {
-        create: input.serviceOptions.map((sel) => ({
-          serviceOptionId: sel.serviceOptionId,
-          quantity: sel.quantity,
-          priceAtBooking: serviceOptionMap.get(sel.serviceOptionId)!.price,
+          priceAtBooking: itemMap.get(sel.itemId)!.price,
         })),
       },
     },
@@ -140,15 +123,13 @@ export async function getBookingForQuotation(id: string, phone: string) {
   return booking;
 }
 
-function groupServicesByCategory(
-  serviceOptions: Awaited<ReturnType<typeof getBookingForQuotation>>['serviceOptions'],
-) {
+function groupItemsByCategory(items: Awaited<ReturnType<typeof getBookingForQuotation>>['items']) {
   const groups = new Map<string, { name: string; quantity: number; priceAtBooking: number }[]>();
-  for (const sel of serviceOptions) {
-    const categoryName = sel.serviceOption.category.name;
+  for (const sel of items) {
+    const categoryName = sel.item.categoryType.category.name;
     const list = groups.get(categoryName) ?? [];
     list.push({
-      name: sel.serviceOption.name,
+      name: sel.item.name,
       quantity: sel.quantity,
       priceAtBooking: Number(sel.priceAtBooking),
     });
@@ -168,18 +149,10 @@ export function toQuotationData(booking: Awaited<ReturnType<typeof getBookingFor
     eventTime: booking.eventTime,
     eventType: booking.eventType,
     guestCount: booking.guestCount,
-    package: booking.package
-      ? { name: booking.package.name, pricePerGuest: Number(booking.package.pricePerGuest) }
-      : null,
-    menuItems: booking.menuItems.map((mi) => ({
-      name: mi.menuItem.name,
-      quantity: mi.quantity,
-      priceAtBooking: Number(mi.priceAtBooking),
-    })),
-    groupedServices: groupServicesByCategory(booking.serviceOptions),
-    foodCost: Number(booking.foodCost),
-    addOnsCost: Number(booking.addOnsCost),
-    packageCost: Number(booking.packageCost),
+    package: booking.package ? { name: booking.package.name } : null,
+    groupedItems: groupItemsByCategory(booking.items),
+    perPersonCost: Number(booking.perPersonCost),
+    flatCost: Number(booking.flatCost),
     grandTotal: Number(booking.grandTotal),
   };
 }

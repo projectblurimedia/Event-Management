@@ -9,11 +9,12 @@ import { env } from './config/env';
 import { apiRateLimiter } from './middlewares/rateLimiter';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler';
 
+import { setupRouter } from './modules/setup/setup.routes';
 import { authRouter } from './modules/auth/auth.routes';
 import { settingsRouter, adminSettingsRouter } from './modules/settings/settings.routes';
-import { menuCategories, menuItems } from './modules/menu/menu.routes';
 import { packagesPublicRouter, packagesAdminRouter } from './modules/packages/packages.routes';
-import { serviceCategories, serviceOptions } from './modules/serviceCategories/serviceCategories.routes';
+import { categories, categoryTypes } from './modules/categories/categories.routes';
+import { items } from './modules/items/items.routes';
 import { gallery } from './modules/gallery/gallery.routes';
 import { testimonials } from './modules/testimonials/testimonials.routes';
 import { faqs } from './modules/faqs/faqs.routes';
@@ -35,13 +36,15 @@ app.use('/api', apiRateLimiter);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
+// ---- Setup (first-run bootstrap: create the first admin + business profile) ----
+app.use('/api/setup', setupRouter);
+
 // ---- Public routes ----
 app.use('/api/settings', settingsRouter);
-app.use('/api/menu-categories', menuCategories.publicRouter);
-app.use('/api/menu-items', menuItems.publicRouter);
 app.use('/api/packages', packagesPublicRouter);
-app.use('/api/service-categories', serviceCategories.publicRouter);
-app.use('/api/service-options', serviceOptions.publicRouter);
+app.use('/api/categories', categories.publicRouter);
+app.use('/api/category-types', categoryTypes.publicRouter);
+app.use('/api/items', items.publicRouter);
 app.use('/api/gallery', gallery.publicRouter);
 app.use('/api/testimonials', testimonials.publicRouter);
 app.use('/api/faqs', faqs.publicRouter);
@@ -51,11 +54,10 @@ app.use('/api/bookings', bookingsPublicRouter);
 // ---- Admin routes (JWT protected inside each router) ----
 app.use('/api/admin/auth', authRouter);
 app.use('/api/admin/settings', adminSettingsRouter);
-app.use('/api/admin/menu-categories', menuCategories.adminRouter);
-app.use('/api/admin/menu-items', menuItems.adminRouter);
 app.use('/api/admin/packages', packagesAdminRouter);
-app.use('/api/admin/service-categories', serviceCategories.adminRouter);
-app.use('/api/admin/service-options', serviceOptions.adminRouter);
+app.use('/api/admin/categories', categories.adminRouter);
+app.use('/api/admin/category-types', categoryTypes.adminRouter);
+app.use('/api/admin/items', items.adminRouter);
 app.use('/api/admin/gallery', gallery.adminRouter);
 app.use('/api/admin/testimonials', testimonials.adminRouter);
 app.use('/api/admin/faqs', faqs.adminRouter);

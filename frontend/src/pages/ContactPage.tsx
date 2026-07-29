@@ -9,9 +9,9 @@ import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
 import { useSettings } from '@/lib/api/settings';
 import { useCreateEnquiry } from '@/lib/api/enquiries';
-import { siteConfig } from '@/lib/siteConfig';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
+import { cn } from '@/lib/cn';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
 const enquirySchema = z.object({
@@ -33,12 +33,13 @@ export function ContactPage() {
     formState: { errors, isSubmitting },
   } = useForm<EnquiryForm>({ resolver: zodResolver(enquirySchema) });
 
-  const phone = settings?.phone ?? siteConfig.phone;
-  const email = settings?.email ?? siteConfig.email;
-  const address = settings?.address ?? siteConfig.address;
-  const mapEmbedUrl = settings?.mapEmbedUrl ?? siteConfig.mapEmbedUrl;
+  const phone = settings?.phone ?? '';
+  const email = settings?.email ?? '';
+  const address = settings?.address ?? '';
+  const businessName = settings?.businessName ?? '';
+  const mapEmbedUrl = settings?.mapEmbedUrl ?? null;
 
-  const contactCards: { icon: typeof Phone; labelKey: TranslationKey; value: string; href: string }[] = [
+  const contactCards: { icon: typeof Phone; labelKey: TranslationKey; value: string; href: string | null }[] = [
     { icon: Phone, labelKey: 'contact.callUs', value: `+91 ${phone}`, href: `tel:+91${phone}` },
     { icon: Mail, labelKey: 'contact.emailUs', value: email, href: `mailto:${email}` },
     { icon: MapPin, labelKey: 'contact.visitUs', value: address, href: mapEmbedUrl },
@@ -57,7 +58,7 @@ export function ContactPage() {
   return (
     <>
       <Helmet>
-        <title>Contact | {siteConfig.businessName}</title>
+        <title>Contact{businessName ? ` | ${businessName}` : ''}</title>
         <meta name="description" content="Get in touch for a free consultation on your wedding, birthday or corporate event." />
       </Helmet>
       <PageHero
@@ -67,29 +68,42 @@ export function ContactPage() {
       />
 
       <Container className="grid gap-6 py-16 sm:grid-cols-3">
-        {contactCards.map(({ icon: Icon, labelKey, value, href }) => (
-          <a
-            key={labelKey}
-            href={href}
-            target={labelKey === 'contact.visitUs' ? '_blank' : undefined}
-            rel={labelKey === 'contact.visitUs' ? 'noopener noreferrer' : undefined}
-            className="border-border bg-surface hover:border-gold flex flex-col items-center gap-3 rounded-2xl border p-8 text-center transition-colors"
-          >
-            <span className="bg-gold/10 text-gold flex h-12 w-12 items-center justify-center rounded-full">
-              <Icon size={20} />
-            </span>
-            <span className="text-text-muted text-sm font-semibold tracking-[0.2em] uppercase">
-              {t(labelKey)}
-            </span>
-            <span className="text-sm">{value}</span>
-          </a>
-        ))}
+        {contactCards.map(({ icon: Icon, labelKey, value, href }) => {
+          const cardClassName =
+            'border-border bg-surface hover:border-gold flex flex-col items-center gap-3 rounded-2xl border p-8 text-center transition-colors';
+          const cardContent = (
+            <>
+              <span className="bg-gold/10 text-gold flex h-12 w-12 items-center justify-center rounded-full">
+                <Icon size={20} />
+              </span>
+              <span className="text-text-muted text-sm font-semibold tracking-[0.2em] uppercase">
+                {t(labelKey)}
+              </span>
+              <span className="text-sm">{value}</span>
+            </>
+          );
+          return href ? (
+            <a
+              key={labelKey}
+              href={href}
+              target={labelKey === 'contact.visitUs' ? '_blank' : undefined}
+              rel={labelKey === 'contact.visitUs' ? 'noopener noreferrer' : undefined}
+              className={cardClassName}
+            >
+              {cardContent}
+            </a>
+          ) : (
+            <div key={labelKey} className={cardClassName}>
+              {cardContent}
+            </div>
+          );
+        })}
       </Container>
 
-      <Container className="grid gap-10 pb-20 lg:grid-cols-2">
+      <Container className={cn('grid gap-10 pb-20', mapEmbedUrl && 'lg:grid-cols-2')}>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="border-border bg-surface flex flex-col gap-4 rounded-2xl border p-8"
+          className="border-border bg-surface mx-auto flex w-full max-w-2xl flex-col gap-4 rounded-2xl border p-8"
         >
           <h2 className="text-lg font-semibold">{t('contact.sendEnquiry')}</h2>
           <div>
@@ -134,15 +148,17 @@ export function ContactPage() {
           </Button>
         </form>
 
-        <div className="border-gold/30 aspect-video w-full overflow-hidden rounded-2xl border lg:aspect-auto">
-          <iframe
-            title="Business location"
-            src={mapEmbedUrl}
-            className="h-full min-h-80 w-full border-0"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-        </div>
+        {mapEmbedUrl && (
+          <div className="border-gold/30 aspect-video w-full overflow-hidden rounded-2xl border lg:aspect-auto">
+            <iframe
+              title="Business location"
+              src={mapEmbedUrl}
+              className="h-full min-h-80 w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        )}
       </Container>
     </>
   );

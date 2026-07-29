@@ -6,24 +6,28 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { LinkButton } from '@/components/ui/Button';
 import { AsyncState } from '@/components/ui/AsyncState';
 import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
-import { serviceCategoryHooks, serviceOptionHooks } from '@/lib/api/resources';
-import { siteConfig } from '@/lib/siteConfig';
+import { categoryHooks, categoryTypeHooks, itemHooks } from '@/lib/api/resources';
+import { useSettings } from '@/lib/api/settings';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export function ServicesPage() {
   const { t, tf } = useTranslation();
+  const { data: settings } = useSettings();
   const {
-    data: categories,
+    data: allCategories,
     isLoading: loadingCategories,
     isError: categoriesError,
     refetch: refetchCategories,
-  } = serviceCategoryHooks.usePublicList();
-  const { data: options } = serviceOptionHooks.usePublicList();
+  } = categoryHooks.usePublicList();
+  const { data: allTypes } = categoryTypeHooks.usePublicList();
+  const { data: allItems } = itemHooks.usePublicList();
+
+  const categories = allCategories?.filter((c) => !c.isFood);
 
   return (
     <>
       <Helmet>
-        <title>Services | {siteConfig.businessName}</title>
+        <title>Services{settings?.businessName ? ` | ${settings.businessName}` : ''}</title>
         <meta
           name="description"
           content="Explore every service we offer — decoration, photography, DJ, lighting and more — then build your own booking in our guided wizard."
@@ -69,21 +73,22 @@ export function ServicesPage() {
           compact
         >
         {categories?.map((cat) => {
-          const catOptions = options?.filter((o) => o.categoryId === cat.id) ?? [];
-          if (catOptions.length === 0) return null;
+          const catTypeIds = new Set(allTypes?.filter((ty) => ty.categoryId === cat.id).map((ty) => ty.id) ?? []);
+          const catItems = allItems?.filter((i) => catTypeIds.has(i.categoryTypeId)) ?? [];
+          if (catItems.length === 0) return null;
           return (
             <div className="mt-16" key={cat.id}>
               <SectionHeading eyebrow={t('services.serviceEyebrow')} title={tf(cat.name, cat.nameTe)} align="left" description={tf(cat.description ?? '', cat.descriptionTe) || undefined} />
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {catOptions.map((opt) => (
-                  <div key={opt.id} className="border-border bg-surface flex flex-col overflow-hidden rounded-2xl border">
-                    <ImageOrPlaceholder src={opt.imageUrl} alt={opt.name} className="h-36 w-full object-cover" iconSize={24} />
+                {catItems.map((item) => (
+                  <div key={item.id} className="border-border bg-surface flex flex-col overflow-hidden rounded-2xl border">
+                    <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="h-36 w-full object-cover" iconSize={24} />
                     <div className="flex flex-1 flex-col p-4">
-                      <h3 className="text-sm font-semibold">{tf(opt.name, opt.nameTe)}</h3>
-                      {opt.description && <p className="text-text-muted mt-1 text-sm">{opt.description}</p>}
+                      <h3 className="text-sm font-semibold">{tf(item.name, item.nameTe)}</h3>
+                      {item.description && <p className="text-text-muted mt-1 text-sm">{item.description}</p>}
                       <p className="text-gold mt-3 text-sm font-semibold">
-                        ₹{Number(opt.price).toLocaleString('en-IN')}
-                        {opt.unit === 'PER_GUEST' && <span className="text-text-muted text-sm"> {t('common.perGuest')}</span>}
+                        ₹{Number(item.price).toLocaleString('en-IN')}
+                        {cat.pricingMode === 'PER_PERSON' && <span className="text-text-muted text-sm"> {t('common.perGuest')}</span>}
                       </p>
                     </div>
                   </div>

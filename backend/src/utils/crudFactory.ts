@@ -22,6 +22,8 @@ interface CrudOptions {
   updateSchema: ZodType;
   publicWhere?: Record<string, unknown>;
   orderBy?: Record<string, unknown> | Record<string, unknown>[];
+  /** Relations to eager-load on every read, so callers don't need N+1 follow-up requests. */
+  include?: Record<string, unknown>;
 }
 
 /**
@@ -29,12 +31,12 @@ interface CrudOptions {
  * (auth-protected, full CRUD) router for a simple catalogue-style resource
  * (menu items, decorations, services, gallery, testimonials, FAQs...).
  */
-export function createCrudRouters({ delegate, createSchema, updateSchema, publicWhere, orderBy }: CrudOptions) {
+export function createCrudRouters({ delegate, createSchema, updateSchema, publicWhere, orderBy, include }: CrudOptions) {
   const publicRouter = Router();
   publicRouter.get(
     '/',
     asyncHandler(async (_req, res) => {
-      const items = await delegate.findMany({ where: publicWhere, orderBy });
+      const items = await delegate.findMany({ where: publicWhere, orderBy, include });
       res.json(items);
     }),
   );
@@ -45,7 +47,7 @@ export function createCrudRouters({ delegate, createSchema, updateSchema, public
   adminRouter.get(
     '/',
     asyncHandler(async (_req, res) => {
-      const items = await delegate.findMany({ orderBy });
+      const items = await delegate.findMany({ orderBy, include });
       res.json(items);
     }),
   );
@@ -53,7 +55,7 @@ export function createCrudRouters({ delegate, createSchema, updateSchema, public
   adminRouter.get(
     '/:id',
     asyncHandler(async (req, res) => {
-      const item = await delegate.findUnique({ where: { id: req.params.id } });
+      const item = await delegate.findUnique({ where: { id: req.params.id }, include });
       if (!item) throw ApiError.notFound('Not found');
       res.json(item);
     }),

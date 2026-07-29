@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RefreshCw } from 'lucide-react';
+import { Check, MapPin, RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ImageUploadField } from '@/features/admin/ImageUploadField';
 import { useSettings, useUpdateSettings } from '@/lib/api/settings';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useGeolocationCapture } from '@/hooks/useGeolocationCapture';
 import type { SiteSettings } from '@/types/api';
 
 const inputClass =
@@ -20,6 +21,9 @@ export function AdminSettingsPage() {
   const { data: settings, isLoading, isError, refetch } = useSettings();
   const updateSettings = useUpdateSettings();
   const [form, setForm] = useState<FormState | null>(null);
+  const { locating, requestLocation } = useGeolocationCapture((coords) => {
+    setForm((prev) => (prev ? { ...prev, latitude: coords.latitude, longitude: coords.longitude } : prev));
+  });
 
   useEffect(() => {
     if (settings) {
@@ -27,6 +31,11 @@ export function AdminSettingsPage() {
       setForm(rest);
     }
   }, [settings]);
+
+  function handleClearLocation() {
+    if (!form) return;
+    setForm({ ...form, latitude: null, longitude: null, mapEmbedUrl: null });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -101,8 +110,37 @@ export function AdminSettingsPage() {
             </div>
           </div>
           <div>
-            <label className={labelClass}>{t('admin.settings.mapUrl')}</label>
-            <input className={inputClass} value={form.mapEmbedUrl} onChange={(e) => setForm({ ...form, mapEmbedUrl: e.target.value })} />
+            <label className={labelClass}>{t('admin.settings.mapLocation')}</label>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={requestLocation}
+                disabled={locating}
+                className="border-gold text-gold inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold hover:bg-gold hover:text-ink-black disabled:opacity-50"
+              >
+                <MapPin size={14} />
+                {locating ? t('setup.locating') : t('setup.useMyLocation')}
+              </button>
+              {form.latitude != null && form.longitude != null && (
+                <>
+                  <span className="text-text-muted inline-flex items-center gap-1 text-sm">
+                    <Check size={14} className="text-emerald-500" /> {t('admin.settings.pinSet')}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleClearLocation}
+                    className="text-rose inline-flex items-center gap-1 text-sm hover:underline"
+                  >
+                    <X size={14} /> {t('admin.settings.clearPin')}
+                  </button>
+                </>
+              )}
+            </div>
+            <p className="text-text-muted mt-1.5 text-sm">{t('admin.settings.mapLocationHint')}</p>
+          </div>
+          <div>
+            <label className={labelClass}>{t('admin.settings.logo')}</label>
+            <ImageUploadField value={form.logoUrl ?? ''} onChange={(url) => setForm({ ...form, logoUrl: url })} />
           </div>
         </div>
 

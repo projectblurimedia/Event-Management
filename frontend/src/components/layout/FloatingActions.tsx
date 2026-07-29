@@ -1,5 +1,5 @@
 import { Phone } from 'lucide-react';
-import { siteConfig } from '@/lib/siteConfig';
+import { useSettings } from '@/lib/api/settings';
 
 function WhatsAppIcon() {
   return (
@@ -11,17 +11,20 @@ function WhatsAppIcon() {
 }
 
 export function FloatingActions() {
+  const { data: settings } = useSettings();
+  if (!settings) return null;
+
   return (
     <div className="fixed right-5 bottom-5 z-40 flex flex-col items-end gap-3">
       <a
-        href={`tel:+91${siteConfig.phone}`}
+        href={`tel:+91${settings.phone}`}
         aria-label="Call now"
         className="bg-gold text-ink-black flex h-13 w-13 items-center justify-center rounded-full shadow-lg shadow-black/30 transition-transform hover:scale-105"
       >
         <Phone size={22} fill="currentColor" />
       </a>
       <a
-        href={siteConfig.whatsappUrl}
+        href={`https://wa.me/${settings.whatsapp}`}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"

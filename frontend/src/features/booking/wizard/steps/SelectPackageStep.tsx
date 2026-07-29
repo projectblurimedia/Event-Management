@@ -19,9 +19,9 @@ export function SelectPackageStep() {
   const goToStep = useBookingCartStore((s) => s.goToStep);
 
   useEffect(() => {
-    const tierParam = searchParams.get('package');
-    if (tierParam && packages && !packageId && !isCustom) {
-      const match = packages.find((p) => p.tier === tierParam.toUpperCase());
+    const packageParam = searchParams.get('package');
+    if (packageParam && packages && !packageId && !isCustom) {
+      const match = packages.find((p) => p.id === packageParam);
       if (match) selectPackage(match.id, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,23 +60,25 @@ export function SelectPackageStep() {
               <ImageOrPlaceholder src={pkg.imageUrl} alt={pkg.name} className="h-36 w-full object-cover" />
               <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold">{tf(pkg.name, pkg.nameTe)}</h3>
+                  <div>
+                    {pkg.isFeatured && (
+                      <span className="text-gold block text-xs font-semibold tracking-[0.2em] uppercase">
+                        {t('packages.mostPopular')}
+                      </span>
+                    )}
+                    <h3 className="font-semibold">{tf(pkg.name, pkg.nameTe)}</h3>
+                  </div>
                   {selected && (
                     <span className="bg-gold text-ink-black flex h-5 w-5 shrink-0 items-center justify-center rounded-full">
                       <Check size={12} />
                     </span>
                   )}
                 </div>
-                <p className="text-text-muted mt-1 text-sm">{tf(pkg.description, pkg.descriptionTe)}</p>
-                <p className="text-gold mt-3 text-lg font-semibold">
-                  ₹{Number(pkg.pricePerGuest).toLocaleString('en-IN')}
-                  <span className="text-text-muted text-sm font-normal"> {t('wizard.perGuestShort')}</span>
-                </p>
                 <ul className="mt-3 space-y-1.5">
-                  {pkg.items.slice(0, 4).map((item) => (
-                    <li key={item.id} className="text-text-muted flex items-start gap-1.5 text-sm">
+                  {pkg.categories.map((pc) => (
+                    <li key={pc.id} className="text-text-muted flex items-start gap-1.5 text-sm">
                       <Check size={12} className="text-gold mt-0.5 shrink-0" />
-                      {tf(item.label, item.labelTe)}
+                      {tf(pc.category.name, pc.category.nameTe)}
                     </li>
                   ))}
                 </ul>

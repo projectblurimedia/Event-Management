@@ -4,14 +4,9 @@ import type { DietaryPreference, EventType } from '@/types/api';
 
 export type WizardStep = 'PACKAGE' | 'CONFIGURE' | 'REVIEW' | 'DETAILS' | 'CONFIRMATION';
 
-interface SelectedMenuItem {
-  menuItemId: string;
-  quantity: number;
-}
-
-interface SelectedOption {
+interface SelectedItem {
   categoryId: string;
-  optionId: string;
+  itemId: string;
   quantity: number;
 }
 
@@ -51,8 +46,7 @@ interface BookingWizardState {
   isCustom: boolean;
   guestCount: number | null;
   dietaryPreference: DietaryPreference | null;
-  menuItems: SelectedMenuItem[];
-  selectedOptions: SelectedOption[];
+  selectedItems: SelectedItem[];
   configureCategoryIndex: number;
   customer: CustomerInfo;
   lastBooking: SubmittedBooking | null;
@@ -61,9 +55,10 @@ interface BookingWizardState {
   selectPackage: (packageId: string | null, isCustom: boolean) => void;
   setGuestCount: (count: number) => void;
   setDietaryPreference: (pref: DietaryPreference | null) => void;
-  setMenuItemQuantity: (menuItemId: string, quantity: number) => void;
-  toggleOption: (categoryId: string, optionId: string, allowMultiple: boolean, defaultQuantity: number) => void;
-  setOptionQuantity: (categoryId: string, optionId: string, quantity: number) => void;
+  /** Add/remove an item. Non-multiple categories replace any existing pick in that category (single-select). */
+  toggleItem: (categoryId: string, itemId: string, allowMultiple: boolean, defaultQuantity: number) => void;
+  setItemQuantity: (categoryId: string, itemId: string, quantity: number) => void;
+  clearCategorySelections: (categoryId: string) => void;
   setConfigureCategoryIndex: (index: number) => void;
   nextConfigureCategory: () => void;
   prevConfigureCategory: () => void;
@@ -78,8 +73,7 @@ const initialState = {
   isCustom: false,
   guestCount: null as number | null,
   dietaryPreference: null as DietaryPreference | null,
-  menuItems: [] as SelectedMenuItem[],
-  selectedOptions: [] as SelectedOption[],
+  selectedItems: [] as SelectedItem[],
   configureCategoryIndex: 0,
   customer: emptyCustomer,
   lastBooking: null as SubmittedBooking | null,
@@ -97,64 +91,48 @@ export const useBookingCartStore = create<BookingWizardState>()(
           packageId,
           isCustom,
           configureCategoryIndex: 0,
-          menuItems: [],
-          selectedOptions: [],
+          selectedItems: [],
           dietaryPreference: null,
         }),
 
       setGuestCount: (count) => set({ guestCount: Math.max(1, count) }),
 
-      setDietaryPreference: (pref) => set({ dietaryPreference: pref, menuItems: [] }),
+      setDietaryPreference: (pref) => set({ dietaryPreference: pref }),
 
-      setMenuItemQuantity: (menuItemId, quantity) =>
+      toggleItem: (categoryId, itemId, allowMultiple, defaultQuantity) =>
         set((state) => {
-          if (quantity <= 0) {
-            return { menuItems: state.menuItems.filter((m) => m.menuItemId !== menuItemId) };
-          }
-          const existing = state.menuItems.find((m) => m.menuItemId === menuItemId);
-          if (!existing) return { menuItems: [...state.menuItems, { menuItemId, quantity }] };
-          return {
-            menuItems: state.menuItems.map((m) => (m.menuItemId === menuItemId ? { ...m, quantity } : m)),
-          };
-        }),
-
-      toggleOption: (categoryId, optionId, allowMultiple, defaultQuantity) =>
-        set((state) => {
-          const exists = state.selectedOptions.some(
-            (o) => o.categoryId === categoryId && o.optionId === optionId,
-          );
+          const exists = state.selectedItems.some((i) => i.categoryId === categoryId && i.itemId === itemId);
 
           if (allowMultiple) {
             return {
-              selectedOptions: exists
-                ? state.selectedOptions.filter((o) => !(o.categoryId === categoryId && o.optionId === optionId))
-                : [...state.selectedOptions, { categoryId, optionId, quantity: defaultQuantity }],
+              selectedItems: exists
+                ? state.selectedItems.filter((i) => !(i.categoryId === categoryId && i.itemId === itemId))
+                : [...state.selectedItems, { categoryId, itemId, quantity: defaultQuantity }],
             };
           }
 
-          const withoutCategory = state.selectedOptions.filter((o) => o.categoryId !== categoryId);
+          const withoutCategory = state.selectedItems.filter((i) => i.categoryId !== categoryId);
           return {
-            selectedOptions: exists
-              ? withoutCategory
-              : [...withoutCategory, { categoryId, optionId, quantity: defaultQuantity }],
+            selectedItems: exists ? withoutCategory : [...withoutCategory, { categoryId, itemId, quantity: defaultQuantity }],
           };
         }),
 
-      setOptionQuantity: (categoryId, optionId, quantity) =>
+      setItemQuantity: (categoryId, itemId, quantity) =>
         set((state) => {
           if (quantity <= 0) {
-            return {
-              selectedOptions: state.selectedOptions.filter(
-                (o) => !(o.categoryId === categoryId && o.optionId === optionId),
-              ),
-            };
+            return { selectedItems: state.selectedItems.filter((i) => !(i.categoryId === categoryId && i.itemId === itemId)) };
           }
+          const existing = state.selectedItems.find((i) => i.categoryId === categoryId && i.itemId === itemId);
+          if (!existing) return { selectedItems: [...state.selectedItems, { categoryId, itemId, quantity }] };
           return {
-            selectedOptions: state.selectedOptions.map((o) =>
-              o.categoryId === categoryId && o.optionId === optionId ? { ...o, quantity } : o,
+            selectedItems: state.selectedItems.map((i) =>
+              i.categoryId === categoryId && i.itemId === itemId ? { ...i, quantity } : i,
             ),
           };
         }),
+
+      clearCategorySelections: (categoryId) =>
+        set((state) => ({ selectedItems: state.selectedItems.filter((i) => i.categoryId !== categoryId) })),
 
       setConfigureCategoryIndex: (index) => set({ configureCategoryIndex: index }),
       nextConfigureCategory: () => set((state) => ({ configureCategoryIndex: state.configureCategoryIndex + 1 })),
@@ -167,6 +145,6 @@ export const useBookingCartStore = create<BookingWizardState>()(
 
       reset: () => set({ ...initialState, customer: emptyCustomer }),
     }),
-    { name: 'ms-wedding-planner-booking-wizard-v2' },
+    { name: 'event-management-booking-wizard-v3' },
   ),
 );

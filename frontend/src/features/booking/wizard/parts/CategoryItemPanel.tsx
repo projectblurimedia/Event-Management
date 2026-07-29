@@ -1,0 +1,238 @@
+import { useMemo, useState } from 'react';
+import { Check, Minus, Plus } from 'lucide-react';
+import { categoryTypeHooks, itemHooks } from '@/lib/api/resources';
+import { useBookingCartStore } from '@/store/bookingCartStore';
+import { AsyncState } from '@/components/ui/AsyncState';
+import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
+import { useTranslation } from '@/hooks/useTranslation';
+import { cn } from '@/lib/cn';
+import type { TranslationKey } from '@/lib/i18n/translations';
+import type { Category, DietaryPreference, Item } from '@/types/api';
+
+const dietaryOptions: { value: DietaryPreference; labelKey: TranslationKey }[] = [
+  { value: 'VEG', labelKey: 'common.veg' },
+  { value: 'NON_VEG', labelKey: 'common.nonVeg' },
+  { value: 'BOTH', labelKey: 'common.both' },
+];
+
+function ItemCard({ category, item }: { category: Category; item: Item }) {
+  const { t, tf } = useTranslation();
+  const isPerPerson = category.pricingMode === 'PER_PERSON';
+  const selection = useBookingCartStore((s) => s.selectedItems.find((i) => i.itemId === item.id));
+  const toggleItem = useBookingCartStore((s) => s.toggleItem);
+  const setItemQuantity = useBookingCartStore((s) => s.setItemQuantity);
+  const guestCount = useBookingCartStore((s) => s.guestCount) ?? 1;
+  const selected = !!selection;
+  const quantity = selection?.quantity ?? guestCount;
+  const price = Number(item.price);
+  const allowMultiple = isPerPerson || category.allowMultiple;
+
+  return (
+    <div
+      className={cn(
+        'border-border bg-surface flex overflow-hidden rounded-2xl border transition-colors',
+        selected && 'border-gold ring-gold ring-1',
+      )}
+    >
+      <div className="relative w-20 shrink-0 sm:w-28">
+        <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="h-full w-full object-cover" />
+        {category.isFood && item.isVeg !== null && (
+          <span
+            className={cn(
+              'absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide uppercase',
+              item.isVeg ? 'bg-emerald-600/90 text-white' : 'bg-rose/90 text-white',
+            )}
+          >
+            {item.isVeg ? t('common.veg') : t('common.nonVeg')}
+          </span>
+        )}
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col justify-between gap-2.5 p-3 sm:p-3.5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h4 className="truncate text-sm font-semibold">{tf(item.name, item.nameTe)}</h4>
+            {item.description && <p className="text-text-muted line-clamp-2 text-sm">{item.description}</p>}
+          </div>
+          <button
+            type="button"
+            onClick={() => toggleItem(category.id, item.id, allowMultiple, isPerPerson ? guestCount : 1)}
+            aria-label={selected ? `Remove ${item.name}` : `Select ${item.name}`}
+            aria-pressed={selected}
+            className={cn(
+              'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+              selected ? 'bg-gold border-gold text-ink-black' : 'border-border text-text-muted',
+            )}
+          >
+            {selected ? <Check size={12} /> : <Plus size={12} />}
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <p className="text-text-muted text-sm whitespace-nowrap">
+            ₹{price.toLocaleString('en-IN')}
+            {isPerPerson && <span> {t('wizard.perPlate')}</span>}
+          </p>
+
+          {selected && isPerPerson && (
+            <div className="flex items-center justify-between gap-2 sm:justify-end">
+              <div className="border-border flex shrink-0 items-center overflow-hidden rounded-full border">
+                <button
+                  type="button"
+                  aria-label={t('wizard.decreasePlates')}
+                  onClick={() => setItemQuantity(category.id, item.id, quantity - 1)}
+                  className="text-text-muted flex h-6 w-6 items-center justify-center"
+                >
+                  <Minus size={11} />
+                </button>
+                <input
+                  type="number"
+                  min={1}
+                  value={quantity}
+                  onChange={(e) => setItemQuantity(category.id, item.id, Number(e.target.value))}
+                  aria-label={`Quantity for ${item.name}`}
+                  className="bg-bg h-6 w-9 border-none text-center text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+                <button
+                  type="button"
+                  aria-label={t('wizard.increasePlates')}
+                  onClick={() => setItemQuantity(category.id, item.id, quantity + 1)}
+                  className="text-text-muted flex h-6 w-6 items-center justify-center"
+                >
+                  <Plus size={11} />
+                </button>
+              </div>
+              <span className="text-gold shrink-0 text-sm font-semibold">
+                ₹{(price * quantity).toLocaleString('en-IN')}
+              </span>
+            </div>
+          )}
+
+          {selected && !isPerPerson && (
+            <span className="text-gold shrink-0 text-sm font-semibold">₹{price.toLocaleString('en-IN')}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CategoryItemPanel({ category }: { category: Category }) {
+  const { t, tf } = useTranslation();
+  const dietaryPreference = useBookingCartStore((s) => s.dietaryPreference);
+  const setDietaryPreference = useBookingCartStore((s) => s.setDietaryPreference);
+  const clearCategorySelections = useBookingCartStore((s) => s.clearCategorySelections);
+  const { data: allTypes } = categoryTypeHooks.usePublicList();
+  const { data: allItems, isLoading, isError, refetch } = itemHooks.usePublicList();
+  const [activeType, setActiveType] = useState<string | null>(null);
+
+  const types = useMemo(() => allTypes?.filter((ty) => ty.categoryId === category.id) ?? [], [allTypes, category.id]);
+  const typeIds = useMemo(() => new Set(types.map((ty) => ty.id)), [types]);
+  const categoryItems = useMemo(() => allItems?.filter((i) => typeIds.has(i.categoryTypeId)) ?? [], [allItems, typeIds]);
+
+  const filteredItems = useMemo(() => {
+    let result = categoryItems;
+    if (category.isFood && dietaryPreference === 'VEG') result = result.filter((i) => i.isVeg);
+    if (category.isFood && dietaryPreference === 'NON_VEG') result = result.filter((i) => !i.isVeg);
+    if (activeType) result = result.filter((i) => i.categoryTypeId === activeType);
+    return result;
+  }, [categoryItems, dietaryPreference, activeType, category.isFood]);
+
+  if (category.isFood && !dietaryPreference) {
+    return (
+      <div className="mx-auto flex max-w-sm flex-col items-center gap-5 py-6 text-center">
+        <h3 className="text-lg font-semibold">{t('wizard.dietaryQuestion')}</h3>
+        <div className="flex gap-3">
+          {dietaryOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setDietaryPreference(opt.value)}
+              className="border-border hover:border-gold hover:text-gold rounded-full border px-5 py-2.5 text-sm font-medium"
+            >
+              {t(opt.labelKey)}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {category.description && (
+        <p className="text-text-muted mb-5 text-sm">{tf(category.description, category.descriptionTe)}</p>
+      )}
+
+      {category.isFood ? (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-text-muted text-sm">
+            {t('wizard.dietary')}:{' '}
+            <span className="text-gold font-medium">
+              {t(dietaryOptions.find((o) => o.value === dietaryPreference)?.labelKey ?? 'common.veg')}
+            </span>
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              clearCategorySelections(category.id);
+              setDietaryPreference(null);
+            }}
+            className="text-gold text-sm underline"
+          >
+            {t('common.change')}
+          </button>
+        </div>
+      ) : (
+        category.allowMultiple && <p className="text-gold mb-4 text-sm font-medium">{t('wizard.allowMultipleHint')}</p>
+      )}
+
+      {types.length > 0 && (
+        <div className="mb-5 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveType(null)}
+            className={cn(
+              'rounded-full border px-3.5 py-1.5 text-sm font-medium',
+              activeType === null ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
+            )}
+          >
+            {t('common.all')}
+          </button>
+          {types.map((ty) => (
+            <button
+              key={ty.id}
+              type="button"
+              onClick={() => setActiveType(ty.id)}
+              className={cn(
+                'rounded-full border px-3.5 py-1.5 text-sm font-medium',
+                activeType === ty.id ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
+              )}
+            >
+              {tf(ty.name, ty.nameTe)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <AsyncState
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={refetch}
+        loadingLabel={t('common.loading')}
+        errorLabel="Couldn't load this section. Please check your connection and try again."
+        minHeight="min-h-[15vh]"
+        compact
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          {filteredItems.map((item) => (
+            <ItemCard key={item.id} category={category} item={item} />
+          ))}
+          {filteredItems.length === 0 && (
+            <p className="text-text-muted col-span-full text-sm">{t('wizard.noOptionsAvailable')}</p>
+          )}
+        </div>
+      </AsyncState>
+    </div>
+  );
+}

@@ -10,55 +10,37 @@ export type EventType =
   | 'BABY_SHOWER'
   | 'OTHER';
 
-export type PackageTier = 'SILVER' | 'GOLD' | 'PLATINUM';
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
-export type ServiceUnit = 'FLAT' | 'PER_GUEST';
 export type GalleryCategory = 'FOOD' | 'DECORATION' | 'EVENT';
-export type PackageStepKind = 'FOOD' | 'SERVICE_CATEGORY';
 export type DietaryPreference = 'VEG' | 'NON_VEG' | 'BOTH';
+/** FLAT: one fee for the whole booking. PER_PERSON: multiplied by guest count. Set on the Category, inherited by every Item under it. */
+export type PricingMode = 'FLAT' | 'PER_PERSON';
 
-export interface MenuCategory {
+export interface Item {
   id: string;
-  name: string;
-  nameTe: string | null;
-  slug: string;
-  order: number;
-}
-
-export interface MenuItem {
-  id: string;
-  categoryId: string;
+  categoryTypeId: string;
+  categoryType?: CategoryType & { category: Category };
   name: string;
   nameTe: string | null;
   description: string | null;
   price: string;
-  imageUrl: string | null;
-  isVeg: boolean;
+  images: string[];
+  isVeg: boolean | null;
   isAvailable: boolean;
   isFeatured: boolean;
-}
-
-export interface PackageItem {
-  id: string;
-  label: string;
-  labelTe: string | null;
   order: number;
 }
 
-export interface ServiceOption {
+export interface CategoryType {
   id: string;
   categoryId: string;
   name: string;
   nameTe: string | null;
-  description: string | null;
-  price: string;
-  unit: ServiceUnit;
-  imageUrl: string | null;
-  isActive: boolean;
   order: number;
+  items?: Item[];
 }
 
-export interface ServiceCategory {
+export interface Category {
   id: string;
   name: string;
   nameTe: string | null;
@@ -66,33 +48,31 @@ export interface ServiceCategory {
   description: string | null;
   descriptionTe: string | null;
   imageUrl: string | null;
+  pricingMode: PricingMode;
+  isFood: boolean;
   allowMultiple: boolean;
   isActive: boolean;
   order: number;
-  options?: ServiceOption[];
+  types?: CategoryType[];
 }
 
-export interface PackageStep {
+export interface PackageCategory {
   id: string;
   packageId: string;
+  categoryId: string;
+  category: Category;
   order: number;
-  kind: PackageStepKind;
-  serviceCategoryId: string | null;
-  serviceCategory: ServiceCategory | null;
 }
 
 export interface Package {
   id: string;
-  tier: PackageTier;
   name: string;
   nameTe: string | null;
-  description: string;
-  descriptionTe: string | null;
-  pricePerGuest: string;
   imageUrl: string | null;
+  isFeatured: boolean;
   isActive: boolean;
-  items: PackageItem[];
-  steps: PackageStep[];
+  order: number;
+  categories: PackageCategory[];
 }
 
 export interface GalleryImage {
@@ -129,12 +109,15 @@ export interface FAQ {
 export interface SiteSettings {
   id: string;
   businessName: string;
+  logoUrl: string | null;
   organiser: string;
   phone: string;
   whatsapp: string;
   email: string;
   address: string;
-  mapEmbedUrl: string;
+  latitude: number | null;
+  longitude: number | null;
+  mapEmbedUrl: string | null;
   heroHeadline: string;
   heroHeadlineTe: string | null;
   heroSubheadline: string;
@@ -147,9 +130,8 @@ export interface SiteSettings {
 }
 
 export interface PricingBreakdown {
-  packageCost: number;
-  foodCost: number;
-  addOnsCost: number;
+  perPersonCost: number;
+  flatCost: number;
   grandTotal: number;
 }
 
@@ -169,31 +151,22 @@ export interface Booking {
   package: Package | null;
   dietaryPreference: DietaryPreference | null;
   specialRequirements: string | null;
-  foodCost: string;
-  addOnsCost: string;
-  packageCost: string;
+  perPersonCost: string;
+  flatCost: string;
   grandTotal: string;
   status: BookingStatus;
   createdAt: string;
 }
 
-export interface BookingMenuItemDetail {
+export interface BookingItemDetail {
   id: string;
   quantity: number;
   priceAtBooking: string;
-  menuItem: MenuItem;
-}
-
-export interface BookingServiceOptionDetail {
-  id: string;
-  quantity: number;
-  priceAtBooking: string;
-  serviceOption: ServiceOption & { category: ServiceCategory };
+  item: Item;
 }
 
 export interface BookingDetail extends Booking {
-  menuItems: BookingMenuItemDetail[];
-  serviceOptions: BookingServiceOptionDetail[];
+  items: BookingItemDetail[];
 }
 
 export interface BookingStatusResult {
@@ -223,7 +196,7 @@ export interface DashboardOverview {
     createdAt: string;
   }[];
   popularPackages: { package: Package | null; bookingCount: number }[];
-  popularFoodItems: { menuItem: MenuItem | null; totalQuantity: number }[];
+  popularFoodItems: { menuItem: Item | null; totalQuantity: number }[];
 }
 
 export interface DashboardAnalyticsBooking {

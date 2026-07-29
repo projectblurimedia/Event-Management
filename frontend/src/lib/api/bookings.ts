@@ -13,8 +13,7 @@ import type {
 export interface BookingSelection {
   guestCount: number;
   packageId?: string;
-  menuItems: { menuItemId: string; quantity: number }[];
-  serviceOptions: { serviceOptionId: string; quantity: number }[];
+  items: { itemId: string; quantity: number }[];
 }
 
 export interface CreateBookingInput extends BookingSelection {

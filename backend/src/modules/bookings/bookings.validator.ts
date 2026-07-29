@@ -30,11 +30,8 @@ export const createBookingSchema = z.object({
 
   packageId: z.string().optional(),
   dietaryPreference: dietaryPreferenceEnum.optional(),
-  menuItems: z
-    .array(z.object({ menuItemId: z.string().min(1), quantity: z.number().int().positive() }))
-    .default([]),
-  serviceOptions: z
-    .array(z.object({ serviceOptionId: z.string().min(1), quantity: z.number().int().positive() }))
+  items: z
+    .array(z.object({ itemId: z.string().min(1), quantity: z.number().int().positive() }))
     .default([]),
 
   specialRequirements: z.string().optional(),
@@ -44,8 +41,7 @@ export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 export const quoteSchema = createBookingSchema.pick({
   guestCount: true,
   packageId: true,
-  menuItems: true,
-  serviceOptions: true,
+  items: true,
 });
 export type QuoteInput = z.infer<typeof quoteSchema>;
 
