@@ -309,8 +309,13 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
                 <div>
                   <p className="text-base font-semibold">{tf(item.name, item.nameTe)}</p>
                   <p className="text-text-muted mt-0.5 text-sm">
-                    {cat ? tf(cat.name, cat.nameTe) : '-'}
-                    {foodOnly && type ? ` · ${tf(type.name, type.nameTe)}` : ''}
+                    {foodOnly
+                      ? type
+                        ? tf(type.name, type.nameTe)
+                        : '-'
+                      : cat
+                        ? tf(cat.name, cat.nameTe)
+                        : '-'}
                   </p>
                 </div>
                 <span className="text-gold shrink-0 text-sm font-semibold">
@@ -345,8 +350,7 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
           <thead className="bg-surface-muted text-text-muted text-sm uppercase">
             <tr>
               <th className="px-5 py-3.5 font-medium">{t('admin.items.colName')}</th>
-              <th className="px-5 py-3.5 font-medium">{categoryLabel}</th>
-              {foodOnly && <th className="px-5 py-3.5 font-medium">{t('admin.categories.type.name')}</th>}
+              <th className="px-5 py-3.5 font-medium">{foodOnly ? t('admin.categories.type.name') : categoryLabel}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.items.colPrice')}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.items.colAvailable')}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.actions')}</th>
@@ -355,14 +359,14 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={foodOnly ? 6 : 5} className="text-text-muted px-5 py-10 text-center">
+                <td colSpan={5} className="text-text-muted px-5 py-10 text-center">
                   {t('common.loading')}
                 </td>
               </tr>
             )}
             {!isLoading && !isError && items?.length === 0 && (
               <tr>
-                <td colSpan={foodOnly ? 6 : 5} className="text-text-muted px-5 py-10 text-center">
+                <td colSpan={5} className="text-text-muted px-5 py-10 text-center">
                   {t('admin.noItemsYet')}
                 </td>
               </tr>
@@ -373,8 +377,9 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
               return (
                 <tr key={item.id} className="border-border border-t">
                   <td className="px-5 py-3.5">{tf(item.name, item.nameTe)}</td>
-                  <td className="px-5 py-3.5">{cat ? tf(cat.name, cat.nameTe) : '-'}</td>
-                  {foodOnly && <td className="px-5 py-3.5">{type ? tf(type.name, type.nameTe) : '-'}</td>}
+                  <td className="px-5 py-3.5">
+                    {foodOnly ? (type ? tf(type.name, type.nameTe) : '-') : cat ? tf(cat.name, cat.nameTe) : '-'}
+                  </td>
                   <td className="px-5 py-3.5">
                     ₹{Number(item.price).toLocaleString('en-IN')}
                     {cat?.pricingMode === 'PER_PERSON' && <span className="text-text-muted text-sm"> /person</span>}

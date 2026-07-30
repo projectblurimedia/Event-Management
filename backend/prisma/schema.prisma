@@ -174,7 +174,7 @@ model PackageCategory {
   packageId  String
   package    Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
   categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   order      Int      @default(0)
 
   @@index([packageId])

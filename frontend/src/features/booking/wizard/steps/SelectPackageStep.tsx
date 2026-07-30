@@ -18,13 +18,26 @@ export function SelectPackageStep() {
   const selectPackage = useBookingCartStore((s) => s.selectPackage);
   const goToStep = useBookingCartStore((s) => s.goToStep);
 
+  // Only clears the consumed `package` param — leaves any other params (e.g.
+  // the wizard's own `step` tracking) untouched.
+  function clearPackageParam() {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('package');
+        return next;
+      },
+      { replace: true },
+    );
+  }
+
   useEffect(() => {
     const packageParam = searchParams.get('package');
     if (!packageParam || !packages) return;
 
     if (packageParam === 'custom') {
       selectPackage(null, true);
-      setSearchParams({}, { replace: true });
+      clearPackageParam();
       goToStep('CONFIGURE');
       return;
     }
@@ -32,7 +45,7 @@ export function SelectPackageStep() {
     const match = packages.find((p) => p.id === packageParam);
     if (match) {
       selectPackage(match.id, false);
-      setSearchParams({}, { replace: true });
+      clearPackageParam();
       goToStep('CONFIGURE');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

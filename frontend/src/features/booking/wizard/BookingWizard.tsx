@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
@@ -11,9 +11,11 @@ import { ConfigurePackageStep } from './steps/ConfigurePackageStep';
 import { ReviewStep } from './steps/ReviewStep';
 import { CustomerDetailsStep } from './steps/CustomerDetailsStep';
 import { ConfirmationStep } from './steps/ConfirmationStep';
-import { useBookingCartStore } from '@/store/bookingCartStore';
+import { useBookingCartStore, type WizardStep } from '@/store/bookingCartStore';
 import { siteConfig } from '@/lib/siteConfig';
 import { useTranslation } from '@/hooks/useTranslation';
+
+const VALID_STEPS: WizardStep[] = ['PACKAGE', 'CONFIGURE', 'REVIEW', 'DETAILS', 'CONFIRMATION'];
 
 export function BookingWizard() {
   const step = useBookingCartStore((s) => s.step);
@@ -21,8 +23,37 @@ export function BookingWizard() {
   const configureCategoryIndex = useBookingCartStore((s) => s.configureCategoryIndex);
   const reset = useBookingCartStore((s) => s.reset);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [cancelOpen, setCancelOpen] = useState(false);
   const { t } = useTranslation();
+  // Prevents the two sync effects below from bouncing off each other.
+  const syncingFromUrl = useRef(false);
+
+  // Wizard steps swap content in place rather than changing route, so by
+  // default the browser Back button would just exit /booking entirely
+  // instead of stepping back through the wizard. Mirror each step change
+  // into the URL as a real history entry so Back behaves as expected.
+  useEffect(() => {
+    if (syncingFromUrl.current) {
+      syncingFromUrl.current = false;
+      return;
+    }
+    if (searchParams.get('step') === step) return;
+    const next = new URLSearchParams(searchParams);
+    next.set('step', step);
+    setSearchParams(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  // Fires on browser Back/Forward — the URL changes without goToStep() ever
+  // being called, so sync the store to match what the user navigated to.
+  useEffect(() => {
+    const urlStep = searchParams.get('step') as WizardStep | null;
+    if (!urlStep || !VALID_STEPS.includes(urlStep) || urlStep === step) return;
+    syncingFromUrl.current = true;
+    goToStep(urlStep);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Wizard steps swap content in place (no route change), so the browser
   // keeps whatever scroll position the user was at — which can land near
