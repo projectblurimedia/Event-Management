@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Pencil, RefreshCw, Search, Trash2 } from 'lucide-react';
@@ -9,6 +9,7 @@ import { categoryHooks, categoryTypeHooks, itemHooks, packageHooks } from '@/lib
 import { api } from '@/lib/axios';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
+import { cn } from '@/lib/cn';
 import type { Item } from '@/types/api';
 
 const inputClass =
@@ -81,16 +82,29 @@ const emptyForm: ItemFormState = {
   order: '0',
 };
 
-export function AdminItemsPage() {
+interface CatalogItemsManagerProps {
+  /** Food category vs everything else — the two admin surfaces this powers ("Menu" and "Services"). */
+  foodOnly: boolean;
+  title: string;
+  subtitle: string;
+  itemLabel: string;
+  /** Label for the category-picking select + table column — "Category" on Menu, "Service" on Services. */
+  categoryLabel: string;
+}
+
+type DietaryFilter = 'VEG' | 'NON_VEG' | 'BOTH';
+
+export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, categoryLabel }: CatalogItemsManagerProps) {
   const { t, tf } = useTranslation();
-  const { data: categories } = categoryHooks.useAdminList();
+  const { data: allCategories } = categoryHooks.useAdminList();
   const { data: types } = categoryTypeHooks.useAdminList();
-  const { data: items, isLoading, isError, refetch } = itemHooks.useAdminList();
+  const { data: allItems, isLoading, isError, refetch } = itemHooks.useAdminList();
   const { data: packages } = packageHooks.useAdminList();
   const { create: createMutation, update: updateMutation } = useItemMutations();
   const deleteMutation = itemHooks.useAdminDelete();
 
   const [search, setSearch] = useState('');
+  const [dietaryFilter, setDietaryFilter] = useState<DietaryFilter>('BOTH');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [form, setForm] = useState<ItemFormState>(emptyForm);
@@ -98,28 +112,54 @@ export function AdminItemsPage() {
   // bulletins, or every category when Custom is picked. Not sent to the API.
   const [packageFilter, setPackageFilter] = useState(CUSTOM_FILTER);
 
+  const categories = useMemo(
+    () => allCategories?.filter((c) => c.isFood === foodOnly) ?? [],
+    [allCategories, foodOnly],
+  );
+  const items = useMemo(() => {
+    if (!allItems || !types) return allItems;
+    const scopedTypeIds = new Set(types.filter((ty) => categories.some((c) => c.id === ty.categoryId)).map((ty) => ty.id));
+    return allItems.filter((item) => scopedTypeIds.has(item.categoryTypeId));
+  }, [allItems, types, categories]);
+
   const availableCategories = useMemo(() => {
-    if (packageFilter === CUSTOM_FILTER) return categories ?? [];
+    if (foodOnly || packageFilter === CUSTOM_FILTER) return categories;
     const pkg = packages?.find((p) => p.id === packageFilter);
-    return pkg ? pkg.categories.map((pc) => pc.category) : [];
-  }, [packageFilter, packages, categories]);
+    if (!pkg) return [];
+    const pkgCategoryIds = new Set(pkg.categories.map((pc) => pc.categoryId));
+    return categories.filter((c) => pkgCategoryIds.has(c.id));
+  }, [foodOnly, packageFilter, packages, categories]);
 
   const typesForCategory = useMemo(
     () => types?.filter((t2) => t2.categoryId === form.categoryId) ?? [],
     [types, form.categoryId],
   );
-  const selectedCategory = categories?.find((c) => c.id === form.categoryId);
+  const selectedCategory = categories.find((c) => c.id === form.categoryId);
+
+  // When there's only one category to pick from (always true for Menu, and
+  // often true for a Services page narrowed by package), skip making the
+  // admin choose it — auto-select, cascading into the type too if it's also singular.
+  useEffect(() => {
+    if (modalOpen && !form.categoryId && availableCategories.length === 1) {
+      const cat = availableCategories[0]!;
+      const soleType = types?.filter((ty) => ty.categoryId === cat.id) ?? [];
+      setForm((f) => ({ ...f, categoryId: cat.id, categoryTypeId: soleType.length === 1 ? soleType[0]!.id : '' }));
+    }
+  }, [modalOpen, availableCategories, form.categoryId, types]);
 
   const filteredItems = useMemo(() => {
     if (!items) return items;
+    let result = items;
+    if (foodOnly && dietaryFilter === 'VEG') result = result.filter((item) => item.isVeg);
+    if (foodOnly && dietaryFilter === 'NON_VEG') result = result.filter((item) => !item.isVeg);
     const q = search.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((item) => item.name.toLowerCase().includes(q));
-  }, [items, search]);
+    if (q) result = result.filter((item) => item.name.toLowerCase().includes(q));
+    return result;
+  }, [items, search, foodOnly, dietaryFilter]);
 
   function categoryForItem(item: Item) {
     const type = types?.find((t2) => t2.id === item.categoryTypeId);
-    return categories?.find((c) => c.id === type?.categoryId);
+    return categories.find((c) => c.id === type?.categoryId);
   }
 
   function typeForItem(item: Item) {
@@ -197,26 +237,46 @@ export function AdminItemsPage() {
   }
 
   const priceLabel = selectedCategory?.pricingMode === 'PER_PERSON' ? t('admin.items.pricePerPerson') : t('admin.items.priceFlat');
+  const modalTitle = editing ? `${t('common.edit')} ${itemLabel}` : `${t('common.create')} ${itemLabel}`;
 
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">{t('admin.items.title')}</h1>
-          <p className="text-text-muted mt-1 text-base">{t('admin.items.subtitle')}</p>
+          <h1 className="text-2xl font-semibold">{title}</h1>
+          <p className="text-text-muted mt-1 text-base">{subtitle}</p>
         </div>
         <Button onClick={openCreate}>{t('common.addNew')}</Button>
       </div>
 
       {!!items?.length && (
-        <div className="relative mt-5 w-full sm:w-80">
-          <Search size={15} className="text-text-muted absolute top-1/2 left-3.5 -translate-y-1/2" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('admin.searchPlaceholder')}
-            className="border-border bg-surface w-full rounded-lg border py-2.5 pr-3 pl-10 text-base outline-none"
-          />
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="relative w-full sm:w-80">
+            <Search size={15} className="text-text-muted absolute top-1/2 left-3.5 -translate-y-1/2" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('admin.searchPlaceholder')}
+              className="border-border bg-surface w-full rounded-lg border py-2.5 pr-3 pl-10 text-base outline-none"
+            />
+          </div>
+          {foodOnly && (
+            <div className="flex gap-2">
+              {(['VEG', 'NON_VEG', 'BOTH'] as DietaryFilter[]).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setDietaryFilter(d)}
+                  className={cn(
+                    'rounded-full border px-4 py-2 text-sm font-medium',
+                    dietaryFilter === d ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
+                  )}
+                >
+                  {d === 'VEG' ? t('common.veg') : d === 'NON_VEG' ? t('common.nonVeg') : t('common.both')}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -249,7 +309,8 @@ export function AdminItemsPage() {
                 <div>
                   <p className="text-base font-semibold">{tf(item.name, item.nameTe)}</p>
                   <p className="text-text-muted mt-0.5 text-sm">
-                    {cat ? tf(cat.name, cat.nameTe) : '-'} · {type ? tf(type.name, type.nameTe) : '-'}
+                    {cat ? tf(cat.name, cat.nameTe) : '-'}
+                    {foodOnly && type ? ` · ${tf(type.name, type.nameTe)}` : ''}
                   </p>
                 </div>
                 <span className="text-gold shrink-0 text-sm font-semibold">
@@ -284,8 +345,8 @@ export function AdminItemsPage() {
           <thead className="bg-surface-muted text-text-muted text-sm uppercase">
             <tr>
               <th className="px-5 py-3.5 font-medium">{t('admin.items.colName')}</th>
-              <th className="px-5 py-3.5 font-medium">{t('admin.categories.title')}</th>
-              <th className="px-5 py-3.5 font-medium">{t('admin.categories.type.name')}</th>
+              <th className="px-5 py-3.5 font-medium">{categoryLabel}</th>
+              {foodOnly && <th className="px-5 py-3.5 font-medium">{t('admin.categories.type.name')}</th>}
               <th className="px-5 py-3.5 font-medium">{t('admin.items.colPrice')}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.items.colAvailable')}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.actions')}</th>
@@ -294,14 +355,14 @@ export function AdminItemsPage() {
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={6} className="text-text-muted px-5 py-10 text-center">
+                <td colSpan={foodOnly ? 6 : 5} className="text-text-muted px-5 py-10 text-center">
                   {t('common.loading')}
                 </td>
               </tr>
             )}
             {!isLoading && !isError && items?.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-text-muted px-5 py-10 text-center">
+                <td colSpan={foodOnly ? 6 : 5} className="text-text-muted px-5 py-10 text-center">
                   {t('admin.noItemsYet')}
                 </td>
               </tr>
@@ -313,7 +374,7 @@ export function AdminItemsPage() {
                 <tr key={item.id} className="border-border border-t">
                   <td className="px-5 py-3.5">{tf(item.name, item.nameTe)}</td>
                   <td className="px-5 py-3.5">{cat ? tf(cat.name, cat.nameTe) : '-'}</td>
-                  <td className="px-5 py-3.5">{type ? tf(type.name, type.nameTe) : '-'}</td>
+                  {foodOnly && <td className="px-5 py-3.5">{type ? tf(type.name, type.nameTe) : '-'}</td>}
                   <td className="px-5 py-3.5">
                     ₹{Number(item.price).toLocaleString('en-IN')}
                     {cat?.pricingMode === 'PER_PERSON' && <span className="text-text-muted text-sm"> /person</span>}
@@ -336,60 +397,55 @@ export function AdminItemsPage() {
         </table>
       </div>
 
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editing ? `${t('common.edit')} ${t('admin.items.title')}` : `${t('common.create')} ${t('admin.items.title')}`}
-        size="lg"
-      >
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={modalTitle} size="lg">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={labelClass}>{t('admin.items.package')}</label>
-              <select
-                className={inputClass}
-                value={packageFilter}
-                onChange={(e) => {
-                  setPackageFilter(e.target.value);
-                  setForm((f) => ({ ...f, categoryId: '', categoryTypeId: '' }));
-                }}
-              >
-                <option value={CUSTOM_FILTER}>{t('admin.items.customAllCategories')}</option>
-                {packages?.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {tf(p.name, p.nameTe)}
-                  </option>
-                ))}
-              </select>
-              <p className="text-text-muted mt-1 text-xs">{t('admin.items.packageFilterHint')}</p>
-            </div>
-            <div>
-              <label className={labelClass}>{t('admin.categories.title')}</label>
-              <select
-                className={inputClass}
-                value={form.categoryId}
-                onChange={(e) => {
-                  const categoryId = e.target.value;
-                  const soleType = types?.filter((ty) => ty.categoryId === categoryId) ?? [];
-                  setForm((f) => ({
-                    ...f,
-                    categoryId,
-                    categoryTypeId: soleType.length === 1 ? soleType[0].id : '',
-                  }));
-                }}
-              >
-                <option value="">{t('admin.selectPlaceholder')}</option>
-                {availableCategories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {tf(c.name, c.nameTe)}
-                  </option>
-                ))}
-              </select>
-              {packageFilter !== CUSTOM_FILTER && availableCategories.length === 0 && (
-                <p className="text-text-muted mt-1 text-xs">{t('admin.items.packageHasNoCategories')}</p>
-              )}
-            </div>
-            {typesForCategory.length > 1 && (
+            {!foodOnly && (
+              <div>
+                <label className={labelClass}>{t('admin.items.package')}</label>
+                <select
+                  className={inputClass}
+                  value={packageFilter}
+                  onChange={(e) => {
+                    setPackageFilter(e.target.value);
+                    setForm((f) => ({ ...f, categoryId: '', categoryTypeId: '' }));
+                  }}
+                >
+                  <option value={CUSTOM_FILTER}>{t('admin.items.customAllCategories')}</option>
+                  {packages?.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {tf(p.name, p.nameTe)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {availableCategories.length > 1 && (
+              <div>
+                <label className={labelClass}>{categoryLabel}</label>
+                <select
+                  className={inputClass}
+                  value={form.categoryId}
+                  onChange={(e) => {
+                    const categoryId = e.target.value;
+                    const soleType = types?.filter((ty) => ty.categoryId === categoryId) ?? [];
+                    setForm((f) => ({
+                      ...f,
+                      categoryId,
+                      categoryTypeId: soleType.length === 1 ? soleType[0]!.id : '',
+                    }));
+                  }}
+                >
+                  <option value="">{t('admin.selectPlaceholder')}</option>
+                  {availableCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {tf(c.name, c.nameTe)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {foodOnly && typesForCategory.length > 1 && (
               <div>
                 <label className={labelClass}>{t('admin.categories.type.name')}</label>
                 <select
@@ -406,7 +462,7 @@ export function AdminItemsPage() {
                 </select>
               </div>
             )}
-            {form.categoryId && typesForCategory.length === 0 && (
+            {foodOnly && form.categoryId && typesForCategory.length === 0 && (
               <p className="text-text-muted -mt-2 text-xs sm:col-span-2">{t('admin.items.noTypesYet')}</p>
             )}
             <div>
@@ -421,7 +477,7 @@ export function AdminItemsPage() {
                 value={form.price}
                 onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
               />
-              {selectedCategory && (
+              {foodOnly && selectedCategory && (
                 <p className="text-text-muted mt-1 text-xs">
                   {selectedCategory.pricingMode === 'PER_PERSON'
                     ? t('admin.items.perPersonHint')

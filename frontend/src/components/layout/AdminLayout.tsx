@@ -14,6 +14,7 @@ import {
   Settings,
   Sun,
   UtensilsCrossed,
+  Wrench,
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -34,7 +35,8 @@ const navItems: { to: string; labelKey: TranslationKey; icon: typeof LayoutDashb
   { to: '/admin/bookings', labelKey: 'admin.nav.bookings', icon: CalendarCheck },
   { to: '/admin/enquiries', labelKey: 'admin.nav.enquiries', icon: MessageSquareQuote },
   { to: '/admin/categories', labelKey: 'admin.nav.categories', icon: Boxes },
-  { to: '/admin/items', labelKey: 'admin.nav.items', icon: UtensilsCrossed },
+  { to: '/admin/menu', labelKey: 'admin.nav.menu', icon: UtensilsCrossed },
+  { to: '/admin/services', labelKey: 'admin.nav.services', icon: Wrench },
   { to: '/admin/packages', labelKey: 'admin.nav.packages', icon: Package },
   { to: '/admin/settings', labelKey: 'admin.nav.settings', icon: Settings },
 ];

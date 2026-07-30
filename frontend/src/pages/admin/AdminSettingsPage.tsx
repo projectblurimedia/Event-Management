@@ -40,8 +40,18 @@ export function AdminSettingsPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form) return;
+    // Fields the setup flow never asked for (Telugu translations, hero image)
+    // come back from the API as `null` — the update schema only accepts them
+    // being absent, not explicitly null, so drop those keys before sending.
+    // latitude/longitude are the one exception: null is how the map pin gets
+    // explicitly cleared, so those must be allowed through as-is.
+    const payload: Record<string, unknown> = { ...form };
+    for (const key of Object.keys(payload)) {
+      if (key === 'latitude' || key === 'longitude') continue;
+      if (payload[key] === null) delete payload[key];
+    }
     try {
-      await updateSettings.mutateAsync(form);
+      await updateSettings.mutateAsync(payload);
       toast.success(t('admin.settings.updated'));
     } catch (error) {
       toast.error(getErrorMessage(error, t('admin.settings.couldNotUpdate')));

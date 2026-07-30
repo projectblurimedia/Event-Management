@@ -109,6 +109,13 @@ export function AdminEntityManager<T extends { id: string }>({
       if (f.type === 'number') payload[f.name] = Number(payload[f.name] ?? 0);
       if (f.type === 'boolean-select') payload[f.name] = payload[f.name] === true || payload[f.name] === 'true';
     });
+    // Editing spreads the raw record (openEdit) into form state, so untouched
+    // nullable fields (imageUrl, description, nameTe...) carry a literal
+    // `null` — but the API's optional() schemas only tolerate a field being
+    // absent, not explicitly null. Drop those keys so they're simply omitted.
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === null) delete payload[key];
+    });
 
     try {
       if (editing) {
