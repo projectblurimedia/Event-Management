@@ -22,12 +22,34 @@ export function BookingWizard() {
   const goToStep = useBookingCartStore((s) => s.goToStep);
   const expandedCategoryId = useBookingCartStore((s) => s.expandedCategoryId);
   const reset = useBookingCartStore((s) => s.reset);
+  const setCustomerField = useBookingCartStore((s) => s.setCustomerField);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [cancelOpen, setCancelOpen] = useState(false);
   const { t } = useTranslation();
   // Prevents the two sync effects below from bouncing off each other.
   const syncingFromUrl = useRef(false);
+
+  // Arriving from the public Event Types page ("Plan This Event") carries the
+  // chosen event as ?eventType=. That's a fresh-intent signal — start a clean
+  // wizard (discarding any stale package/items left in localStorage from a
+  // previous unfinished booking) with just the event pre-filled, rather than
+  // silently resuming whatever package happened to be selected before.
+  useEffect(() => {
+    const eventTypeParam = new URLSearchParams(window.location.search).get('eventType');
+    if (!eventTypeParam) return;
+    reset();
+    setCustomerField('eventTypeId', eventTypeParam);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('eventType');
+        return next;
+      },
+      { replace: true },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Wizard steps swap content in place rather than changing route, so by
   // default the browser Back button would just exit /booking entirely
