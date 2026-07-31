@@ -33,8 +33,16 @@ export function AdminSettingsPage() {
   }, [settings]);
 
   function handleClearLocation() {
-    if (!form) return;
-    setForm({ ...form, latitude: null, longitude: null, mapEmbedUrl: null });
+    setForm((prev) => (prev ? { ...prev, latitude: null, longitude: null, mapEmbedUrl: null } : prev));
+  }
+
+  /** Functional update — image uploads are async, so building the next form
+   * state off the `form` closure variable directly can clobber a concurrent
+   * field change (e.g. uploading a video takes longer than an image, so its
+   * onChange can fire after a different field already changed, reverting
+   * that change if it captured `form` from before). */
+  function updateForm(patch: Partial<FormState>) {
+    setForm((prev) => (prev ? { ...prev, ...patch } : prev));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -96,27 +104,27 @@ export function AdminSettingsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={labelClass}>{t('admin.settings.businessName')}</label>
-              <input className={inputClass} value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} />
+              <input className={inputClass} value={form.businessName} onChange={(e) => updateForm({ businessName: e.target.value })} />
             </div>
             <div>
               <label className={labelClass}>{t('admin.settings.organiser')}</label>
-              <input className={inputClass} value={form.organiser} onChange={(e) => setForm({ ...form, organiser: e.target.value })} />
+              <input className={inputClass} value={form.organiser} onChange={(e) => updateForm({ organiser: e.target.value })} />
             </div>
             <div>
               <label className={labelClass}>{t('admin.settings.phone')}</label>
-              <input className={inputClass} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <input className={inputClass} value={form.phone} onChange={(e) => updateForm({ phone: e.target.value })} />
             </div>
             <div>
               <label className={labelClass}>{t('admin.settings.whatsapp')}</label>
-              <input className={inputClass} value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} />
+              <input className={inputClass} value={form.whatsapp} onChange={(e) => updateForm({ whatsapp: e.target.value })} />
             </div>
             <div>
               <label className={labelClass}>{t('admin.settings.email')}</label>
-              <input className={inputClass} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <input className={inputClass} value={form.email} onChange={(e) => updateForm({ email: e.target.value })} />
             </div>
             <div>
               <label className={labelClass}>{t('admin.settings.address')}</label>
-              <input className={inputClass} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+              <input className={inputClass} value={form.address} onChange={(e) => updateForm({ address: e.target.value })} />
             </div>
           </div>
           <div>
@@ -150,7 +158,7 @@ export function AdminSettingsPage() {
           </div>
           <div>
             <label className={labelClass}>{t('admin.settings.logo')}</label>
-            <ImageUploadField value={form.logoUrl ?? ''} onChange={(url) => setForm({ ...form, logoUrl: url })} />
+            <ImageUploadField value={form.logoUrl ?? ''} onChange={(url) => updateForm({ logoUrl: url })} />
           </div>
         </div>
 
@@ -159,16 +167,16 @@ export function AdminSettingsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={labelClass}>{t('admin.settings.heroHeadline')}</label>
-              <input className={inputClass} value={form.heroHeadline} onChange={(e) => setForm({ ...form, heroHeadline: e.target.value })} />
+              <input className={inputClass} value={form.heroHeadline} onChange={(e) => updateForm({ heroHeadline: e.target.value })} />
             </div>
             <div>
               <label className={labelClass}>{t('admin.settings.heroSubheadline')}</label>
-              <textarea rows={3} className={inputClass} value={form.heroSubheadline} onChange={(e) => setForm({ ...form, heroSubheadline: e.target.value })} />
+              <textarea rows={3} className={inputClass} value={form.heroSubheadline} onChange={(e) => updateForm({ heroSubheadline: e.target.value })} />
             </div>
           </div>
           <div>
             <label className={labelClass}>{t('admin.settings.heroImage')}</label>
-            <ImageUploadField value={form.heroImageUrl ?? ''} onChange={(url) => setForm({ ...form, heroImageUrl: url })} />
+            <ImageUploadField value={form.heroImageUrl ?? ''} onChange={(url) => updateForm({ heroImageUrl: url })} />
           </div>
         </div>
 
@@ -177,18 +185,18 @@ export function AdminSettingsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={labelClass}>{t('admin.settings.introTitle')}</label>
-              <input className={inputClass} value={form.businessIntroTitle} onChange={(e) => setForm({ ...form, businessIntroTitle: e.target.value })} />
+              <input className={inputClass} value={form.businessIntroTitle} onChange={(e) => updateForm({ businessIntroTitle: e.target.value })} />
             </div>
             <div>
               <label className={labelClass}>{t('admin.settings.introText')}</label>
-              <textarea rows={4} className={inputClass} value={form.businessIntroText} onChange={(e) => setForm({ ...form, businessIntroText: e.target.value })} />
+              <textarea rows={4} className={inputClass} value={form.businessIntroText} onChange={(e) => updateForm({ businessIntroText: e.target.value })} />
             </div>
           </div>
           <div>
             <label className={labelClass}>{t('admin.settings.introImage')}</label>
             <ImageUploadField
               value={form.businessIntroImageUrl ?? ''}
-              onChange={(url) => setForm({ ...form, businessIntroImageUrl: url })}
+              onChange={(url) => updateForm({ businessIntroImageUrl: url })}
             />
           </div>
         </div>

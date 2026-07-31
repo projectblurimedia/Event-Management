@@ -9,6 +9,7 @@ import { FadeIn } from '@/components/ui/FadeIn';
 import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
 import { ContactModal } from '@/features/booking/ContactModal';
 import { useSettings } from '@/lib/api/settings';
+import { isVideoUrl } from '@/lib/cloudinary';
 import {
   packageHooks,
   testimonialHooks,
@@ -77,6 +78,23 @@ export function HomePage() {
 
       {/* Hero */}
       <section className="bg-[image:var(--gradient-luxury)] text-cream relative overflow-hidden">
+        {settings.heroImageUrl && (
+          <>
+            {isVideoUrl(settings.heroImageUrl) ? (
+              <video
+                src={settings.heroImageUrl}
+                className="absolute inset-0 h-full w-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+            ) : (
+              <img src={settings.heroImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            )}
+            <div aria-hidden className="bg-ink-black/65 absolute inset-0" />
+          </>
+        )}
         <div
           aria-hidden
           className="border-gold/30 pointer-events-none absolute inset-4 rounded-2xl border sm:inset-8"

@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast';
-import { UploadCloud } from 'lucide-react';
+import { UploadCloud, X } from 'lucide-react';
 import { useUploadImage, useDeleteUpload, useUploadUsage } from '@/lib/api/uploads';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -33,17 +33,33 @@ export function ImageUploadField({ value, onChange }: ImageUploadFieldProps) {
     }
   }
 
+  function handleRemove() {
+    const publicId = extractCloudinaryPublicId(value);
+    if (publicId) deleteUpload.mutate(publicId);
+    onChange('');
+  }
+
   const isVideo = value ? isVideoUrl(value) : false;
 
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-3">
         {value ? (
-          isVideo ? (
-            <video src={value} className="h-14 w-20 rounded-lg object-cover" muted />
-          ) : (
-            <img src={value} alt="" className="h-14 w-14 rounded-lg object-cover" />
-          )
+          <div className="relative">
+            {isVideo ? (
+              <video src={value} className="h-14 w-20 rounded-lg object-cover" muted />
+            ) : (
+              <img src={value} alt="" className="h-14 w-14 rounded-lg object-cover" />
+            )}
+            <button
+              type="button"
+              onClick={handleRemove}
+              aria-label={t('admin.removeImage')}
+              className="bg-ink-black text-cream absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full"
+            >
+              <X size={11} />
+            </button>
+          </div>
         ) : (
           <div className="border-border bg-bg text-text-muted flex h-14 w-14 items-center justify-center rounded-lg border border-dashed">
             <UploadCloud size={18} />
