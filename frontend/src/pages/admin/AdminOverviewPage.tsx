@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { CalendarClock, CheckCircle2, Clock3, IndianRupee, RefreshCw, TrendingUp, XCircle } from 'lucide-react';
+import { CalendarClock, CheckCircle2, Clock3, RefreshCw, TrendingUp, XCircle } from 'lucide-react';
 import { useDashboardOverview } from '@/lib/api/dashboard';
 import { useAuthStore } from '@/store/authStore';
 import { AdminAnalyticsSection } from '@/features/admin/AdminAnalyticsSection';
@@ -65,21 +65,7 @@ export function AdminOverviewPage() {
         </div>
       )}
 
-      {/* Revenue hero card */}
-      <div className="bg-[image:var(--gradient-luxury)] mt-6 flex flex-col justify-between gap-4 rounded-2xl p-6 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-cream/60 text-sm font-semibold tracking-wide uppercase">{t('admin.overview.totalRevenue')}</p>
-          <p className="text-cream mt-1 text-3xl font-semibold">
-            {isLoading ? '—' : `₹${(data?.revenue ?? 0).toLocaleString('en-IN')}`}
-          </p>
-          <p className="text-cream/50 mt-1 text-sm">{t('admin.overview.revenueSubtitle')}</p>
-        </div>
-        <span className="bg-gold/20 text-gold flex h-14 w-14 shrink-0 items-center justify-center rounded-full">
-          <IndianRupee size={26} />
-        </span>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
         {stats.map(({ labelKey, value, icon: Icon, tone, to }) => (
           <Link
             key={labelKey}

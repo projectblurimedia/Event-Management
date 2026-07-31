@@ -7,7 +7,6 @@ export type WizardStep = 'PACKAGE' | 'CONFIGURE' | 'REVIEW' | 'DETAILS' | 'CONFI
 interface SelectedItem {
   categoryId: string;
   itemId: string;
-  quantity: number;
 }
 
 export interface CustomerInfo {
@@ -56,8 +55,7 @@ interface BookingWizardState {
   setGuestCount: (count: number) => void;
   setDietaryPreference: (pref: DietaryPreference | null) => void;
   /** Add/remove an item. Non-multiple categories replace any existing pick in that category (single-select). */
-  toggleItem: (categoryId: string, itemId: string, allowMultiple: boolean, defaultQuantity: number) => void;
-  setItemQuantity: (categoryId: string, itemId: string, quantity: number) => void;
+  toggleItem: (categoryId: string, itemId: string, allowMultiple: boolean) => void;
   clearCategorySelections: (categoryId: string) => void;
   setConfigureCategoryIndex: (index: number) => void;
   nextConfigureCategory: () => void;
@@ -99,7 +97,7 @@ export const useBookingCartStore = create<BookingWizardState>()(
 
       setDietaryPreference: (pref) => set({ dietaryPreference: pref }),
 
-      toggleItem: (categoryId, itemId, allowMultiple, defaultQuantity) =>
+      toggleItem: (categoryId, itemId, allowMultiple) =>
         set((state) => {
           const exists = state.selectedItems.some((i) => i.categoryId === categoryId && i.itemId === itemId);
 
@@ -107,27 +105,13 @@ export const useBookingCartStore = create<BookingWizardState>()(
             return {
               selectedItems: exists
                 ? state.selectedItems.filter((i) => !(i.categoryId === categoryId && i.itemId === itemId))
-                : [...state.selectedItems, { categoryId, itemId, quantity: defaultQuantity }],
+                : [...state.selectedItems, { categoryId, itemId }],
             };
           }
 
           const withoutCategory = state.selectedItems.filter((i) => i.categoryId !== categoryId);
           return {
-            selectedItems: exists ? withoutCategory : [...withoutCategory, { categoryId, itemId, quantity: defaultQuantity }],
-          };
-        }),
-
-      setItemQuantity: (categoryId, itemId, quantity) =>
-        set((state) => {
-          if (quantity <= 0) {
-            return { selectedItems: state.selectedItems.filter((i) => !(i.categoryId === categoryId && i.itemId === itemId)) };
-          }
-          const existing = state.selectedItems.find((i) => i.categoryId === categoryId && i.itemId === itemId);
-          if (!existing) return { selectedItems: [...state.selectedItems, { categoryId, itemId, quantity }] };
-          return {
-            selectedItems: state.selectedItems.map((i) =>
-              i.categoryId === categoryId && i.itemId === itemId ? { ...i, quantity } : i,
-            ),
+            selectedItems: exists ? withoutCategory : [...withoutCategory, { categoryId, itemId }],
           };
         }),
 
@@ -145,6 +129,6 @@ export const useBookingCartStore = create<BookingWizardState>()(
 
       reset: () => set({ ...initialState, customer: emptyCustomer }),
     }),
-    { name: 'event-management-booking-wizard-v3' },
+    { name: 'event-management-booking-wizard-v4' },
   ),
 );

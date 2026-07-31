@@ -38,8 +38,6 @@ function getRange(mode: Mode, value: string) {
   return { from: `${value}-01-01T00:00:00`, to: `${value}-12-31T23:59:59` };
 }
 
-const currency = (value: number) => `₹${value.toLocaleString('en-IN')}`;
-
 const monthNames = [
   'January',
   'February',
@@ -212,18 +210,12 @@ export function AdminAnalyticsSection() {
         <>
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
             <div className="border-border bg-surface-muted rounded-xl border p-4">
-              <p className="text-text-muted text-sm">{t('admin.analytics.completedRevenue')}</p>
-              <p className="text-gold mt-1 text-2xl font-semibold">{currency(data.completedRevenue)}</p>
-              <p className="text-text-muted mt-0.5 text-sm">
-                {data.byStatus.COMPLETED} {t('admin.analytics.completedEventsSuffix')}
-              </p>
+              <p className="text-text-muted text-sm">{t('admin.analytics.completedEventsSuffix')}</p>
+              <p className="text-gold mt-1 text-2xl font-semibold">{data.byStatus.COMPLETED}</p>
             </div>
             <div className="border-border bg-surface-muted rounded-xl border p-4">
-              <p className="text-text-muted text-sm">{t('admin.analytics.confirmedUpcomingRevenue')}</p>
-              <p className="mt-1 text-2xl font-semibold">{currency(data.confirmedRevenue)}</p>
-              <p className="text-text-muted mt-0.5 text-sm">
-                {data.byStatus.CONFIRMED} {t('admin.analytics.confirmedEventsSuffix')}
-              </p>
+              <p className="text-text-muted text-sm">{t('admin.analytics.confirmedEventsSuffix')}</p>
+              <p className="mt-1 text-2xl font-semibold">{data.byStatus.CONFIRMED}</p>
             </div>
             <div className="border-border bg-surface-muted rounded-xl border p-4">
               <p className="text-text-muted text-sm">{t('admin.analytics.totalBookingsInPeriod')}</p>
@@ -266,10 +258,6 @@ export function AdminAnalyticsSection() {
                     <p className="text-text-muted">{t('admin.bookings.guests')}</p>
                     <p className="font-medium">{b.guestCount}</p>
                   </div>
-                  <div>
-                    <p className="text-text-muted">{t('admin.bookings.total')}</p>
-                    <p className="text-gold font-semibold">{currency(b.grandTotal)}</p>
-                  </div>
                 </div>
                 <div className="mt-3 flex gap-2 border-t border-dashed pt-3">
                   <a
@@ -302,7 +290,6 @@ export function AdminAnalyticsSection() {
                   <th className="px-4 py-2.5 font-medium">{t('admin.bookings.event')}</th>
                   <th className="px-4 py-2.5 font-medium">{t('admin.bookings.date')}</th>
                   <th className="px-4 py-2.5 font-medium">{t('admin.bookings.guests')}</th>
-                  <th className="px-4 py-2.5 font-medium">{t('admin.bookings.total')}</th>
                   <th className="px-4 py-2.5 font-medium">{t('admin.bookings.status')}</th>
                   <th className="px-4 py-2.5 font-medium">{t('admin.analytics.contact')}</th>
                 </tr>
@@ -310,7 +297,7 @@ export function AdminAnalyticsSection() {
               <tbody>
                 {data.bookings.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-text-muted px-4 py-8 text-center">
+                    <td colSpan={6} className="text-text-muted px-4 py-8 text-center">
                       {t('admin.analytics.noBookingsInPeriod')}
                     </td>
                   </tr>
@@ -324,7 +311,6 @@ export function AdminAnalyticsSection() {
                     <td className="px-4 py-3">{t(eventTypeLabelKeys[b.eventType])}</td>
                     <td className="px-4 py-3">{new Date(b.eventDate).toLocaleDateString('en-IN')}</td>
                     <td className="px-4 py-3">{b.guestCount}</td>
-                    <td className="px-4 py-3 font-medium">{currency(b.grandTotal)}</td>
                     <td className="px-4 py-3">
                       <span className={cn('rounded-full px-2.5 py-1 text-sm font-semibold', statusStyles[b.status])}>
                         {t(statusLabelKeys[b.status])}

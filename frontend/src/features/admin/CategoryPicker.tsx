@@ -30,7 +30,6 @@ export function CategoryPicker({ categories, excludeIds, onSelect }: CategoryPic
   const { t } = useTranslation();
   const createCategory = categoryHooks.useAdminCreate();
   const [name, setName] = useState('');
-  const [pricingMode, setPricingMode] = useState<'FLAT' | 'PER_PERSON'>('FLAT');
 
   const existingMatch = categories.find((c) => c.name.toLowerCase() === name.trim().toLowerCase());
 
@@ -52,12 +51,10 @@ export function CategoryPicker({ categories, excludeIds, onSelect }: CategoryPic
       const created = await createCategory.mutateAsync({
         name: trimmed,
         slug: slugify(trimmed) || `category-${Date.now()}`,
-        pricingMode,
       });
       toast.success(t('admin.packages.categoryCreated'));
       onSelect(created);
       setName('');
-      setPricingMode('FLAT');
     } catch (error) {
       toast.error(getErrorMessage(error, t('admin.somethingWentWrong')));
     }
@@ -77,17 +74,6 @@ export function CategoryPicker({ categories, excludeIds, onSelect }: CategoryPic
         placeholder={t('admin.packages.categoryNamePlaceholder')}
         className="border-border bg-bg focus:border-gold min-w-0 flex-1 rounded-lg border px-4 py-3 text-base outline-none"
       />
-      {!existingMatch && (
-        <select
-          value={pricingMode}
-          onChange={(e) => setPricingMode(e.target.value as 'FLAT' | 'PER_PERSON')}
-          title={t('admin.categories.pricingModeHint')}
-          className="border-border bg-bg focus:border-gold shrink-0 rounded-lg border px-3 py-3 text-sm outline-none"
-        >
-          <option value="FLAT">{t('admin.categories.flatPrice')}</option>
-          <option value="PER_PERSON">{t('admin.categories.perPerson')}</option>
-        </select>
-      )}
       <button
         type="button"
         onClick={handleAdd}

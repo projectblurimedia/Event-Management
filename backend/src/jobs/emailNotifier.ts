@@ -10,7 +10,6 @@ interface BookingLike {
   eventType: string;
   eventDate: Date;
   guestCount: number;
-  grandTotal: unknown;
 }
 
 export async function sendBookingNotificationEmail(booking: BookingLike) {
@@ -33,7 +32,6 @@ export async function sendBookingNotificationEmail(booking: BookingLike) {
       <p><strong>Customer:</strong> ${booking.customerName} (${booking.phone}${booking.email ? `, ${booking.email}` : ''})</p>
       <p><strong>Event:</strong> ${booking.eventType} on ${new Date(booking.eventDate).toLocaleDateString()}</p>
       <p><strong>Guests:</strong> ${booking.guestCount}</p>
-      <p><strong>Estimated Total:</strong> ₹${booking.grandTotal}</p>
     `,
   });
 }

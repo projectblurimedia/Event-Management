@@ -1,59 +1,39 @@
 import { prisma } from '../../config/prisma';
 import { ApiError } from '../../utils/ApiError';
-import { calculatePricing } from '../../utils/pricingEngine';
 import { generateBookingCode } from '../../utils/bookingCode';
 import { sendBookingNotificationEmail } from '../../jobs/emailNotifier';
 import { getSettings } from '../settings/settings.service';
-import type { CreateBookingInput, QuoteInput } from './bookings.validator';
+import type { CreateBookingInput } from './bookings.validator';
 
 const bookingInclude = {
   package: true,
   items: { include: { item: { include: { categoryType: { include: { category: true } } } } } },
 };
 
-async function resolveSelection(input: QuoteInput) {
+async function resolveSelection(input: { packageId?: string; items: { itemId: string }[] }) {
   const [pkg, itemRows] = await Promise.all([
     input.packageId
       ? prisma.package.findUnique({ where: { id: input.packageId } })
       : Promise.resolve(null),
     input.items.length
-      ? prisma.item.findMany({
-          where: { id: { in: input.items.map((i) => i.itemId) } },
-          include: { categoryType: { include: { category: true } } },
-        })
+      ? prisma.item.findMany({ where: { id: { in: input.items.map((i) => i.itemId) } } })
       : Promise.resolve([]),
   ]);
 
   if (input.packageId && !pkg) throw ApiError.badRequest('Selected package does not exist');
 
-  const itemMap = new Map(itemRows.map((item) => [item.id, item]));
+  const itemIds = new Set(itemRows.map((item) => item.id));
   for (const sel of input.items) {
-    if (!itemMap.has(sel.itemId)) {
+    if (!itemIds.has(sel.itemId)) {
       throw ApiError.badRequest(`Item ${sel.itemId} does not exist`);
     }
   }
 
-  const pricing = calculatePricing({
-    items: input.items.map((sel) => {
-      const item = itemMap.get(sel.itemId)!;
-      return {
-        price: Number(item.price),
-        pricingMode: item.categoryType.category.pricingMode,
-        quantity: sel.quantity,
-      };
-    }),
-  });
-
-  return { pkg, itemMap, pricing };
-}
-
-export async function getQuote(input: QuoteInput) {
-  const { pricing } = await resolveSelection(input);
-  return pricing;
+  return { pkg };
 }
 
 export async function createBooking(input: CreateBookingInput) {
-  const [{ pkg, itemMap, pricing }, settings] = await Promise.all([resolveSelection(input), getSettings()]);
+  const [{ pkg }, settings] = await Promise.all([resolveSelection(input), getSettings()]);
   const businessName = settings?.businessName ?? '';
 
   let bookingCode = generateBookingCode(businessName);
@@ -78,15 +58,8 @@ export async function createBooking(input: CreateBookingInput) {
       packageId: pkg?.id,
       dietaryPreference: input.dietaryPreference,
       specialRequirements: input.specialRequirements,
-      perPersonCost: pricing.perPersonCost,
-      flatCost: pricing.flatCost,
-      grandTotal: pricing.grandTotal,
       items: {
-        create: input.items.map((sel) => ({
-          itemId: sel.itemId,
-          quantity: sel.quantity,
-          priceAtBooking: itemMap.get(sel.itemId)!.price,
-        })),
+        create: input.items.map((sel) => ({ itemId: sel.itemId })),
       },
     },
     include: bookingInclude,
@@ -109,7 +82,6 @@ export async function lookupBooking(code: string, phone: string) {
       eventTime: true,
       eventType: true,
       guestCount: true,
-      grandTotal: true,
       createdAt: true,
     },
   });
@@ -126,15 +98,11 @@ export async function getBookingForQuotation(id: string, phone: string) {
 }
 
 function groupItemsByCategory(items: Awaited<ReturnType<typeof getBookingForQuotation>>['items']) {
-  const groups = new Map<string, { name: string; quantity: number; priceAtBooking: number }[]>();
+  const groups = new Map<string, string[]>();
   for (const sel of items) {
     const categoryName = sel.item.categoryType.category.name;
     const list = groups.get(categoryName) ?? [];
-    list.push({
-      name: sel.item.name,
-      quantity: sel.quantity,
-      priceAtBooking: Number(sel.priceAtBooking),
-    });
+    list.push(sel.item.name);
     groups.set(categoryName, list);
   }
   return Array.from(groups.entries()).map(([categoryName, items]) => ({ categoryName, items }));
@@ -153,9 +121,6 @@ export function toQuotationData(booking: Awaited<ReturnType<typeof getBookingFor
     guestCount: booking.guestCount,
     package: booking.package ? { name: booking.package.name } : null,
     groupedItems: groupItemsByCategory(booking.items),
-    perPersonCost: Number(booking.perPersonCost),
-    flatCost: Number(booking.flatCost),
-    grandTotal: Number(booking.grandTotal),
   };
 }
 

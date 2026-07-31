@@ -1,11 +1,8 @@
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useBookingCartStore } from '@/store/bookingCartStore';
-import { useQuote } from '@/lib/api/bookings';
 import { packageHooks, categoryHooks, itemHooks } from '@/lib/api/resources';
 import { useTranslation } from '@/hooks/useTranslation';
-
-const currency = (value: number) => `₹${value.toLocaleString('en-IN')}`;
 
 export function ReviewStep() {
   const { t, tf } = useTranslation();
@@ -22,16 +19,6 @@ export function ReviewStep() {
 
   const pkg = packages?.find((p) => p.id === packageId);
 
-  const selection = useMemo(
-    () => ({
-      guestCount,
-      packageId: packageId ?? undefined,
-      items: selectedItems.map((i) => ({ itemId: i.itemId, quantity: i.quantity })),
-    }),
-    [guestCount, packageId, selectedItems],
-  );
-  const { data: pricing, isFetching, isError: quoteError, refetch: refetchQuote } = useQuote(selection, guestCount > 0);
-
   const groupedSelections = useMemo(() => {
     if (!categories || !allItems) return [];
     return categories
@@ -39,10 +26,7 @@ export function ReviewStep() {
         category: cat,
         items: selectedItems
           .filter((s) => s.categoryId === cat.id)
-          .map((s) => {
-            const item = allItems.find((i) => i.id === s.itemId);
-            return item ? { ...item, quantity: s.quantity } : null;
-          })
+          .map((s) => allItems.find((i) => i.id === s.itemId))
           .filter((i): i is NonNullable<typeof i> => !!i),
       }))
       .filter((g) => g.items.length > 0);
@@ -91,41 +75,20 @@ export function ReviewStep() {
             </div>
             <ul className="space-y-1">
               {group.items.map((item) => (
-                <li key={item.id} className="flex justify-between gap-3 text-sm">
-                  <span className="min-w-0">
-                    {tf(item.name, item.nameTe)}
-                    {item.quantity > 1 && ` × ${item.quantity}`}
-                  </span>
-                  <span className="shrink-0">{currency(Number(item.price) * item.quantity)}</span>
+                <li key={item.id} className="text-sm">
+                  {tf(item.name, item.nameTe)}
                 </li>
               ))}
             </ul>
           </div>
         ))}
-
-        <div className="bg-surface-muted flex items-center justify-between rounded-b-2xl px-6 py-5">
-          <span className="text-base font-semibold">{t('wizard.estimatedTotal')}</span>
-          {quoteError ? (
-            <button
-              type="button"
-              onClick={() => refetchQuote()}
-              className="text-rose text-sm font-semibold underline"
-            >
-              {t('wizard.retryQuote')}
-            </button>
-          ) : (
-            <span className="text-gold text-xl font-semibold">
-              {isFetching ? '…' : currency(pricing?.grandTotal ?? 0)}
-            </span>
-          )}
-        </div>
       </div>
 
       <div className="mt-8 flex items-center justify-between">
         <Button variant="outline" onClick={() => goToStep('CONFIGURE')}>
           {t('common.back')}
         </Button>
-        <Button variant="primary" size="lg" onClick={() => goToStep('DETAILS')} disabled={quoteError}>
+        <Button variant="primary" size="lg" onClick={() => goToStep('DETAILS')}>
           {t('common.next')}
         </Button>
       </div>

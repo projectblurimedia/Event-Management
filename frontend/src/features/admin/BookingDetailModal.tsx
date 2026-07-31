@@ -13,8 +13,6 @@ import { statusLabelKeys } from '@/lib/i18n/statusLabels';
 import { cn } from '@/lib/cn';
 import type { BookingStatus } from '@/types/api';
 
-const currency = (value: string | number) => `₹${Number(value).toLocaleString('en-IN')}`;
-
 const statusStyles: Record<BookingStatus, string> = {
   PENDING: 'bg-amber-500/10 text-amber-600',
   CONFIRMED: 'bg-emerald-500/10 text-emerald-600',
@@ -35,17 +33,12 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
 
   const groupedItems = useMemo(() => {
     if (!booking) return [];
-    const groups = new Map<string, { name: string; nameTe: string | null; quantity: number; priceAtBooking: string }[]>();
+    const groups = new Map<string, { name: string; nameTe: string | null }[]>();
     for (const sel of booking.items) {
       const category = sel.item.categoryType?.category;
       const categoryName = category ? tf(category.name, category.nameTe) : '—';
       const list = groups.get(categoryName) ?? [];
-      list.push({
-        name: sel.item.name,
-        nameTe: sel.item.nameTe,
-        quantity: sel.quantity,
-        priceAtBooking: sel.priceAtBooking,
-      });
+      list.push({ name: sel.item.name, nameTe: sel.item.nameTe });
       groups.set(categoryName, list);
     }
     return Array.from(groups.entries());
@@ -185,12 +178,8 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
               <h3 className="text-text-muted mb-2 text-sm font-semibold tracking-wide uppercase">{categoryName}</h3>
               <ul className="border-border divide-border divide-y rounded-xl border text-sm">
                 {items.map((item, i) => (
-                  <li key={i} className="flex justify-between gap-3 px-4 py-2.5">
-                    <span className="min-w-0">
-                      {tf(item.name, item.nameTe)}
-                      {item.quantity > 1 && ` × ${item.quantity}`}
-                    </span>
-                    <span className="shrink-0 font-medium">{currency(Number(item.priceAtBooking) * item.quantity)}</span>
+                  <li key={i} className="px-4 py-2.5">
+                    {tf(item.name, item.nameTe)}
                   </li>
                 ))}
               </ul>
@@ -207,24 +196,6 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
               </p>
             </div>
           )}
-
-          {/* Cost breakdown */}
-          <div className="border-gold/30 bg-surface-muted rounded-xl border p-4">
-            <div className="space-y-1.5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-text-muted">{t('admin.bookingDetail.perPersonCost')}</span>
-                <span>{currency(booking.perPersonCost)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">{t('admin.bookingDetail.flatCost')}</span>
-                <span>{currency(booking.flatCost)}</span>
-              </div>
-              <div className="border-border mt-2 flex justify-between border-t pt-2 text-base font-semibold">
-                <span>{t('admin.bookingDetail.grandTotal')}</span>
-                <span className="text-gold">{currency(booking.grandTotal)}</span>
-              </div>
-            </div>
-          </div>
 
           {/* Approve / Reject / status actions — only for bookings that aren't in a final state yet */}
           {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (

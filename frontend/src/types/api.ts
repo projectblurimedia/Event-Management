@@ -23,7 +23,6 @@ export interface Item {
   name: string;
   nameTe: string | null;
   description: string | null;
-  price: string;
   images: string[];
   isVeg: boolean | null;
   isAvailable: boolean;
@@ -129,12 +128,6 @@ export interface SiteSettings {
   businessIntroTextTe: string | null;
 }
 
-export interface PricingBreakdown {
-  perPersonCost: number;
-  flatCost: number;
-  grandTotal: number;
-}
-
 export interface Booking {
   id: string;
   bookingCode: string;
@@ -151,9 +144,6 @@ export interface Booking {
   package: Package | null;
   dietaryPreference: DietaryPreference | null;
   specialRequirements: string | null;
-  perPersonCost: string;
-  flatCost: string;
-  grandTotal: string;
   status: BookingStatus;
   createdAt: string;
 }
@@ -161,7 +151,6 @@ export interface Booking {
 export interface BookingItemDetail {
   id: string;
   quantity: number;
-  priceAtBooking: string;
   item: Item;
 }
 
@@ -176,7 +165,6 @@ export interface BookingStatusResult {
   eventTime: string;
   eventType: EventType;
   guestCount: number;
-  grandTotal: string;
   createdAt: string;
 }
 
@@ -186,7 +174,6 @@ export interface DashboardOverview {
   confirmedBookings: number;
   cancelledBookings: number;
   completedEvents: number;
-  revenue: number;
   recentCustomers: {
     id: string;
     customerName: string;
@@ -209,7 +196,6 @@ export interface DashboardAnalyticsBooking {
   eventDate: string;
   guestCount: number;
   packageName: string | null;
-  grandTotal: number;
   status: BookingStatus;
 }
 
@@ -217,9 +203,6 @@ export interface DashboardAnalytics {
   from: string;
   to: string;
   totalBookings: number;
-  completedRevenue: number;
-  confirmedRevenue: number;
-  projectedRevenue: number;
   byStatus: Record<BookingStatus, number>;
   bookings: DashboardAnalyticsBooking[];
 }

@@ -27,7 +27,6 @@ export const exportBookingsExcelHandler = asyncHandler(async (req: Request, res:
     { header: 'Event Date', key: 'eventDate', width: 14 },
     { header: 'Guests', key: 'guestCount', width: 10 },
     { header: 'Package', key: 'packageName', width: 16 },
-    { header: 'Grand Total', key: 'grandTotal', width: 14 },
     { header: 'Status', key: 'status', width: 14 },
   ];
   sheet.getRow(1).font = { bold: true };
@@ -42,7 +41,6 @@ export const exportBookingsExcelHandler = asyncHandler(async (req: Request, res:
       eventDate: new Date(b.eventDate).toLocaleDateString('en-IN'),
       guestCount: b.guestCount,
       packageName: b.package?.name ?? '-',
-      grandTotal: Number(b.grandTotal),
       status: b.status,
     });
   }
@@ -69,7 +67,6 @@ export const exportBookingsPdfHandler = asyncHandler(async (req: Request, res: R
     eventType: b.eventType,
     eventDate: b.eventDate,
     guestCount: b.guestCount,
-    grandTotal: Number(b.grandTotal),
     status: b.status,
   }));
 

@@ -30,20 +30,11 @@ export const createBookingSchema = z.object({
 
   packageId: z.string().optional(),
   dietaryPreference: dietaryPreferenceEnum.optional(),
-  items: z
-    .array(z.object({ itemId: z.string().min(1), quantity: z.number().int().positive() }))
-    .default([]),
+  items: z.array(z.object({ itemId: z.string().min(1) })).default([]),
 
   specialRequirements: z.string().optional(),
 });
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
-
-export const quoteSchema = createBookingSchema.pick({
-  guestCount: true,
-  packageId: true,
-  items: true,
-});
-export type QuoteInput = z.infer<typeof quoteSchema>;
 
 export const bookingLookupSchema = z.object({
   code: z.string().min(1),

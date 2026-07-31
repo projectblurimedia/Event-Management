@@ -1,19 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
-import type {
-  Booking,
-  BookingDetail,
-  BookingStatus,
-  BookingStatusResult,
-  DietaryPreference,
-  EventType,
-  PricingBreakdown,
-} from '@/types/api';
+import type { Booking, BookingDetail, BookingStatus, BookingStatusResult, DietaryPreference, EventType } from '@/types/api';
 
 export interface BookingSelection {
   guestCount: number;
   packageId?: string;
-  items: { itemId: string; quantity: number }[];
+  items: { itemId: string }[];
 }
 
 export interface CreateBookingInput extends BookingSelection {
@@ -27,14 +19,6 @@ export interface CreateBookingInput extends BookingSelection {
   eventType: EventType;
   dietaryPreference?: DietaryPreference;
   specialRequirements?: string;
-}
-
-export function useQuote(selection: BookingSelection, enabled: boolean) {
-  return useQuery({
-    queryKey: ['booking-quote', selection],
-    queryFn: async () => (await api.post<PricingBreakdown>('/bookings/quote', selection)).data,
-    enabled,
-  });
 }
 
 export function useCreateBooking() {

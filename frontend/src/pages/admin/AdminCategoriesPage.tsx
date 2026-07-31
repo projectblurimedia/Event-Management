@@ -81,21 +81,8 @@ export function AdminCategoriesPage() {
   const { data: categories } = categoryHooks.useAdminList();
   const { data: types } = categoryTypeHooks.useAdminList();
 
-  const pricingModeOptions = [
-    { value: 'FLAT', label: t('admin.categories.flatPrice') },
-    { value: 'PER_PERSON', label: t('admin.categories.perPerson') },
-  ];
-
   const categoryFields: EntityField<Category>[] = [
     { name: 'name', label: t('admin.categories.name'), type: 'text', required: true },
-    {
-      name: 'pricingMode',
-      label: t('admin.categories.pricingMode'),
-      type: 'select',
-      options: pricingModeOptions,
-      required: true,
-      hint: t('admin.categories.pricingModeHint'),
-    },
     {
       name: 'isFood',
       label: t('admin.categories.isFood'),
@@ -115,11 +102,6 @@ export function AdminCategoriesPage() {
 
   const categoryColumns: EntityColumn<Category>[] = [
     { key: 'name', label: t('admin.categories.colName') },
-    {
-      key: 'pricingMode',
-      label: t('admin.categories.colPricingMode'),
-      render: (c) => (c.pricingMode === 'PER_PERSON' ? t('admin.categories.perPerson') : t('admin.categories.flatPrice')),
-    },
     { key: 'isActive', label: t('admin.categories.colActive'), render: (c) => (c.isActive ? t('common.yes') : t('common.no')) },
   ];
 

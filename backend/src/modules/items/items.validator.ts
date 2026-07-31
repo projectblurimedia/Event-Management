@@ -7,7 +7,6 @@ const itemShape = {
   name: z.string().min(1),
   nameTe: z.string().optional(),
   description: z.string().optional(),
-  price: z.number().nonnegative(),
   images: z.array(z.string().url()).max(4, 'Up to 4 images allowed'),
   isVeg: z.boolean().optional(),
   isAvailable: z.boolean(),

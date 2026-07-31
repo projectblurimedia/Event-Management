@@ -106,12 +106,6 @@ export function BookingStatusPage() {
                 <span className="text-text-muted">{t('bookingStatus.guests')}</span>
                 <span>{lookup.data.guestCount}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">{t('bookingStatus.estimatedTotal')}</span>
-                <span className="text-gold font-semibold">
-                  ₹{Number(lookup.data.grandTotal).toLocaleString('en-IN')}
-                </span>
-              </div>
             </div>
           )}
         </form>

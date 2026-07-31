@@ -231,10 +231,6 @@ export function AdminBookingsPage() {
                 <p className="text-text-muted">{t('admin.bookings.guests')}</p>
                 <p className="font-medium">{b.guestCount}</p>
               </div>
-              <div className="col-span-2">
-                <p className="text-text-muted">{t('admin.bookings.total')}</p>
-                <p className="text-gold text-base font-semibold">₹{Number(b.grandTotal).toLocaleString('en-IN')}</p>
-              </div>
             </div>
 
             <div className="border-border mt-4 flex justify-end border-t pt-4">
@@ -254,7 +250,6 @@ export function AdminBookingsPage() {
               <th className="px-5 py-3.5 font-medium">{t('admin.bookings.event')}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.bookings.date')}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.bookings.guests')}</th>
-              <th className="px-5 py-3.5 font-medium">{t('admin.bookings.total')}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.bookings.status')}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.bookings.actions')}</th>
             </tr>
@@ -262,14 +257,14 @@ export function AdminBookingsPage() {
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={8} className="text-text-muted px-5 py-10 text-center">
+                <td colSpan={7} className="text-text-muted px-5 py-10 text-center">
                   {t('common.loading')}
                 </td>
               </tr>
             )}
             {isError && (
               <tr>
-                <td colSpan={8} className="px-5 py-10 text-center">
+                <td colSpan={7} className="px-5 py-10 text-center">
                   <p className="text-rose text-base">{t('admin.bookings.couldNotLoad')}</p>
                   <button
                     type="button"
@@ -283,7 +278,7 @@ export function AdminBookingsPage() {
             )}
             {!isLoading && !isError && filteredBookings.length === 0 && (
               <tr>
-                <td colSpan={8} className="text-text-muted px-5 py-10 text-center">
+                <td colSpan={7} className="text-text-muted px-5 py-10 text-center">
                   {t('admin.bookings.noBookingsFound')}
                 </td>
               </tr>
@@ -309,7 +304,6 @@ export function AdminBookingsPage() {
                 <td className="px-5 py-3.5">{t(eventTypeLabelKeys[b.eventType])}</td>
                 <td className="px-5 py-3.5">{new Date(b.eventDate).toLocaleDateString('en-IN')}</td>
                 <td className="px-5 py-3.5">{b.guestCount}</td>
-                <td className="px-5 py-3.5 font-medium">₹{Number(b.grandTotal).toLocaleString('en-IN')}</td>
                 <td className="px-5 py-3.5">
                   <span className={cn('rounded-full px-2.5 py-1 text-sm font-semibold', statusStyles[b.status])}>
                     {t(statusLabelKeys[b.status])}

@@ -25,7 +25,6 @@ interface ItemFormState {
   name: string;
   nameTe: string;
   description: string;
-  price: string;
   images: string[];
   isVeg: boolean;
   isAvailable: boolean;
@@ -33,14 +32,11 @@ interface ItemFormState {
   order: string;
 }
 
-// Distinct from the `Item` read shape (Prisma Decimal serialises as a
-// string) — creates/updates send price as a real number over JSON.
 interface ItemPayload {
   categoryTypeId: string;
   name: string;
   nameTe?: string;
   description?: string;
-  price: number;
   images: string[];
   isVeg?: boolean;
   isAvailable: boolean;
@@ -74,7 +70,6 @@ const emptyForm: ItemFormState = {
   name: '',
   nameTe: '',
   description: '',
-  price: '',
   images: [],
   isVeg: true,
   isAvailable: true,
@@ -134,7 +129,6 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
     () => types?.filter((t2) => t2.categoryId === form.categoryId) ?? [],
     [types, form.categoryId],
   );
-  const selectedCategory = categories.find((c) => c.id === form.categoryId);
 
   // When there's only one category to pick from (always true for Menu, and
   // often true for a Services page narrowed by package), skip making the
@@ -183,7 +177,6 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
       name: item.name,
       nameTe: item.nameTe ?? '',
       description: item.description ?? '',
-      price: item.price,
       images: item.images,
       isVeg: item.isVeg ?? true,
       isAvailable: item.isAvailable,
@@ -204,9 +197,8 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
       name: form.name,
       nameTe: form.nameTe || undefined,
       description: form.description || undefined,
-      price: Number(form.price),
       images: form.images,
-      isVeg: selectedCategory?.pricingMode === 'PER_PERSON' ? form.isVeg : undefined,
+      isVeg: foodOnly ? form.isVeg : undefined,
       isAvailable: form.isAvailable,
       isFeatured: form.isFeatured,
       order: Number(form.order),
@@ -236,7 +228,6 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
     }
   }
 
-  const priceLabel = selectedCategory?.pricingMode === 'PER_PERSON' ? t('admin.items.pricePerPerson') : t('admin.items.priceFlat');
   const modalTitle = editing ? `${t('common.edit')} ${itemLabel}` : `${t('common.create')} ${itemLabel}`;
 
   return (
@@ -318,9 +309,13 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
                         : '-'}
                   </p>
                 </div>
-                <span className="text-gold shrink-0 text-sm font-semibold">
-                  ₹{Number(item.price).toLocaleString('en-IN')}
-                  {cat?.pricingMode === 'PER_PERSON' && <span className="text-text-muted text-xs"> /person</span>}
+                <span
+                  className={cn(
+                    'shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold',
+                    item.isAvailable ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose/10 text-rose',
+                  )}
+                >
+                  {item.isAvailable ? t('common.yes') : t('common.no')}
                 </span>
               </div>
               <div className="border-border mt-4 flex gap-2 border-t pt-4">
@@ -351,7 +346,6 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
             <tr>
               <th className="px-5 py-3.5 font-medium">{t('admin.items.colName')}</th>
               <th className="px-5 py-3.5 font-medium">{foodOnly ? t('admin.categories.type.name') : categoryLabel}</th>
-              <th className="px-5 py-3.5 font-medium">{t('admin.items.colPrice')}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.items.colAvailable')}</th>
               <th className="px-5 py-3.5 font-medium">{t('admin.actions')}</th>
             </tr>
@@ -359,14 +353,14 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={5} className="text-text-muted px-5 py-10 text-center">
+                <td colSpan={4} className="text-text-muted px-5 py-10 text-center">
                   {t('common.loading')}
                 </td>
               </tr>
             )}
             {!isLoading && !isError && items?.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-text-muted px-5 py-10 text-center">
+                <td colSpan={4} className="text-text-muted px-5 py-10 text-center">
                   {t('admin.noItemsYet')}
                 </td>
               </tr>
@@ -379,10 +373,6 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
                   <td className="px-5 py-3.5">{tf(item.name, item.nameTe)}</td>
                   <td className="px-5 py-3.5">
                     {foodOnly ? (type ? tf(type.name, type.nameTe) : '-') : cat ? tf(cat.name, cat.nameTe) : '-'}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    ₹{Number(item.price).toLocaleString('en-IN')}
-                    {cat?.pricingMode === 'PER_PERSON' && <span className="text-text-muted text-sm"> /person</span>}
                   </td>
                   <td className="px-5 py-3.5">{item.isAvailable ? t('common.yes') : t('common.no')}</td>
                   <td className="px-5 py-3.5">
@@ -474,22 +464,6 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
               <label className={labelClass}>{t('admin.items.name')}</label>
               <input className={inputClass} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
             </div>
-            <div>
-              <label className={labelClass}>{priceLabel}</label>
-              <input
-                type="number"
-                className={inputClass}
-                value={form.price}
-                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-              />
-              {foodOnly && selectedCategory && (
-                <p className="text-text-muted mt-1 text-xs">
-                  {selectedCategory.pricingMode === 'PER_PERSON'
-                    ? t('admin.items.perPersonHint')
-                    : t('admin.items.flatHint')}
-                </p>
-              )}
-            </div>
           </div>
 
           <div>
@@ -508,7 +482,7 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
           </div>
 
           <div className="flex flex-wrap gap-6">
-            {selectedCategory?.pricingMode === 'PER_PERSON' && (
+            {foodOnly && (
               <div>
                 <label className={labelClass}>{t('admin.menu.vegNonVeg')}</label>
                 <select

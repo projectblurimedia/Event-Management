@@ -26,10 +26,8 @@ enum BookingStatus {
   COMPLETED
 }
 
-/// How an Item's price is applied: FLAT is a single fee for the whole
-/// booking (e.g. decoration theme); PER_PERSON multiplies by guest count
-/// (e.g. a food dish, a welcome drink). Set once on the Category — every
-/// Item under it follows automatically, no per-item choice needed.
+/// Legacy — the app no longer has pricing, so this no longer drives any
+/// behavior. Kept only so existing Category rows don't need a migration.
 enum PricingMode {
   FLAT
   PER_PERSON
@@ -83,8 +81,9 @@ model PasswordResetOtp {
 /// A "bulletin" — the top-level admin-creatable section customers browse
 /// and packages are built from (Food, Decoration, Welcome Drinks, DJ &
 /// Sound...). Not a fixed enum, so admins can add new ones without a code
-/// change. pricingMode decides how every Item underneath it is priced;
-/// isFood gates the veg/non-veg dietary question + badge in the wizard.
+/// change. isFood gates the veg/non-veg dietary question + badge in the
+/// wizard. pricingMode is unused now that the app has no pricing — kept on
+/// existing rows rather than migrated away, but no longer read anywhere.
 model Category {
   id            String            @id @default(cuid())
   name          String
@@ -121,9 +120,9 @@ model CategoryType {
   @@index([categoryId])
 }
 
-/// The actual purchasable/selectable thing a customer picks in the wizard
-/// (a dish, a decoration theme, a DJ package...). Pricing unit (flat vs per
-/// person) is inherited from the parent Category, not set per item.
+/// The actual selectable thing a customer picks in the wizard (a dish, a
+/// decoration theme, a DJ package...) — no price; the wizard is a selection
+/// list, not a checkout, so the business follows up on cost separately.
 model Item {
   id             String        @id @default(cuid())
   categoryTypeId String
@@ -131,7 +130,6 @@ model Item {
   name           String
   nameTe         String?
   description    String?
-  price          Decimal       @db.Decimal(10, 2)
   /// Up to 4 image URLs (Cloudinary), enforced at the API layer.
   images         String[]      @default([])
   /// Only meaningful when the parent Category has isFood = true.
@@ -272,12 +270,6 @@ model Booking {
   dietaryPreference   DietaryPreference?
   specialRequirements String?
 
-  /// Sum of selected items priced PER_PERSON (already multiplied by guestCount).
-  perPersonCost Decimal @db.Decimal(10, 2) @default(0)
-  /// Sum of selected items priced FLAT.
-  flatCost      Decimal @db.Decimal(10, 2) @default(0)
-  grandTotal    Decimal @db.Decimal(10, 2) @default(0)
-
   status BookingStatus @default(PENDING)
 
   items BookingItem[]
@@ -290,18 +282,14 @@ model Booking {
   @@index([eventDate])
 }
 
-/// priceAtBooking + quantity snapshot so historical quotations stay
-/// accurate even if catalogue prices change later. For PER_PERSON items,
-/// quantity is the guest count at time of booking (mirrors the old
-/// per-plate model); for FLAT items it's normally 1.
+/// A single selected item within a booking's list.
 model BookingItem {
-  id             String  @id @default(cuid())
-  bookingId      String
-  booking        Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  itemId         String
-  item           Item    @relation(fields: [itemId], references: [id])
-  quantity       Int     @default(1)
-  priceAtBooking Decimal @db.Decimal(10, 2)
+  id        String  @id @default(cuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item    @relation(fields: [itemId], references: [id])
+  quantity  Int     @default(1)
 
   @@index([bookingId])
 }

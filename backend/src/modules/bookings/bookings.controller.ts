@@ -5,10 +5,6 @@ import { QuotationDocument } from '../../templates/QuotationDocument';
 import { getSettings } from '../settings/settings.service';
 import * as bookingsService from './bookings.service';
 
-export const getQuoteHandler = asyncHandler(async (req: Request, res: Response) => {
-  res.json(await bookingsService.getQuote(req.body));
-});
-
 export const createBookingHandler = asyncHandler(async (req: Request, res: Response) => {
   const booking = await bookingsService.createBooking(req.body);
   res.status(201).json(booking);
@@ -35,9 +31,9 @@ export const downloadQuotationHandler = asyncHandler(async (req: Request, res: R
     }),
   );
 
-  const safeBusinessName = settings.businessName.trim().replace(/[^a-zA-Z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'Quotation';
+  const safeBusinessName = settings.businessName.trim().replace(/[^a-zA-Z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'Booking';
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="${safeBusinessName}-Quotation-${booking.bookingCode}.pdf"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${safeBusinessName}-Booking-Summary-${booking.bookingCode}.pdf"`);
   res.send(buffer);
 });
 

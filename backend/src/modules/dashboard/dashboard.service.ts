@@ -15,7 +15,6 @@ export async function getOverview() {
     confirmedBookings,
     cancelledBookings,
     completedEvents,
-    revenueAgg,
     recentCustomers,
     packageGroups,
     menuItemGroups,
@@ -25,10 +24,6 @@ export async function getOverview() {
     prisma.booking.count({ where: { status: 'CONFIRMED' } }),
     prisma.booking.count({ where: { status: 'CANCELLED' } }),
     prisma.booking.count({ where: { status: 'COMPLETED' } }),
-    prisma.booking.aggregate({
-      where: { status: { in: ['CONFIRMED', 'COMPLETED'] } },
-      _sum: { grandTotal: true },
-    }),
     prisma.booking.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
@@ -73,7 +68,6 @@ export async function getOverview() {
     confirmedBookings,
     cancelledBookings,
     completedEvents,
-    revenue: Number(revenueAgg._sum.grandTotal ?? 0),
     recentCustomers,
     popularPackages,
     popularFoodItems,
@@ -82,10 +76,8 @@ export async function getOverview() {
 
 /**
  * Full breakdown for a chosen date range (day/month/year, resolved to
- * from/to boundaries on the client) — revenue realised from completed
- * events, revenue expected from confirmed-but-not-yet-completed events,
- * and every customer/booking that falls in the range so admin can see
- * everything at a glance.
+ * from/to boundaries on the client) — every customer/booking that falls in
+ * the range, grouped by status, so admin can see everything at a glance.
  */
 export async function getAnalytics(from: Date, to: Date) {
   const bookings = await prisma.booking.findMany({
@@ -94,26 +86,17 @@ export async function getAnalytics(from: Date, to: Date) {
     orderBy: { eventDate: 'asc' },
   });
 
-  const completedBookings = bookings.filter((b) => b.status === 'COMPLETED');
-  const confirmedBookings = bookings.filter((b) => b.status === 'CONFIRMED');
-
-  const completedRevenue = round(completedBookings.reduce((sum, b) => sum + Number(b.grandTotal), 0));
-  const confirmedRevenue = round(confirmedBookings.reduce((sum, b) => sum + Number(b.grandTotal), 0));
-
   const byStatus = {
     PENDING: bookings.filter((b) => b.status === 'PENDING').length,
-    CONFIRMED: confirmedBookings.length,
+    CONFIRMED: bookings.filter((b) => b.status === 'CONFIRMED').length,
     CANCELLED: bookings.filter((b) => b.status === 'CANCELLED').length,
-    COMPLETED: completedBookings.length,
+    COMPLETED: bookings.filter((b) => b.status === 'COMPLETED').length,
   };
 
   return {
     from,
     to,
     totalBookings: bookings.length,
-    completedRevenue,
-    confirmedRevenue,
-    projectedRevenue: round(completedRevenue + confirmedRevenue),
     byStatus,
     bookings: bookings.map((b) => ({
       id: b.id,
@@ -125,12 +108,7 @@ export async function getAnalytics(from: Date, to: Date) {
       eventDate: b.eventDate,
       guestCount: b.guestCount,
       packageName: b.package?.name ?? null,
-      grandTotal: Number(b.grandTotal),
       status: b.status,
     })),
   };
-}
-
-function round(value: number): number {
-  return Math.round(value * 100) / 100;
 }

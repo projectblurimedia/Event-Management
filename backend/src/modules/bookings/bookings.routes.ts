@@ -3,13 +3,11 @@ import { requireAuth } from '../../middlewares/requireAuth';
 import { validateRequest } from '../../middlewares/validateRequest';
 import {
   createBookingSchema,
-  quoteSchema,
   bookingLookupSchema,
   updateBookingStatusSchema,
   bookingFiltersSchema,
 } from './bookings.validator';
 import {
-  getQuoteHandler,
   createBookingHandler,
   lookupBookingHandler,
   downloadQuotationHandler,
@@ -21,7 +19,6 @@ import { exportBookingsExcelHandler, exportBookingsPdfHandler } from './bookings
 
 export const bookingsPublicRouter = Router();
 
-bookingsPublicRouter.post('/quote', validateRequest({ body: quoteSchema }), getQuoteHandler);
 bookingsPublicRouter.post('/', validateRequest({ body: createBookingSchema }), createBookingHandler);
 bookingsPublicRouter.get('/lookup', validateRequest({ query: bookingLookupSchema }), lookupBookingHandler);
 bookingsPublicRouter.get('/:id/quotation.pdf', downloadQuotationHandler);

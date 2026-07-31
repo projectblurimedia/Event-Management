@@ -197,12 +197,6 @@ export function HomePage() {
                         <div className="flex flex-1 flex-col p-4">
                           <h4 className="text-sm font-semibold">{tf(item.name, item.nameTe)}</h4>
                           {item.description && <p className="text-text-muted mt-1 text-sm">{item.description}</p>}
-                          <p className="text-gold mt-3 text-sm font-semibold">
-                            ₹{Number(item.price).toLocaleString('en-IN')}
-                            {activeServiceCategory.pricingMode === 'PER_PERSON' && (
-                              <span className="text-text-muted text-sm"> {t('common.perGuest')}</span>
-                            )}
-                          </p>
                         </div>
                       </div>
                     ))}

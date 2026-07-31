@@ -22,10 +22,7 @@ function MenuItemCard({ item }: { item: Item }) {
         className="h-20 w-20 shrink-0 rounded-lg object-cover"
       />
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="min-w-0 text-sm font-semibold">{tf(item.name, item.nameTe)}</h3>
-          <span className="text-gold shrink-0 text-sm font-semibold">₹{Number(item.price).toLocaleString('en-IN')}</span>
-        </div>
+        <h3 className="min-w-0 text-sm font-semibold">{tf(item.name, item.nameTe)}</h3>
         {item.description && <p className="text-text-muted mt-1 text-sm">{item.description}</p>}
         {item.isVeg !== null && (
           <span

@@ -75,7 +75,7 @@ export function CustomerDetailsStep() {
         guestCount,
         packageId: packageId ?? undefined,
         dietaryPreference: dietaryPreference ?? undefined,
-        items: selectedItems.map((i) => ({ itemId: i.itemId, quantity: i.quantity })),
+        items: selectedItems.map((i) => ({ itemId: i.itemId })),
       });
       recordSubmittedBooking({ id: booking.id, bookingCode: booking.bookingCode, phone: booking.phone });
     } catch (error) {

@@ -7,8 +7,6 @@ const colors = {
   textMuted: '#6b5d52',
 };
 
-const formatCurrency = (value: number) => `Rs. ${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-
 export interface QuotationBookingData {
   bookingCode: string;
   customerName: string;
@@ -22,11 +20,8 @@ export interface QuotationBookingData {
   package: { name: string } | null;
   groupedItems: {
     categoryName: string;
-    items: { name: string; quantity: number; priceAtBooking: number }[];
+    items: string[];
   }[];
-  perPersonCost: number;
-  flatCost: number;
-  grandTotal: number;
 }
 
 export interface QuotationBusinessData {
@@ -36,10 +31,9 @@ export interface QuotationBusinessData {
 }
 
 const TERMS = [
-  'This is an estimated quotation based on your selections and is subject to final confirmation by our team.',
-  'Prices may vary based on menu customisation, seasonal availability, and final guest count.',
-  'A booking is confirmed only after advance payment and written confirmation from the business.',
-  'Cancellations made less than 7 days before the event date may not be eligible for a full refund.',
+  'This is a summary of your selections and is subject to final confirmation by our team.',
+  'Availability may vary based on seasonal factors and final guest count.',
+  'A booking is confirmed only after written confirmation from the business.',
 ];
 
 export async function QuotationDocument({
@@ -89,27 +83,15 @@ export async function QuotationDocument({
     value: { fontFamily: 'Helvetica-Bold' },
     table: { borderTop: `1pt solid ${colors.border}` },
     tableRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
       paddingVertical: 5,
       borderBottom: `1pt solid ${colors.border}`,
     },
-    totalsBox: {
-      marginTop: 10,
-      padding: 12,
-      backgroundColor: colors.cream,
-      borderRadius: 4,
-      border: `1pt solid ${colors.gold}`,
-    },
-    grandTotalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-    grandTotalLabel: { fontSize: 12, fontFamily: 'Helvetica-Bold' },
-    grandTotalValue: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: colors.rose },
     terms: { fontSize: 8, color: colors.textMuted, lineHeight: 1.5 },
     footer: { marginTop: 24, textAlign: 'center', color: colors.textMuted, fontSize: 8 },
   });
 
   return (
-    <Document title={`${business.name} - Quotation ${booking.bookingCode}`}>
+    <Document title={`${business.name} - Booking Summary ${booking.bookingCode}`}>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View style={styles.logoBadge}>
@@ -117,7 +99,7 @@ export async function QuotationDocument({
           </View>
           <View>
             <Text style={styles.businessName}>{business.name}</Text>
-            <Text style={styles.quotationTitle}>Booking Quotation — {booking.bookingCode}</Text>
+            <Text style={styles.quotationTitle}>Booking Summary — {booking.bookingCode}</Text>
           </View>
         </View>
 
@@ -174,33 +156,14 @@ export async function QuotationDocument({
           <View style={styles.section} key={group.categoryName}>
             <Text style={styles.sectionTitle}>{group.categoryName}</Text>
             <View style={styles.table}>
-              {group.items.map((item, i) => (
+              {group.items.map((name, i) => (
                 <View style={styles.tableRow} key={i}>
-                  <Text>
-                    {item.name}
-                    {item.quantity > 1 ? ` x ${item.quantity}` : ''}
-                  </Text>
-                  <Text>{formatCurrency(item.priceAtBooking * item.quantity)}</Text>
+                  <Text>{name}</Text>
                 </View>
               ))}
             </View>
           </View>
         ))}
-
-        <View style={styles.totalsBox}>
-          <View style={styles.row}>
-            <Text style={styles.label}>Per-Person Items (x {booking.guestCount} guests)</Text>
-            <Text>{formatCurrency(booking.perPersonCost)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Flat-Priced Items</Text>
-            <Text>{formatCurrency(booking.flatCost)}</Text>
-          </View>
-          <View style={styles.grandTotalRow}>
-            <Text style={styles.grandTotalLabel}>Grand Total</Text>
-            <Text style={styles.grandTotalValue}>{formatCurrency(booking.grandTotal)}</Text>
-          </View>
-        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Terms &amp; Conditions</Text>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Check, Minus, Plus, Search } from 'lucide-react';
+import { Check, Plus, Search } from 'lucide-react';
 import { categoryTypeHooks, itemHooks } from '@/lib/api/resources';
 import { useBookingCartStore } from '@/store/bookingCartStore';
 import { AsyncState } from '@/components/ui/AsyncState';
@@ -17,15 +17,9 @@ const dietaryOptions: { value: DietaryPreference; labelKey: TranslationKey }[] =
 
 function ItemCard({ category, item }: { category: Category; item: Item }) {
   const { t, tf } = useTranslation();
-  const isPerPerson = category.pricingMode === 'PER_PERSON';
   const selection = useBookingCartStore((s) => s.selectedItems.find((i) => i.itemId === item.id));
   const toggleItem = useBookingCartStore((s) => s.toggleItem);
-  const setItemQuantity = useBookingCartStore((s) => s.setItemQuantity);
-  const guestCount = useBookingCartStore((s) => s.guestCount) ?? 1;
   const selected = !!selection;
-  const quantity = selection?.quantity ?? guestCount;
-  const price = Number(item.price);
-  const allowMultiple = isPerPerson || category.allowMultiple;
 
   return (
     <div
@@ -56,7 +50,7 @@ function ItemCard({ category, item }: { category: Category; item: Item }) {
           </div>
           <button
             type="button"
-            onClick={() => toggleItem(category.id, item.id, allowMultiple, isPerPerson ? guestCount : 1)}
+            onClick={() => toggleItem(category.id, item.id, category.allowMultiple)}
             aria-label={selected ? `Remove ${item.name}` : `Select ${item.name}`}
             aria-pressed={selected}
             className={cn(
@@ -66,51 +60,6 @@ function ItemCard({ category, item }: { category: Category; item: Item }) {
           >
             {selected ? <Check size={12} /> : <Plus size={12} />}
           </button>
-        </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <p className="text-text-muted text-sm whitespace-nowrap">
-            ₹{price.toLocaleString('en-IN')}
-            {isPerPerson && <span> {t('wizard.perPlate')}</span>}
-          </p>
-
-          {selected && isPerPerson && (
-            <div className="flex items-center justify-between gap-2 sm:justify-end">
-              <div className="border-border flex shrink-0 items-center overflow-hidden rounded-full border">
-                <button
-                  type="button"
-                  aria-label={t('wizard.decreasePlates')}
-                  onClick={() => setItemQuantity(category.id, item.id, quantity - 1)}
-                  className="text-text-muted flex h-6 w-6 items-center justify-center"
-                >
-                  <Minus size={11} />
-                </button>
-                <input
-                  type="number"
-                  min={1}
-                  value={quantity}
-                  onChange={(e) => setItemQuantity(category.id, item.id, Number(e.target.value))}
-                  aria-label={`Quantity for ${item.name}`}
-                  className="bg-bg h-6 w-9 border-none text-center text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                />
-                <button
-                  type="button"
-                  aria-label={t('wizard.increasePlates')}
-                  onClick={() => setItemQuantity(category.id, item.id, quantity + 1)}
-                  className="text-text-muted flex h-6 w-6 items-center justify-center"
-                >
-                  <Plus size={11} />
-                </button>
-              </div>
-              <span className="text-gold shrink-0 text-sm font-semibold">
-                ₹{(price * quantity).toLocaleString('en-IN')}
-              </span>
-            </div>
-          )}
-
-          {selected && !isPerPerson && (
-            <span className="text-gold shrink-0 text-sm font-semibold">₹{price.toLocaleString('en-IN')}</span>
-          )}
         </div>
       </div>
     </div>

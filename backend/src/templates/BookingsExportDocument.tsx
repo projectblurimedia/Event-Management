@@ -5,7 +5,6 @@ export interface ExportBookingRow {
   eventType: string;
   eventDate: Date;
   guestCount: number;
-  grandTotal: number;
   status: string;
 }
 
@@ -49,7 +48,6 @@ export async function BookingsExportDocument({
           <Text style={styles.cell}>Event</Text>
           <Text style={styles.cell}>Date</Text>
           <Text style={styles.cell}>Guests</Text>
-          <Text style={styles.cell}>Total</Text>
           <Text style={styles.cell}>Status</Text>
         </View>
         {bookings.map((b) => (
@@ -60,7 +58,6 @@ export async function BookingsExportDocument({
             <Text style={styles.cell}>{b.eventType}</Text>
             <Text style={styles.cell}>{new Date(b.eventDate).toLocaleDateString('en-IN')}</Text>
             <Text style={styles.cell}>{b.guestCount}</Text>
-            <Text style={styles.cell}>Rs. {b.grandTotal.toLocaleString('en-IN')}</Text>
             <Text style={styles.cell}>{b.status}</Text>
           </View>
         ))}
