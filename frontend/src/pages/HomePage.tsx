@@ -56,6 +56,48 @@ export function HomePage() {
 
   const { phone, email, address, mapEmbedUrl, businessName, organiser } = settings;
 
+  const heroContent = (
+    <>
+      <motion.span
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-gold text-sm font-semibold tracking-[0.35em] uppercase"
+      >
+        {organiser} Presents
+      </motion.span>
+      <motion.h1
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        className="max-w-3xl text-4xl font-semibold text-balance sm:text-6xl"
+      >
+        {heroHeadline}
+      </motion.h1>
+      <motion.p
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="text-cream/70 max-w-xl text-balance"
+      >
+        {heroSubheadline}
+      </motion.p>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="mt-2 flex flex-wrap items-center justify-center gap-4"
+      >
+        <LinkButton to="/booking" variant="primary" size="lg">
+          {t('nav.bookNow')}
+        </LinkButton>
+        <Button variant="outline" size="lg" onClick={() => setContactOpen(true)}>
+          {t('nav.contact')}
+        </Button>
+      </motion.div>
+    </>
+  );
+
   return (
     <>
       <Helmet>
@@ -77,68 +119,33 @@ export function HomePage() {
       </Helmet>
 
       {/* Hero */}
-      <section className="bg-[image:var(--gradient-luxury)] text-cream relative overflow-hidden">
-        {settings.heroImageUrl && (
-          <>
-            {isVideoUrl(settings.heroImageUrl) ? (
-              <video
-                src={settings.heroImageUrl}
-                className="absolute inset-0 h-full w-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
-            ) : (
-              <img src={settings.heroImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            )}
-            <div aria-hidden className="bg-ink-black/65 absolute inset-0" />
-          </>
-        )}
-        <div
-          aria-hidden
-          className="border-gold/30 pointer-events-none absolute inset-4 rounded-2xl border sm:inset-8"
-        />
-        <Container className="relative flex min-h-[85vh] flex-col items-center justify-center gap-6 py-24 text-center">
-          <motion.span
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-gold text-sm font-semibold tracking-[0.35em] uppercase"
-          >
-            {organiser} Presents
-          </motion.span>
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="max-w-3xl text-4xl font-semibold text-balance sm:text-6xl"
-          >
-            {heroHeadline}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-cream/70 max-w-xl text-balance"
-          >
-            {heroSubheadline}
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-2 flex flex-wrap items-center justify-center gap-4"
-          >
-            <LinkButton to="/booking" variant="primary" size="lg">
-              {t('nav.bookNow')}
-            </LinkButton>
-            <Button variant="outline" size="lg" onClick={() => setContactOpen(true)}>
-              {t('nav.contact')}
-            </Button>
-          </motion.div>
-        </Container>
-      </section>
+      {settings.heroImageUrl ? (
+        <section className="bg-[image:var(--gradient-luxury)] text-cream overflow-hidden">
+          {isVideoUrl(settings.heroImageUrl) ? (
+            <video
+              src={settings.heroImageUrl}
+              className="h-[45vh] w-full object-cover sm:h-[60vh]"
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          ) : (
+            <img src={settings.heroImageUrl} alt="" className="h-[45vh] w-full object-cover sm:h-[60vh]" />
+          )}
+          <Container className="flex flex-col items-center gap-6 py-16 text-center">{heroContent}</Container>
+        </section>
+      ) : (
+        <section className="bg-[image:var(--gradient-luxury)] text-cream relative overflow-hidden">
+          <div
+            aria-hidden
+            className="border-gold/30 pointer-events-none absolute inset-4 rounded-2xl border sm:inset-8"
+          />
+          <Container className="relative flex min-h-[85vh] flex-col items-center justify-center gap-6 py-24 text-center">
+            {heroContent}
+          </Container>
+        </section>
+      )}
       <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
 
       {/* About Our Business */}

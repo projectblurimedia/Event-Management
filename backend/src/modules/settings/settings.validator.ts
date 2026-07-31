@@ -17,12 +17,12 @@ export const updateSettingsSchema = z.object({
   heroHeadlineTe: z.string().optional(),
   heroSubheadline: z.string().min(1).optional(),
   heroSubheadlineTe: z.string().optional(),
-  heroImageUrl: z.string().url().optional(),
+  heroImageUrl: z.string().url().optional().or(z.literal('')),
   businessIntroTitle: z.string().min(1).optional(),
   businessIntroTitleTe: z.string().optional(),
   businessIntroText: z.string().min(1).optional(),
   businessIntroTextTe: z.string().optional(),
-  businessIntroImageUrl: z.string().url().optional(),
+  businessIntroImageUrl: z.string().url().optional().or(z.literal('')),
 });
 
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
