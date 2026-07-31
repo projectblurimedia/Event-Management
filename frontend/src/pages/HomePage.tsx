@@ -124,14 +124,14 @@ export function HomePage() {
           {isVideoUrl(settings.heroImageUrl) ? (
             <video
               src={settings.heroImageUrl}
-              className="h-[45vh] w-full object-cover sm:h-[60vh]"
+              className="h-[45vh] w-full object-contain sm:h-[60vh]"
               autoPlay
               muted
               loop
               playsInline
             />
           ) : (
-            <img src={settings.heroImageUrl} alt="" className="h-[45vh] w-full object-cover sm:h-[60vh]" />
+            <img src={settings.heroImageUrl} alt="" className="h-[45vh] w-full object-contain sm:h-[60vh]" />
           )}
           <Container className="flex flex-col items-center gap-6 py-16 text-center">{heroContent}</Container>
         </section>

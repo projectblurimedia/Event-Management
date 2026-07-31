@@ -8,7 +8,6 @@ import { useSettings } from '@/lib/api/settings';
 import { callHref, whatsappHref } from '@/lib/contactActions';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
-import { eventTypeLabelKeys } from '@/lib/i18n/eventTypeLabels';
 import { statusLabelKeys } from '@/lib/i18n/statusLabels';
 import { cn } from '@/lib/cn';
 import type { BookingStatus } from '@/types/api';
@@ -146,7 +145,7 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
               <dl className="space-y-1 text-sm">
                 <div className="flex justify-between gap-3">
                   <dt className="text-text-muted">{t('admin.bookingDetail.type')}</dt>
-                  <dd>{t(eventTypeLabelKeys[booking.eventType])}</dd>
+                  <dd>{tf(booking.eventType.name, booking.eventType.nameTe)}</dd>
                 </div>
                 <div className="flex justify-between gap-3">
                   <dt className="text-text-muted">{t('admin.bookingDetail.dateTime')}</dt>

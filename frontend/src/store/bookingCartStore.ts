@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { DietaryPreference, EventType } from '@/types/api';
+import type { DietaryPreference } from '@/types/api';
 
 export type WizardStep = 'PACKAGE' | 'CONFIGURE' | 'REVIEW' | 'DETAILS' | 'CONFIRMATION';
 
@@ -17,7 +17,7 @@ export interface CustomerInfo {
   address: string;
   eventDate: string;
   eventTime: string;
-  eventType: EventType;
+  eventTypeId: string;
   specialRequirements: string;
 }
 
@@ -29,7 +29,7 @@ const emptyCustomer: CustomerInfo = {
   address: '',
   eventDate: '',
   eventTime: '',
-  eventType: 'WEDDING',
+  eventTypeId: '',
   specialRequirements: '',
 };
 

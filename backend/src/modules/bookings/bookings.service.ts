@@ -7,6 +7,7 @@ import type { CreateBookingInput } from './bookings.validator';
 
 const bookingInclude = {
   package: true,
+  eventType: true,
   items: { include: { item: { include: { categoryType: { include: { category: true } } } } } },
 };
 
@@ -53,7 +54,7 @@ export async function createBooking(input: CreateBookingInput) {
       address: input.address,
       eventDate: input.eventDate,
       eventTime: input.eventTime,
-      eventType: input.eventType,
+      eventTypeId: input.eventTypeId,
       guestCount: input.guestCount,
       packageId: pkg?.id,
       dietaryPreference: input.dietaryPreference,
@@ -65,7 +66,7 @@ export async function createBooking(input: CreateBookingInput) {
     include: bookingInclude,
   });
 
-  sendBookingNotificationEmail(booking).catch((err) => {
+  sendBookingNotificationEmail({ ...booking, eventType: booking.eventType.name }).catch((err) => {
     console.error('Failed to send booking notification email:', err);
   });
 
@@ -117,7 +118,7 @@ export function toQuotationData(booking: Awaited<ReturnType<typeof getBookingFor
     address: booking.address,
     eventDate: booking.eventDate,
     eventTime: booking.eventTime,
-    eventType: booking.eventType,
+    eventType: booking.eventType.name,
     guestCount: booking.guestCount,
     package: booking.package ? { name: booking.package.name } : null,
     groupedItems: groupItemsByCategory(booking.items),
@@ -133,7 +134,7 @@ export async function listBookings(filters: { status?: string; from?: Date; to?:
           ? { gte: filters.from, lte: filters.to }
           : undefined,
     },
-    include: { package: true },
+    include: { package: true, eventType: true },
     orderBy: { createdAt: 'desc' },
   });
 }

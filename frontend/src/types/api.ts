@@ -1,15 +1,3 @@
-export type EventType =
-  | 'WEDDING'
-  | 'RECEPTION'
-  | 'BIRTHDAY'
-  | 'HOUSEWARMING'
-  | 'ENGAGEMENT'
-  | 'CORPORATE'
-  | 'ANNIVERSARY'
-  | 'NAMING_CEREMONY'
-  | 'BABY_SHOWER'
-  | 'OTHER';
-
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
 export type GalleryCategory = 'FOOD' | 'DECORATION' | 'EVENT';
 export type DietaryPreference = 'VEG' | 'NON_VEG' | 'BOTH';
@@ -53,6 +41,18 @@ export interface Category {
   isActive: boolean;
   order: number;
   types?: CategoryType[];
+}
+
+export interface EventType {
+  id: string;
+  name: string;
+  nameTe: string | null;
+  slug: string;
+  description: string | null;
+  descriptionTe: string | null;
+  imageUrl: string | null;
+  isActive: boolean;
+  order: number;
 }
 
 export interface PackageCategory {
@@ -139,6 +139,7 @@ export interface Booking {
   address: string;
   eventDate: string;
   eventTime: string;
+  eventTypeId: string;
   eventType: EventType;
   guestCount: number;
   packageId: string | null;

@@ -28,7 +28,7 @@ function ItemCard({ category, item }: { category: Category; item: Item }) {
         selected && 'border-gold ring-gold ring-1',
       )}
     >
-      <div className="relative w-20 shrink-0 sm:w-28">
+      <div className="relative h-20 w-20 shrink-0 sm:h-28 sm:w-28">
         <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="h-full w-full object-cover" />
         {category.isFood && item.isVeg !== null && (
           <span

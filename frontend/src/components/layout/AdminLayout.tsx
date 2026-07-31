@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   Boxes,
   CalendarCheck,
+  CalendarHeart,
   ChevronDown,
   ExternalLink,
   LayoutDashboard,
@@ -35,6 +36,7 @@ const navItems: { to: string; labelKey: TranslationKey; icon: typeof LayoutDashb
   { to: '/admin/bookings', labelKey: 'admin.nav.bookings', icon: CalendarCheck },
   { to: '/admin/enquiries', labelKey: 'admin.nav.enquiries', icon: MessageSquareQuote },
   { to: '/admin/categories', labelKey: 'admin.nav.categories', icon: Boxes },
+  { to: '/admin/events', labelKey: 'admin.nav.eventTypes', icon: CalendarHeart },
   { to: '/admin/menu', labelKey: 'admin.nav.menu', icon: UtensilsCrossed },
   { to: '/admin/services', labelKey: 'admin.nav.services', icon: Wrench },
   { to: '/admin/packages', labelKey: 'admin.nav.packages', icon: Package },

@@ -3,7 +3,6 @@ import { ChevronDown, MessageCircle, Phone, RefreshCw } from 'lucide-react';
 import { useDashboardAnalytics } from '@/lib/api/dashboard';
 import { callHref, whatsappHref } from '@/lib/contactActions';
 import { useTranslation } from '@/hooks/useTranslation';
-import { eventTypeLabelKeys } from '@/lib/i18n/eventTypeLabels';
 import { statusLabelKeys } from '@/lib/i18n/statusLabels';
 import { cn } from '@/lib/cn';
 import type { BookingStatus } from '@/types/api';
@@ -109,7 +108,7 @@ function YearDropdown({ value, onChange }: { value: string | number; onChange: (
 }
 
 export function AdminAnalyticsSection() {
-  const { t } = useTranslation();
+  const { t, tf } = useTranslation();
   const [mode, setMode] = useState<Mode>('day');
   const [value, setValue] = useState(() => todayValue('day'));
 
@@ -248,7 +247,7 @@ export function AdminAnalyticsSection() {
                 <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-text-muted">{t('admin.bookings.event')}</p>
-                    <p className="font-medium">{t(eventTypeLabelKeys[b.eventType])}</p>
+                    <p className="font-medium">{tf(b.eventType.name, b.eventType.nameTe)}</p>
                   </div>
                   <div>
                     <p className="text-text-muted">{t('admin.bookings.date')}</p>
@@ -308,7 +307,7 @@ export function AdminAnalyticsSection() {
                       {b.customerName}
                       <div className="text-text-muted text-sm">{b.phone}</div>
                     </td>
-                    <td className="px-4 py-3">{t(eventTypeLabelKeys[b.eventType])}</td>
+                    <td className="px-4 py-3">{tf(b.eventType.name, b.eventType.nameTe)}</td>
                     <td className="px-4 py-3">{new Date(b.eventDate).toLocaleDateString('en-IN')}</td>
                     <td className="px-4 py-3">{b.guestCount}</td>
                     <td className="px-4 py-3">

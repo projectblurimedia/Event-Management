@@ -4,7 +4,6 @@ import { useDashboardOverview } from '@/lib/api/dashboard';
 import { useAuthStore } from '@/store/authStore';
 import { AdminAnalyticsSection } from '@/features/admin/AdminAnalyticsSection';
 import { useTranslation } from '@/hooks/useTranslation';
-import { eventTypeLabelKeys } from '@/lib/i18n/eventTypeLabels';
 import { cn } from '@/lib/cn';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
@@ -99,7 +98,7 @@ export function AdminOverviewPage() {
                     <p className="text-text-muted text-sm">{c.phone}</p>
                   </div>
                 </div>
-                <span className="text-text-muted text-sm">{t(eventTypeLabelKeys[c.eventType])}</span>
+                <span className="text-text-muted text-sm">{tf(c.eventType.name, c.eventType.nameTe)}</span>
               </li>
             ))}
           </ul>

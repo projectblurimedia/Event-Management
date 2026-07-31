@@ -1,18 +1,5 @@
 import { z } from 'zod';
 
-export const eventTypeEnum = z.enum([
-  'WEDDING',
-  'RECEPTION',
-  'BIRTHDAY',
-  'HOUSEWARMING',
-  'ENGAGEMENT',
-  'CORPORATE',
-  'ANNIVERSARY',
-  'NAMING_CEREMONY',
-  'BABY_SHOWER',
-  'OTHER',
-]);
-
 export const bookingStatusEnum = z.enum(['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']);
 export const dietaryPreferenceEnum = z.enum(['VEG', 'NON_VEG', 'BOTH']);
 
@@ -25,7 +12,7 @@ export const createBookingSchema = z.object({
 
   eventDate: z.coerce.date(),
   eventTime: z.string().min(1),
-  eventType: eventTypeEnum,
+  eventTypeId: z.string().min(1),
   guestCount: z.number().int().positive(),
 
   packageId: z.string().optional(),

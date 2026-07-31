@@ -160,6 +160,7 @@ export const translations = {
     'admin.nav.bookings': 'Bookings',
     'admin.nav.enquiries': 'Enquiries',
     'admin.nav.categories': 'Categories',
+    'admin.nav.eventTypes': 'Events',
     'admin.nav.menu': 'Menu',
     'admin.nav.services': 'Services',
     'admin.nav.packages': 'Packages',
@@ -369,6 +370,15 @@ export const translations = {
     'admin.categories.type.category': 'Category',
     'admin.categories.type.name': 'Type Name',
     'admin.categories.type.nameTe': 'Type Name (Telugu, optional)',
+
+    'admin.eventTypes.title': 'Events',
+    'admin.eventTypes.desc': 'The occasions customers can pick when booking (Wedding, Reception, Birthday...) — shown on the public Event Types page.',
+    'admin.eventTypes.name': 'Name',
+    'admin.eventTypes.description': 'Description',
+    'admin.eventTypes.image': 'Image',
+    'admin.eventTypes.active': 'Active',
+    'admin.eventTypes.colName': 'Name',
+    'admin.eventTypes.colActive': 'Active',
 
     // Admin items (the actual purchasable dish/decoration/service)
     'admin.items.title': 'Items',
@@ -598,26 +608,6 @@ export const translations = {
     'gallery.filterEvents': 'Events',
 
     // Event types
-    'eventType.wedding': 'Wedding',
-    'eventType.wedding.desc': 'Full-scale wedding planning, catering and decor.',
-    'eventType.reception': 'Reception',
-    'eventType.reception.desc': 'Elegant reception nights with live counters and lighting.',
-    'eventType.birthday': 'Birthday',
-    'eventType.birthday.desc': 'Themed birthday decoration and party catering.',
-    'eventType.housewarming': 'Housewarming',
-    'eventType.housewarming.desc': 'Traditional housewarming ceremony catering & decor.',
-    'eventType.engagement': 'Engagement',
-    'eventType.engagement.desc': 'Beautifully styled engagement celebrations.',
-    'eventType.corporate': 'Corporate Event',
-    'eventType.corporate.desc': 'Professional catering and setup for company events.',
-    'eventType.anniversary': 'Anniversary',
-    'eventType.anniversary.desc': 'Milestone anniversary celebrations, done right.',
-    'eventType.namingCeremony': 'Naming Ceremony',
-    'eventType.namingCeremony.desc': 'Traditional naming ceremony arrangements.',
-    'eventType.babyShower': 'Baby Shower',
-    'eventType.babyShower.desc': 'Pastel-themed baby shower styling and catering.',
-    'eventType.other': 'Something Else',
-    'eventType.other.desc': "Any other celebration — tell us what you're planning.",
     'eventTypes.planThisEvent': 'Plan This Event',
 
     // Contact page
@@ -880,6 +870,7 @@ export const translations = {
     'admin.nav.bookings': 'బుకింగ్‌లు',
     'admin.nav.enquiries': 'విచారణలు',
     'admin.nav.categories': 'కేటగిరీలు',
+    'admin.nav.eventTypes': 'ఈవెంట్‌లు',
     'admin.nav.menu': 'మెనూ',
     'admin.nav.services': 'సేవలు',
     'admin.nav.packages': 'ప్యాకేజీలు',
@@ -1083,6 +1074,15 @@ export const translations = {
     'admin.categories.type.category': 'కేటగిరీ',
     'admin.categories.type.name': 'రకం పేరు',
     'admin.categories.type.nameTe': 'రకం పేరు (తెలుగు, ఐచ్ఛికం)',
+
+    'admin.eventTypes.title': 'ఈవెంట్‌లు',
+    'admin.eventTypes.desc': 'బుకింగ్ చేసేటప్పుడు కస్టమర్‌లు ఎంచుకోగల సందర్భాలు (వివాహం, రిసెప్షన్, పుట్టినరోజు...) — పబ్లిక్ ఈవెంట్ టైప్స్ పేజీలో చూపబడతాయి.',
+    'admin.eventTypes.name': 'పేరు',
+    'admin.eventTypes.description': 'వివరణ',
+    'admin.eventTypes.image': 'చిత్రం',
+    'admin.eventTypes.active': 'యాక్టివ్',
+    'admin.eventTypes.colName': 'పేరు',
+    'admin.eventTypes.colActive': 'యాక్టివ్',
 
     // Admin items
     'admin.items.title': 'అంశాలు',
@@ -1306,26 +1306,6 @@ export const translations = {
     'gallery.filterEvents': 'ఈవెంట్‌లు',
 
     // Event types
-    'eventType.wedding': 'వివాహం',
-    'eventType.wedding.desc': 'పూర్తి స్థాయి వివాహ ప్రణాళిక, క్యాటరింగ్ మరియు అలంకరణ.',
-    'eventType.reception': 'రిసెప్షన్',
-    'eventType.reception.desc': 'లైవ్ కౌంటర్లు మరియు లైటింగ్‌తో సొగసైన రిసెప్షన్ రాత్రులు.',
-    'eventType.birthday': 'పుట్టినరోజు',
-    'eventType.birthday.desc': 'థీమ్ ఆధారిత పుట్టినరోజు అలంకరణ మరియు పార్టీ క్యాటరింగ్.',
-    'eventType.housewarming': 'గృహప్రవేశం',
-    'eventType.housewarming.desc': 'సాంప్రదాయ గృహప్రవేశ వేడుక క్యాటరింగ్ & అలంకరణ.',
-    'eventType.engagement': 'నిశ్చితార్థం',
-    'eventType.engagement.desc': 'అందంగా రూపొందించిన నిశ్చితార్థ వేడుకలు.',
-    'eventType.corporate': 'కార్పొరేట్ ఈవెంట్',
-    'eventType.corporate.desc': 'కంపెనీ ఈవెంట్‌ల కోసం వృత్తిపరమైన క్యాటరింగ్ మరియు ఏర్పాట్లు.',
-    'eventType.anniversary': 'వార్షికోత్సవం',
-    'eventType.anniversary.desc': 'మైలురాయి వార్షికోత్సవ వేడుకలు, సరైన రీతిలో.',
-    'eventType.namingCeremony': 'నామకరణం',
-    'eventType.namingCeremony.desc': 'సాంప్రదాయ నామకరణ వేడుక ఏర్పాట్లు.',
-    'eventType.babyShower': 'బేబీ షవర్',
-    'eventType.babyShower.desc': 'పేస్టల్-థీమ్ బేబీ షవర్ స్టైలింగ్ మరియు క్యాటరింగ్.',
-    'eventType.other': 'మరేదైనా',
-    'eventType.other.desc': 'మరే ఇతర వేడుక అయినా — మీరు ప్లాన్ చేస్తున్నది మాకు చెప్పండి.',
     'eventTypes.planThisEvent': 'ఈ ఈవెంట్‌ను ప్లాన్ చేయండి',
 
     // Contact page

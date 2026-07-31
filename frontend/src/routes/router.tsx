@@ -23,6 +23,7 @@ const AdminOverviewPage = lazy(() => import('@/pages/admin/AdminOverviewPage').t
 const AdminBookingsPage = lazy(() => import('@/pages/admin/AdminBookingsPage').then((m) => ({ default: m.AdminBookingsPage })));
 const AdminEnquiriesPage = lazy(() => import('@/pages/admin/AdminEnquiriesPage').then((m) => ({ default: m.AdminEnquiriesPage })));
 const AdminCategoriesPage = lazy(() => import('@/pages/admin/AdminCategoriesPage').then((m) => ({ default: m.AdminCategoriesPage })));
+const AdminEventTypesPage = lazy(() => import('@/pages/admin/AdminEventTypesPage').then((m) => ({ default: m.AdminEventTypesPage })));
 const AdminMenuPage = lazy(() => import('@/pages/admin/AdminMenuPage').then((m) => ({ default: m.AdminMenuPage })));
 const AdminServicesPage = lazy(() => import('@/pages/admin/AdminServicesPage').then((m) => ({ default: m.AdminServicesPage })));
 const AdminPackagesPage = lazy(() => import('@/pages/admin/AdminPackagesPage').then((m) => ({ default: m.AdminPackagesPage })));
@@ -60,6 +61,7 @@ export const router = createBrowserRouter([
           { path: 'bookings', element: withSuspense(<AdminBookingsPage />) },
           { path: 'enquiries', element: withSuspense(<AdminEnquiriesPage />) },
           { path: 'categories', element: withSuspense(<AdminCategoriesPage />) },
+          { path: 'events', element: withSuspense(<AdminEventTypesPage />) },
           { path: 'menu', element: withSuspense(<AdminMenuPage />) },
           { path: 'services', element: withSuspense(<AdminServicesPage />) },
           { path: 'packages', element: withSuspense(<AdminPackagesPage />) },

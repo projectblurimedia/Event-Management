@@ -50,7 +50,7 @@ export function TestimonialsPage() {
                 <div>
                   <p className="text-sm font-semibold">{item.customerName}</p>
                   {item.eventType && (
-                    <p className="text-text-muted text-sm capitalize">{item.eventType.toLowerCase().replace('_', ' ')}</p>
+                    <p className="text-text-muted text-sm">{tf(item.eventType.name, item.eventType.nameTe)}</p>
                   )}
                 </div>
               </div>

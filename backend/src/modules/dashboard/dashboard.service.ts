@@ -82,7 +82,7 @@ export async function getOverview() {
 export async function getAnalytics(from: Date, to: Date) {
   const bookings = await prisma.booking.findMany({
     where: { eventDate: { gte: from, lte: to } },
-    include: { package: true },
+    include: { package: true, eventType: true },
     orderBy: { eventDate: 'asc' },
   });
 

@@ -6,19 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum EventType {
-  WEDDING
-  RECEPTION
-  BIRTHDAY
-  HOUSEWARMING
-  ENGAGEMENT
-  CORPORATE
-  ANNIVERSARY
-  NAMING_CEREMONY
-  BABY_SHOWER
-  OTHER
-}
-
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -101,6 +88,25 @@ model Category {
   packageLinks  PackageCategory[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+}
+
+/// The occasion a booking/testimonial is for (Wedding, Reception, Birthday,
+/// ...). Admin-manageable like Category, rather than a fixed enum, so new
+/// occasions don't need a code change.
+model EventType {
+  id            String        @id @default(cuid())
+  name          String
+  nameTe        String?
+  slug          String        @unique
+  description   String?
+  descriptionTe String?
+  imageUrl      String?
+  isActive      Boolean       @default(true)
+  order         Int           @default(0)
+  testimonials  Testimonial[]
+  bookings      Booking[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 /// A sub-classification within a Category (Sweet/Hot/Flavoured Rice under
@@ -191,7 +197,8 @@ model GalleryImage {
 model Testimonial {
   id           String     @id @default(cuid())
   customerName String
-  eventType    EventType?
+  eventTypeId  String?
+  eventType    EventType? @relation(fields: [eventTypeId], references: [id])
   rating       Int        @default(5)
   message      String
   messageTe    String?
@@ -199,6 +206,8 @@ model Testimonial {
   isPublished  Boolean    @default(true)
   order        Int        @default(0)
   createdAt    DateTime   @default(now())
+
+  @@index([eventTypeId])
 }
 
 model FAQ {
@@ -280,10 +289,11 @@ model Booking {
   email        String?
   address      String
 
-  eventDate  DateTime
-  eventTime  String
-  eventType  EventType
-  guestCount Int
+  eventDate   DateTime
+  eventTime   String
+  eventTypeId String
+  eventType   EventType @relation(fields: [eventTypeId], references: [id])
+  guestCount  Int
 
   packageId String?
   package   Package? @relation(fields: [packageId], references: [id])
@@ -301,6 +311,7 @@ model Booking {
   @@index([phone])
   @@index([status])
   @@index([eventDate])
+  @@index([eventTypeId])
 }
 
 /// A single selected item within a booking's list.

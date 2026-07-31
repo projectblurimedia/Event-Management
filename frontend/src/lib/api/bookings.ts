@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
-import type { Booking, BookingDetail, BookingStatus, BookingStatusResult, DietaryPreference, EventType } from '@/types/api';
+import type { Booking, BookingDetail, BookingStatus, BookingStatusResult, DietaryPreference } from '@/types/api';
 
 export interface BookingSelection {
   guestCount: number;
@@ -16,7 +16,7 @@ export interface CreateBookingInput extends BookingSelection {
   address: string;
   eventDate: string;
   eventTime: string;
-  eventType: EventType;
+  eventTypeId: string;
   dietaryPreference?: DietaryPreference;
   specialRequirements?: string;
 }

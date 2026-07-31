@@ -7,7 +7,6 @@ import { callHref, whatsappHref } from '@/lib/contactActions';
 import { BookingDetailModal } from '@/features/admin/BookingDetailModal';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
-import { eventTypeLabelKeys } from '@/lib/i18n/eventTypeLabels';
 import { statusLabelKeys } from '@/lib/i18n/statusLabels';
 import { cn } from '@/lib/cn';
 import type { Booking, BookingStatus } from '@/types/api';
@@ -65,7 +64,7 @@ function isBookingStatus(value: string | null): value is BookingStatus {
 }
 
 export function AdminBookingsPage() {
-  const { t } = useTranslation();
+  const { t, tf } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialStatus = searchParams.get('status');
   const isToday = searchParams.get('date') === 'today';
@@ -221,7 +220,7 @@ export function AdminBookingsPage() {
               </div>
               <div>
                 <p className="text-text-muted">{t('admin.bookings.event')}</p>
-                <p className="font-medium">{t(eventTypeLabelKeys[b.eventType])}</p>
+                <p className="font-medium">{tf(b.eventType.name, b.eventType.nameTe)}</p>
               </div>
               <div>
                 <p className="text-text-muted">{t('admin.bookings.date')}</p>
@@ -301,7 +300,7 @@ export function AdminBookingsPage() {
                     </div>
                   </div>
                 </td>
-                <td className="px-5 py-3.5">{t(eventTypeLabelKeys[b.eventType])}</td>
+                <td className="px-5 py-3.5">{tf(b.eventType.name, b.eventType.nameTe)}</td>
                 <td className="px-5 py-3.5">{new Date(b.eventDate).toLocaleDateString('en-IN')}</td>
                 <td className="px-5 py-3.5">{b.guestCount}</td>
                 <td className="px-5 py-3.5">
