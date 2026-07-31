@@ -22,6 +22,7 @@ export const updateSettingsSchema = z.object({
   businessIntroTitleTe: z.string().optional(),
   businessIntroText: z.string().min(1).optional(),
   businessIntroTextTe: z.string().optional(),
+  businessIntroImageUrl: z.string().url().optional(),
 });
 
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;

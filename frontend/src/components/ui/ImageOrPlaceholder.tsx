@@ -1,5 +1,6 @@
 import { ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { isVideoUrl } from '@/lib/cloudinary';
 
 interface ImageOrPlaceholderProps {
   src?: string | null;
@@ -9,12 +10,16 @@ interface ImageOrPlaceholderProps {
 }
 
 /**
- * Renders the real photo when one is set, otherwise a placeholder box of the
- * exact same size/shape with a centered icon — so cards look identical
- * whether or not the admin has uploaded an image yet.
+ * Renders the real photo (or video, muted/looping like a GIF) when one is
+ * set, otherwise a placeholder box of the exact same size/shape with a
+ * centered icon — so cards look identical whether or not the admin has
+ * uploaded media yet.
  */
 export function ImageOrPlaceholder({ src, alt, className, iconSize = 20 }: ImageOrPlaceholderProps) {
   if (src) {
+    if (isVideoUrl(src)) {
+      return <video src={src} className={className} autoPlay muted loop playsInline aria-label={alt} />;
+    }
     return <img src={src} alt={alt} loading="lazy" className={className} />;
   }
   return (

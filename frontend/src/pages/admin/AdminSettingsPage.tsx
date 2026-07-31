@@ -184,6 +184,13 @@ export function AdminSettingsPage() {
               <textarea rows={4} className={inputClass} value={form.businessIntroText} onChange={(e) => setForm({ ...form, businessIntroText: e.target.value })} />
             </div>
           </div>
+          <div>
+            <label className={labelClass}>{t('admin.settings.introImage')}</label>
+            <ImageUploadField
+              value={form.businessIntroImageUrl ?? ''}
+              onChange={(url) => setForm({ ...form, businessIntroImageUrl: url })}
+            />
+          </div>
         </div>
 
         <Button type="submit" variant="primary" size="lg" className="w-full sm:w-fit" disabled={updateSettings.isPending}>

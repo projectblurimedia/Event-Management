@@ -16,9 +16,13 @@ setupRouter.get('/status', getSetupStatusHandler);
 setupRouter.post(
   '/',
   authRateLimiter,
-  // Logo is an optional file, sent as multipart/form-data alongside the
-  // other setup fields — multer must parse the body before zod validates it.
-  upload.single('logo'),
+  // Logo and intro image are optional files, sent as multipart/form-data
+  // alongside the other setup fields — multer must parse the body before
+  // zod validates it.
+  upload.fields([
+    { name: 'logo', maxCount: 1 },
+    { name: 'introImage', maxCount: 1 },
+  ]),
   validateRequest({ body: setupSchema }),
   completeSetupHandler,
 );

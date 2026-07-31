@@ -163,7 +163,7 @@ export function CategoryItemPanel({ category }: { category: Category }) {
         </div>
       )}
 
-      {types.length > 0 && (
+      {types.length > 1 && (
         <div className="mb-5 flex flex-wrap gap-2">
           <button
             type="button"

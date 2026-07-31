@@ -13,6 +13,7 @@ export interface SetupInput {
   latitude?: number;
   longitude?: number;
   logo?: File | null;
+  introImage?: File | null;
 }
 
 interface SetupResult {
@@ -30,12 +31,13 @@ export function useSetupStatus() {
 
 export function useCompleteSetup() {
   return useMutation({
-    mutationFn: async ({ logo, ...fields }: SetupInput) => {
+    mutationFn: async ({ logo, introImage, ...fields }: SetupInput) => {
       const formData = new FormData();
       for (const [key, value] of Object.entries(fields)) {
         if (value !== undefined && value !== '') formData.append(key, String(value));
       }
       if (logo) formData.append('logo', logo);
+      if (introImage) formData.append('introImage', introImage);
 
       return (await api.post<SetupResult>('/setup', formData)).data;
     },

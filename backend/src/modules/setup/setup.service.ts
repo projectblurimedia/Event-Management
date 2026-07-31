@@ -9,7 +9,11 @@ export async function isSetupComplete() {
   return count > 0;
 }
 
-export async function completeSetup(input: SetupInput, logoUrl?: string) {
+export async function completeSetup(
+  input: SetupInput,
+  images: { logoUrl?: string; businessIntroImageUrl?: string },
+) {
+  const { logoUrl, businessIntroImageUrl } = images;
   if (await isSetupComplete()) {
     throw ApiError.forbidden('Setup has already been completed');
   }
@@ -49,6 +53,7 @@ export async function completeSetup(input: SetupInput, logoUrl?: string) {
         heroSubheadline: 'Full-service event management and catering, tailored to your celebration.',
         businessIntroTitle: `About ${input.businessName}`,
         businessIntroText: `${input.businessName} plans and delivers memorable events from start to finish.`,
+        businessIntroImageUrl,
       },
     });
 

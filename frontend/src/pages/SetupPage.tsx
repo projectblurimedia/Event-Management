@@ -44,6 +44,8 @@ export function SetupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [logo, setLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [introImage, setIntroImage] = useState<File | null>(null);
+  const [introImagePreview, setIntroImagePreview] = useState<string | null>(null);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const { locating, requestLocation } = useGeolocationCapture(setCoords);
   const completeSetup = useCompleteSetup();
@@ -52,6 +54,12 @@ export function SetupPage() {
     const file = e.target.files?.[0] ?? null;
     setLogo(file);
     setLogoPreview(file ? URL.createObjectURL(file) : null);
+  }
+
+  function handleIntroImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setIntroImage(file);
+    setIntroImagePreview(file ? URL.createObjectURL(file) : null);
   }
 
   const {
@@ -74,6 +82,7 @@ export function SetupPage() {
         adminEmail: values.adminEmail,
         adminPassword: values.adminPassword,
         logo,
+        introImage,
       });
       login(token, admin);
       toast.success(t('setup.success'));
@@ -177,6 +186,24 @@ export function SetupPage() {
                     />
                   </div>
                   <p className="text-cream/40 mt-1 text-xs">{t('setup.logoHint')}</p>
+                </div>
+                <div>
+                  <label htmlFor="introImage" className={labelClasses}>
+                    {t('setup.introImage')}
+                  </label>
+                  <div className="flex items-center gap-3">
+                    {introImagePreview && (
+                      <img src={introImagePreview} alt="" className="border-gold/20 h-12 w-16 rounded-lg border object-cover" />
+                    )}
+                    <input
+                      id="introImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleIntroImageChange}
+                      className="text-cream/70 file:border-gold/40 file:text-gold file:mr-3 file:rounded-full file:border file:bg-transparent file:px-3 file:py-1.5 file:text-xs file:font-medium text-xs"
+                    />
+                  </div>
+                  <p className="text-cream/40 mt-1 text-xs">{t('setup.introImageHint')}</p>
                 </div>
               </div>
             </div>

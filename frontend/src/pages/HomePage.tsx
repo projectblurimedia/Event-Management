@@ -126,9 +126,24 @@ export function HomePage() {
       {/* About Our Business */}
       <section className="py-20">
         <Container>
-          <FadeIn>
-            <SectionHeading eyebrow={t('home.aboutUs')} title={introTitle} description={introText} />
-          </FadeIn>
+          {settings.businessIntroImageUrl ? (
+            <div className="grid items-center gap-10 lg:grid-cols-2">
+              <FadeIn>
+                <ImageOrPlaceholder
+                  src={settings.businessIntroImageUrl}
+                  alt={introTitle}
+                  className="aspect-[4/3] w-full rounded-2xl object-cover"
+                />
+              </FadeIn>
+              <FadeIn>
+                <SectionHeading eyebrow={t('home.aboutUs')} title={introTitle} description={introText} align="left" />
+              </FadeIn>
+            </div>
+          ) : (
+            <FadeIn>
+              <SectionHeading eyebrow={t('home.aboutUs')} title={introTitle} description={introText} />
+            </FadeIn>
+          )}
         </Container>
       </section>
 

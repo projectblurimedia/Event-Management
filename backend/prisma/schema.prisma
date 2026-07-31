@@ -236,6 +236,7 @@ model SiteSettings {
   businessIntroTitleTe String?
   businessIntroText    String
   businessIntroTextTe  String?
+  businessIntroImageUrl String?
   updatedAt            DateTime @updatedAt
 }
 
@@ -247,6 +248,26 @@ model ContactEnquiry {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+enum MediaResourceType {
+  IMAGE
+  VIDEO
+}
+
+/// Tracks every file uploaded through the generic admin uploads endpoint,
+/// regardless of which field/model ends up referencing its URL (item image,
+/// hero image, intro image, ...). Exists purely to enforce a sitewide cap on
+/// videos (expensive on Cloudinary's free tier) — deleting an upload removes
+/// its row here too, freeing up a slot.
+model MediaAsset {
+  id           String            @id @default(cuid())
+  publicId     String            @unique
+  url          String
+  resourceType MediaResourceType
+  createdAt    DateTime          @default(now())
+
+  @@index([resourceType])
 }
 
 model Booking {

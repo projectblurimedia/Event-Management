@@ -126,6 +126,7 @@ export interface SiteSettings {
   businessIntroTitleTe: string | null;
   businessIntroText: string;
   businessIntroTextTe: string | null;
+  businessIntroImageUrl: string | null;
 }
 
 export interface Booking {
