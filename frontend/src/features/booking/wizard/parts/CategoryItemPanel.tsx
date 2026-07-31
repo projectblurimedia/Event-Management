@@ -4,6 +4,8 @@ import { categoryTypeHooks, itemHooks } from '@/lib/api/resources';
 import { useBookingCartStore } from '@/store/bookingCartStore';
 import { AsyncState } from '@/components/ui/AsyncState';
 import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/cn';
 import type { TranslationKey } from '@/lib/i18n/translations';
@@ -15,54 +17,124 @@ const dietaryOptions: { value: DietaryPreference; labelKey: TranslationKey }[] =
   { value: 'BOTH', labelKey: 'common.both' },
 ];
 
-function ItemCard({ category, item }: { category: Category; item: Item }) {
+function ItemDetailModal({
+  category,
+  item,
+  open,
+  onClose,
+}: {
+  category: Category;
+  item: Item;
+  open: boolean;
+  onClose: () => void;
+}) {
   const { t, tf } = useTranslation();
-  const selection = useBookingCartStore((s) => s.selectedItems.find((i) => i.itemId === item.id));
+  const selection = useBookingCartStore((s) => s.selectedItems.some((i) => i.itemId === item.id));
   const toggleItem = useBookingCartStore((s) => s.toggleItem);
-  const selected = !!selection;
 
   return (
-    <div
-      className={cn(
-        'border-border bg-surface flex overflow-hidden rounded-2xl border transition-colors',
-        selected && 'border-gold ring-gold ring-1',
-      )}
-    >
-      <div className="relative h-20 w-20 shrink-0 sm:h-28 sm:w-28">
-        <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="h-full w-full object-cover" />
+    <Modal open={open} onClose={onClose} title={tf(item.name, item.nameTe)} size="lg">
+      <div className="flex flex-col gap-4">
+        {item.images.length > 0 && (
+          <div className={cn('grid gap-2', item.images.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
+            {item.images.map((src, i) => (
+              <ImageOrPlaceholder
+                key={src}
+                src={src}
+                alt={`${tf(item.name, item.nameTe)} ${i + 1}`}
+                className="aspect-video w-full rounded-xl object-cover"
+              />
+            ))}
+          </div>
+        )}
         {category.isFood && item.isVeg !== null && (
           <span
             className={cn(
-              'absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide uppercase',
-              item.isVeg ? 'bg-emerald-600/90 text-white' : 'bg-rose/90 text-white',
+              'w-fit rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide uppercase',
+              item.isVeg ? 'bg-emerald-600/10 text-emerald-600' : 'bg-rose/10 text-rose',
             )}
           >
             {item.isVeg ? t('common.veg') : t('common.nonVeg')}
           </span>
         )}
+        {item.description && <p className="text-text-muted text-sm">{item.description}</p>}
+        <Button
+          type="button"
+          variant={selection ? 'outline' : 'primary'}
+          onClick={() => {
+            toggleItem(category.id, item.id, category.allowMultiple);
+            onClose();
+          }}
+        >
+          {selection ? <Check size={15} /> : <Plus size={15} />}
+          {selection ? t('wizard.removeThis') : t('wizard.selectThis')}
+        </Button>
       </div>
+    </Modal>
+  );
+}
 
-      <div className="flex min-w-0 flex-1 flex-col justify-between gap-2.5 p-3 sm:p-3.5">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h4 className="truncate text-sm font-semibold">{tf(item.name, item.nameTe)}</h4>
-            {item.description && <p className="text-text-muted line-clamp-2 text-sm">{item.description}</p>}
+function ItemCard({ category, item }: { category: Category; item: Item }) {
+  const { t, tf } = useTranslation();
+  const selection = useBookingCartStore((s) => s.selectedItems.find((i) => i.itemId === item.id));
+  const toggleItem = useBookingCartStore((s) => s.toggleItem);
+  const selected = !!selection;
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  return (
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setDetailOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') setDetailOpen(true);
+        }}
+        className={cn(
+          'border-border bg-surface flex cursor-pointer overflow-hidden rounded-2xl border transition-colors',
+          selected && 'border-gold ring-gold ring-1',
+        )}
+      >
+        <div className="relative h-20 w-20 shrink-0 sm:h-28 sm:w-28">
+          <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="h-full w-full object-cover" />
+          {category.isFood && item.isVeg !== null && (
+            <span
+              className={cn(
+                'absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide uppercase',
+                item.isVeg ? 'bg-emerald-600/90 text-white' : 'bg-rose/90 text-white',
+              )}
+            >
+              {item.isVeg ? t('common.veg') : t('common.nonVeg')}
+            </span>
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col justify-between gap-2.5 p-3 sm:p-3.5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h4 className="truncate text-sm font-semibold">{tf(item.name, item.nameTe)}</h4>
+              {item.description && <p className="text-text-muted line-clamp-2 text-sm">{item.description}</p>}
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleItem(category.id, item.id, category.allowMultiple);
+              }}
+              aria-label={selected ? `Remove ${item.name}` : `Select ${item.name}`}
+              aria-pressed={selected}
+              className={cn(
+                'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+                selected ? 'bg-gold border-gold text-ink-black' : 'border-border text-text-muted',
+              )}
+            >
+              {selected ? <Check size={12} /> : <Plus size={12} />}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => toggleItem(category.id, item.id, category.allowMultiple)}
-            aria-label={selected ? `Remove ${item.name}` : `Select ${item.name}`}
-            aria-pressed={selected}
-            className={cn(
-              'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-              selected ? 'bg-gold border-gold text-ink-black' : 'border-border text-text-muted',
-            )}
-          >
-            {selected ? <Check size={12} /> : <Plus size={12} />}
-          </button>
         </div>
       </div>
-    </div>
+      <ItemDetailModal category={category} item={item} open={detailOpen} onClose={() => setDetailOpen(false)} />
+    </>
   );
 }
 
