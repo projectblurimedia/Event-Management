@@ -30,6 +30,8 @@ interface ItemFormState {
   isAvailable: boolean;
   isFeatured: boolean;
   order: string;
+  /** Only show this item when this package is selected; '' means every package. */
+  restrictPackageId: string;
 }
 
 interface ItemPayload {
@@ -42,6 +44,7 @@ interface ItemPayload {
   isAvailable: boolean;
   isFeatured: boolean;
   order: number;
+  packageId: string | null;
 }
 
 function useItemMutations() {
@@ -75,6 +78,7 @@ const emptyForm: ItemFormState = {
   isAvailable: true,
   isFeatured: false,
   order: '0',
+  restrictPackageId: '',
 };
 
 interface CatalogItemsManagerProps {
@@ -182,6 +186,7 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
       isAvailable: item.isAvailable,
       isFeatured: item.isFeatured,
       order: String(item.order),
+      restrictPackageId: item.packageId ?? '',
     });
     setModalOpen(true);
   }
@@ -202,6 +207,7 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
       isAvailable: form.isAvailable,
       isFeatured: form.isFeatured,
       order: Number(form.order),
+      packageId: form.restrictPackageId || null,
     };
 
     try {
@@ -480,6 +486,25 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
             <label className={labelClass}>{t('admin.items.images')}</label>
             <MultiImageUploadField value={form.images} onChange={(images) => setForm((f) => ({ ...f, images }))} />
           </div>
+
+          {!foodOnly && (
+            <div>
+              <label className={labelClass}>{t('admin.items.restrictPackage')}</label>
+              <select
+                className={inputClass}
+                value={form.restrictPackageId}
+                onChange={(e) => setForm((f) => ({ ...f, restrictPackageId: e.target.value }))}
+              >
+                <option value="">{t('admin.items.restrictPackageAll')}</option>
+                {packages?.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {tf(p.name, p.nameTe)}
+                  </option>
+                ))}
+              </select>
+              <p className="text-text-muted mt-1.5 text-xs">{t('admin.items.restrictPackageHint')}</p>
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-6">
             {foodOnly && (

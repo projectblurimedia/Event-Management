@@ -157,7 +157,7 @@ export function HomePage() {
                 <ImageOrPlaceholder
                   src={settings.businessIntroImageUrl}
                   alt={introTitle}
-                  className="aspect-[4/3] w-full rounded-2xl object-cover"
+                  className="aspect-[4/3] w-full rounded-2xl object-contain"
                 />
               </FadeIn>
               <FadeIn>

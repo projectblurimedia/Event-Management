@@ -16,6 +16,8 @@ export interface Item {
   isAvailable: boolean;
   isFeatured: boolean;
   order: number;
+  /** Restricts this item to only show up under this package; null shows for every package. */
+  packageId: string | null;
 }
 
 export interface CategoryType {

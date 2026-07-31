@@ -11,7 +11,7 @@ export function ReviewStep() {
   const guestCount = useBookingCartStore((s) => s.guestCount) ?? 0;
   const selectedItems = useBookingCartStore((s) => s.selectedItems);
   const goToStep = useBookingCartStore((s) => s.goToStep);
-  const setConfigureCategoryIndex = useBookingCartStore((s) => s.setConfigureCategoryIndex);
+  const setExpandedCategoryId = useBookingCartStore((s) => s.setExpandedCategoryId);
 
   const { data: packages } = packageHooks.usePublicList();
   const { data: categories } = categoryHooks.usePublicList();
@@ -33,10 +33,7 @@ export function ReviewStep() {
   }, [categories, allItems, selectedItems]);
 
   function editCategory(categoryId: string) {
-    if (!isCustom && pkg) {
-      const idx = pkg.categories.findIndex((pc) => pc.categoryId === categoryId);
-      if (idx >= 0) setConfigureCategoryIndex(idx);
-    }
+    setExpandedCategoryId(categoryId);
     goToStep('CONFIGURE');
   }
 

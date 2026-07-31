@@ -143,11 +143,17 @@ model Item {
   isAvailable    Boolean       @default(true)
   isFeatured     Boolean       @default(false)
   order          Int           @default(0)
+  /// Restricts this item to only show up when this specific Package is
+  /// selected (e.g. a "Basic Decoration" item only under Silver). Null
+  /// means it shows for every package, including Custom.
+  packageId      String?
+  package        Package?      @relation(fields: [packageId], references: [id])
   bookingItems   BookingItem[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   @@index([categoryTypeId])
+  @@index([packageId])
 }
 
 /// A package is just a name plus an ordered list of bulletins (categories)
@@ -165,6 +171,7 @@ model Package {
   order      Int               @default(0)
   categories PackageCategory[]
   bookings   Booking[]
+  items      Item[]
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
 }

@@ -20,7 +20,7 @@ const VALID_STEPS: WizardStep[] = ['PACKAGE', 'CONFIGURE', 'REVIEW', 'DETAILS', 
 export function BookingWizard() {
   const step = useBookingCartStore((s) => s.step);
   const goToStep = useBookingCartStore((s) => s.goToStep);
-  const configureCategoryIndex = useBookingCartStore((s) => s.configureCategoryIndex);
+  const expandedCategoryId = useBookingCartStore((s) => s.expandedCategoryId);
   const reset = useBookingCartStore((s) => s.reset);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,7 +61,7 @@ export function BookingWizard() {
   // or Configure sub-section change so each screen starts where it loads.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step, configureCategoryIndex]);
+  }, [step, expandedCategoryId]);
 
   function confirmCancel() {
     reset();

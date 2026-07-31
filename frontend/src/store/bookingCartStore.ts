@@ -46,7 +46,8 @@ interface BookingWizardState {
   guestCount: number | null;
   dietaryPreference: DietaryPreference | null;
   selectedItems: SelectedItem[];
-  configureCategoryIndex: number;
+  /** Which category's accordion section should be expanded on landing at the Configure step (e.g. jumping back from Review's Edit link). */
+  expandedCategoryId: string | null;
   customer: CustomerInfo;
   lastBooking: SubmittedBooking | null;
 
@@ -57,9 +58,7 @@ interface BookingWizardState {
   /** Add/remove an item. Non-multiple categories replace any existing pick in that category (single-select). */
   toggleItem: (categoryId: string, itemId: string, allowMultiple: boolean) => void;
   clearCategorySelections: (categoryId: string) => void;
-  setConfigureCategoryIndex: (index: number) => void;
-  nextConfigureCategory: () => void;
-  prevConfigureCategory: () => void;
+  setExpandedCategoryId: (categoryId: string | null) => void;
   setCustomerField: <K extends keyof CustomerInfo>(key: K, value: CustomerInfo[K]) => void;
   recordSubmittedBooking: (booking: SubmittedBooking) => void;
   reset: () => void;
@@ -72,7 +71,7 @@ const initialState = {
   guestCount: null as number | null,
   dietaryPreference: null as DietaryPreference | null,
   selectedItems: [] as SelectedItem[],
-  configureCategoryIndex: 0,
+  expandedCategoryId: null as string | null,
   customer: emptyCustomer,
   lastBooking: null as SubmittedBooking | null,
 };
@@ -88,7 +87,7 @@ export const useBookingCartStore = create<BookingWizardState>()(
         set({
           packageId,
           isCustom,
-          configureCategoryIndex: 0,
+          expandedCategoryId: null,
           selectedItems: [],
           dietaryPreference: null,
         }),
@@ -118,10 +117,7 @@ export const useBookingCartStore = create<BookingWizardState>()(
       clearCategorySelections: (categoryId) =>
         set((state) => ({ selectedItems: state.selectedItems.filter((i) => i.categoryId !== categoryId) })),
 
-      setConfigureCategoryIndex: (index) => set({ configureCategoryIndex: index }),
-      nextConfigureCategory: () => set((state) => ({ configureCategoryIndex: state.configureCategoryIndex + 1 })),
-      prevConfigureCategory: () =>
-        set((state) => ({ configureCategoryIndex: Math.max(0, state.configureCategoryIndex - 1) })),
+      setExpandedCategoryId: (categoryId) => set({ expandedCategoryId: categoryId }),
 
       setCustomerField: (key, value) => set((state) => ({ customer: { ...state.customer, [key]: value } })),
 

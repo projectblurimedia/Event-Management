@@ -71,6 +71,8 @@ export function CategoryItemPanel({ category }: { category: Category }) {
   const dietaryPreference = useBookingCartStore((s) => s.dietaryPreference);
   const setDietaryPreference = useBookingCartStore((s) => s.setDietaryPreference);
   const clearCategorySelections = useBookingCartStore((s) => s.clearCategorySelections);
+  const packageId = useBookingCartStore((s) => s.packageId);
+  const isCustom = useBookingCartStore((s) => s.isCustom);
   const { data: allTypes } = categoryTypeHooks.usePublicList();
   const { data: allItems, isLoading, isError, refetch } = itemHooks.usePublicList();
   const [activeType, setActiveType] = useState<string | null>(null);
@@ -79,7 +81,16 @@ export function CategoryItemPanel({ category }: { category: Category }) {
 
   const types = useMemo(() => allTypes?.filter((ty) => ty.categoryId === category.id) ?? [], [allTypes, category.id]);
   const typeIds = useMemo(() => new Set(types.map((ty) => ty.id)), [types]);
-  const categoryItems = useMemo(() => allItems?.filter((i) => typeIds.has(i.categoryTypeId)) ?? [], [allItems, typeIds]);
+  // Items tagged with a packageId (e.g. tiered "Elegant Decoration" under
+  // Gold) only show when that exact package is selected; untagged items
+  // always show, and Custom Package shows everything with no tier lock.
+  const categoryItems = useMemo(
+    () =>
+      allItems?.filter(
+        (i) => typeIds.has(i.categoryTypeId) && (!i.packageId || isCustom || i.packageId === packageId),
+      ) ?? [],
+    [allItems, typeIds, isCustom, packageId],
+  );
   const selectedIds = useMemo(
     () => new Set(selectedItems.filter((s) => s.categoryId === category.id).map((s) => s.itemId)),
     [selectedItems, category.id],

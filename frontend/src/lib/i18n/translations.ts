@@ -404,6 +404,9 @@ export const translations = {
     'admin.items.customAllCategories': 'Custom (all categories)',
     'admin.items.packageFilterHint': 'Just a filter to help you find the right category — narrows the list below to that package\'s categories.',
     'admin.items.packageHasNoCategories': 'This package has no categories yet — add some in Admin > Packages first.',
+    'admin.items.restrictPackage': 'Only Show For Package',
+    'admin.items.restrictPackageAll': 'Every package (and Custom)',
+    'admin.items.restrictPackageHint': 'Hides this item unless the customer picked this exact package — use it for tiered options like Basic/Elegant/Grand decoration.',
     'admin.items.perPersonHint': 'Multiplied by the guest count at booking time (e.g. price per plate).',
     'admin.items.flatHint': 'A single flat fee for the whole booking, regardless of guest count.',
     'admin.items.colName': 'Name',
@@ -667,6 +670,8 @@ export const translations = {
     'home.contactInformation': 'Contact Information',
 
     // Wizard extras
+    'wizard.whichEvent': 'What are you celebrating?',
+    'wizard.eventHelperText': "This helps us tailor the options you'll see next to your event.",
     'wizard.howManyGuests': 'How many guests are you expecting?',
     'wizard.guestsHelperText': 'This helps us calculate accurate pricing as you configure your event.',
     'wizard.dietaryQuestion': 'Do you prefer Veg, Non-Veg, or Both?',
@@ -1108,6 +1113,9 @@ export const translations = {
     'admin.items.customAllCategories': 'కస్టమ్ (అన్ని కేటగిరీలు)',
     'admin.items.packageFilterHint': 'సరైన కేటగిరీని కనుగొనడంలో సహాయపడే ఫిల్టర్ మాత్రమే — దిగువ జాబితాను ఆ ప్యాకేజీ కేటగిరీలకు కుదిస్తుంది.',
     'admin.items.packageHasNoCategories': 'ఈ ప్యాకేజీకి ఇంకా కేటగిరీలు లేవు — ముందుగా అడ్మిన్ > ప్యాకేజీలలో కొన్ని జోడించండి.',
+    'admin.items.restrictPackage': 'ఈ ప్యాకేజీకి మాత్రమే చూపించు',
+    'admin.items.restrictPackageAll': 'ప్రతి ప్యాకేజీ (మరియు కస్టమ్)',
+    'admin.items.restrictPackageHint': 'కస్టమర్ ఈ ఖచ్చితమైన ప్యాకేజీని ఎంచుకుంటే తప్ప ఈ అంశాన్ని దాచిపెడుతుంది — బేసిక్/ఎలిగెంట్/గ్రాండ్ అలంకరణ వంటి శ్రేణి ఎంపికల కోసం దీన్ని ఉపయోగించండి.',
     'admin.items.perPersonHint': 'బుకింగ్ సమయంలో అతిథుల సంఖ్యతో గుణించబడుతుంది (ఉదా. ప్లేటుకు ధర).',
     'admin.items.flatHint': 'అతిథుల సంఖ్యతో సంబంధం లేకుండా మొత్తం బుకింగ్‌కు ఒకే ఫ్లాట్ రుసుము.',
     'admin.items.colName': 'పేరు',
@@ -1364,6 +1372,8 @@ export const translations = {
     'home.contactInformation': 'సంప్రదింపు సమాచారం',
 
     // Wizard extras
+    'wizard.whichEvent': 'మీరు ఏమి జరుపుకుంటున్నారు?',
+    'wizard.eventHelperText': 'తర్వాత మీరు చూసే ఎంపికలను మీ ఈవెంట్‌కు అనుగుణంగా మార్చడంలో ఇది సహాయపడుతుంది.',
     'wizard.howManyGuests': 'మీరు ఎంతమంది అతిథులను ఆశిస్తున్నారు?',
     'wizard.guestsHelperText': 'మీరు మీ ఈవెంట్‌ను కాన్ఫిగర్ చేసేటప్పుడు ఖచ్చితమైన ధరను లెక్కించడానికి ఇది సహాయపడుతుంది.',
     'wizard.dietaryQuestion': 'మీకు వెజ్, నాన్-వెజ్ లేదా రెండూ ఇష్టమా?',

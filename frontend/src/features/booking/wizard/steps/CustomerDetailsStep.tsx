@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
-import { eventTypeHooks } from '@/lib/api/resources';
 import { useBookingCartStore, type CustomerInfo } from '@/store/bookingCartStore';
 import { useCreateBooking } from '@/lib/api/bookings';
 import { getErrorMessage } from '@/lib/errorMessage';
@@ -18,7 +17,6 @@ const detailsSchema = z.object({
   address: z.string().min(1, 'Address is required'),
   eventDate: z.string().min(1, 'Event date is required'),
   eventTime: z.string().min(1, 'Event time is required'),
-  eventTypeId: z.string().min(1, 'Event type is required'),
   specialRequirements: z.string().optional(),
 });
 type DetailsForm = z.infer<typeof detailsSchema>;
@@ -28,8 +26,7 @@ const inputClass =
 const labelClass = 'text-text-muted mb-1.5 block text-sm font-medium';
 
 export function CustomerDetailsStep() {
-  const { t, tf } = useTranslation();
-  const { data: eventTypes } = eventTypeHooks.usePublicList();
+  const { t } = useTranslation();
   const customer = useBookingCartStore((s) => s.customer);
   const setCustomerField = useBookingCartStore((s) => s.setCustomerField);
   const guestCount = useBookingCartStore((s) => s.guestCount) ?? 1;
@@ -62,6 +59,7 @@ export function CustomerDetailsStep() {
         altPhone: values.altPhone || undefined,
         email: values.email || undefined,
         specialRequirements: values.specialRequirements || undefined,
+        eventTypeId: customer.eventTypeId,
         guestCount,
         packageId: packageId ?? undefined,
         dietaryPreference: dietaryPreference ?? undefined,
@@ -120,18 +118,6 @@ export function CustomerDetailsStep() {
             <label htmlFor="eventTime" className={labelClass}>Event Time</label>
             <input id="eventTime" type="time" className={inputClass} {...register('eventTime')} />
             {errors.eventTime && <p className="text-rose mt-1 text-sm">{errors.eventTime.message}</p>}
-          </div>
-          <div>
-            <label htmlFor="eventTypeId" className={labelClass}>Event Type</label>
-            <select id="eventTypeId" className={inputClass} {...register('eventTypeId')}>
-              <option value="">Select an event type</option>
-              {eventTypes?.map((et) => (
-                <option key={et.id} value={et.id}>
-                  {tf(et.name, et.nameTe)}
-                </option>
-              ))}
-            </select>
-            {errors.eventTypeId && <p className="text-rose mt-1 text-sm">{errors.eventTypeId.message}</p>}
           </div>
           <div>
             <label htmlFor="guestCount" className={labelClass}>Number of Guests</label>
