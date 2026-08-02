@@ -94,7 +94,14 @@ export function ImageOrPlaceholder({ src, alt, className, iconSize = 20, objectF
     if (isVideoUrl(src)) {
       return <VideoWithControls src={src} alt={alt} className={className} objectFit={objectFit} />;
     }
-    return <img src={src} alt={alt} loading="lazy" className={className} />;
+    return (
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className={cn(objectFit === 'contain' ? 'object-contain' : 'object-cover', className)}
+      />
+    );
   }
   return (
     <div className={cn('bg-surface-muted text-text-muted/40 flex items-center justify-center', className)}>

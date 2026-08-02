@@ -1,5 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useIsMutating, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
+
+const UPLOAD_MUTATION_KEY = ['uploadImage'];
 
 interface UploadResult {
   url: string;
@@ -19,6 +21,7 @@ interface SignatureResult {
 export function useUploadImage() {
   const queryClient = useQueryClient();
   return useMutation({
+    mutationKey: UPLOAD_MUTATION_KEY,
     mutationFn: async (file: File): Promise<UploadResult> => {
       const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
 
@@ -78,4 +81,11 @@ export function useUploadUsage() {
     queryKey: ['uploads', 'usage'],
     queryFn: async () => (await api.get<{ videoCount: number; videoLimit: number }>('/admin/uploads/usage')).data,
   });
+}
+
+/** True while any image/video is mid-upload, anywhere on the page — used to
+ * keep a form's Save button disabled until the upload it depends on has
+ * actually finished, instead of letting an admin save a stale URL. */
+export function useIsUploadingMedia() {
+  return useIsMutating({ mutationKey: UPLOAD_MUTATION_KEY }) > 0;
 }

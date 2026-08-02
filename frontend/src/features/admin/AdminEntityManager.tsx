@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ImageUploadField } from './ImageUploadField';
 import { getErrorMessage } from '@/lib/errorMessage';
+import { useIsUploadingMedia } from '@/lib/api/uploads';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { createResourceHooks } from '@/lib/api/resourceHooks';
 
@@ -58,6 +59,7 @@ export function AdminEntityManager<T extends { id: string }>({
   const createMutation = hooks.useAdminCreate();
   const updateMutation = hooks.useAdminUpdate();
   const deleteMutation = hooks.useAdminDelete();
+  const isUploadingMedia = useIsUploadingMedia();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<T | null>(null);
@@ -406,13 +408,15 @@ export function AdminEntityManager<T extends { id: string }>({
             variant="primary"
             size="lg"
             className="w-full sm:w-auto"
-            disabled={createMutation.isPending || updateMutation.isPending}
+            disabled={createMutation.isPending || updateMutation.isPending || isUploadingMedia}
           >
-            {createMutation.isPending || updateMutation.isPending
-              ? t('admin.saving')
-              : editing
-                ? t('common.saveChanges')
-                : t('common.create')}
+            {isUploadingMedia
+              ? t('admin.uploading')
+              : createMutation.isPending || updateMutation.isPending
+                ? t('admin.saving')
+                : editing
+                  ? t('common.saveChanges')
+                  : t('common.create')}
           </Button>
         </form>
       </Modal>

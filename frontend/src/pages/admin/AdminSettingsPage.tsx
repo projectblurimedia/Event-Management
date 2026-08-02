@@ -4,6 +4,7 @@ import { Check, MapPin, RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ImageUploadField } from '@/features/admin/ImageUploadField';
 import { useSettings, useUpdateSettings } from '@/lib/api/settings';
+import { useIsUploadingMedia } from '@/lib/api/uploads';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useGeolocationCapture } from '@/hooks/useGeolocationCapture';
@@ -20,6 +21,7 @@ export function AdminSettingsPage() {
   const { t } = useTranslation();
   const { data: settings, isLoading, isError, refetch } = useSettings();
   const updateSettings = useUpdateSettings();
+  const isUploadingMedia = useIsUploadingMedia();
   const [form, setForm] = useState<FormState | null>(null);
   const { locating, requestLocation } = useGeolocationCapture((coords) => {
     setForm((prev) => (prev ? { ...prev, latitude: coords.latitude, longitude: coords.longitude } : prev));
@@ -201,8 +203,8 @@ export function AdminSettingsPage() {
           </div>
         </div>
 
-        <Button type="submit" variant="primary" size="lg" className="w-full sm:w-fit" disabled={updateSettings.isPending}>
-          {updateSettings.isPending ? t('admin.saving') : t('admin.settings.saveSettings')}
+        <Button type="submit" variant="primary" size="lg" className="w-full sm:w-fit" disabled={updateSettings.isPending || isUploadingMedia}>
+          {isUploadingMedia ? t('admin.uploading') : updateSettings.isPending ? t('admin.saving') : t('admin.settings.saveSettings')}
         </Button>
       </form>
     </div>

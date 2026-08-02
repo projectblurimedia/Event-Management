@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ImageUploadField } from '@/features/admin/ImageUploadField';
 import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
 import { categoryHooks, categoryTypeHooks, itemHooks, eventTypeHooks } from '@/lib/api/resources';
+import { useIsUploadingMedia } from '@/lib/api/uploads';
 import { api } from '@/lib/axios';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -71,6 +72,7 @@ export function AdminDecorationsPage() {
   const { data: eventTypes } = eventTypeHooks.useAdminList();
   const { create: createMutation, update: updateMutation } = useDecorationMutations();
   const deleteMutation = itemHooks.useAdminDelete();
+  const isUploadingMedia = useIsUploadingMedia();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
@@ -345,13 +347,15 @@ export function AdminDecorationsPage() {
             variant="primary"
             size="lg"
             className="w-full sm:w-auto"
-            disabled={createMutation.isPending || updateMutation.isPending}
+            disabled={createMutation.isPending || updateMutation.isPending || isUploadingMedia}
           >
-            {createMutation.isPending || updateMutation.isPending
-              ? t('admin.saving')
-              : editing
-                ? t('common.saveChanges')
-                : t('common.create')}
+            {isUploadingMedia
+              ? t('admin.uploading')
+              : createMutation.isPending || updateMutation.isPending
+                ? t('admin.saving')
+                : editing
+                  ? t('common.saveChanges')
+                  : t('common.create')}
           </Button>
         </form>
       </Modal>

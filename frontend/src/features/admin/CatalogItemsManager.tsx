@@ -8,6 +8,7 @@ import { MultiImageUploadField } from '@/features/admin/MultiImageUploadField';
 import { categoryHooks, categoryTypeHooks, itemHooks, packageHooks } from '@/lib/api/resources';
 import { api } from '@/lib/axios';
 import { getErrorMessage } from '@/lib/errorMessage';
+import { useIsUploadingMedia } from '@/lib/api/uploads';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/cn';
 import type { Item } from '@/types/api';
@@ -100,6 +101,7 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
   const { data: allItems, isLoading, isError, refetch } = itemHooks.useAdminList();
   const { data: packages } = packageHooks.useAdminList();
   const { create: createMutation, update: updateMutation } = useItemMutations();
+  const isUploadingMedia = useIsUploadingMedia();
   const deleteMutation = itemHooks.useAdminDelete();
 
   const [search, setSearch] = useState('');
@@ -548,13 +550,15 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
             variant="primary"
             size="lg"
             className="w-full sm:w-auto"
-            disabled={createMutation.isPending || updateMutation.isPending}
+            disabled={createMutation.isPending || updateMutation.isPending || isUploadingMedia}
           >
-            {createMutation.isPending || updateMutation.isPending
-              ? t('admin.saving')
-              : editing
-                ? t('common.saveChanges')
-                : t('common.create')}
+            {isUploadingMedia
+              ? t('admin.uploading')
+              : createMutation.isPending || updateMutation.isPending
+                ? t('admin.saving')
+                : editing
+                  ? t('common.saveChanges')
+                  : t('common.create')}
           </Button>
         </form>
       </Modal>
