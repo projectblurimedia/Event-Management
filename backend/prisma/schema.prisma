@@ -81,6 +81,9 @@ model Category {
   imageUrl      String?
   pricingMode   PricingMode       @default(FLAT)
   isFood        Boolean           @default(false)
+  /// Gates the dedicated admin Decorations tab and the wizard's event-type-
+  /// filtered image grid, instead of the generic Item list/row layout.
+  isDecoration  Boolean           @default(false)
   allowMultiple Boolean           @default(false)
   isActive      Boolean           @default(true)
   order         Int               @default(0)
@@ -105,6 +108,7 @@ model EventType {
   order         Int           @default(0)
   testimonials  Testimonial[]
   bookings      Booking[]
+  items         Item[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }
@@ -148,12 +152,18 @@ model Item {
   /// means it shows for every package, including Custom.
   packageId      String?
   package        Package?      @relation(fields: [packageId], references: [id])
+  /// For Decoration items (Category.isDecoration): which event this
+  /// decoration is for (Wedding, Birthday, ...) — decoration is filtered by
+  /// event type rather than package tier, unlike everything else.
+  eventTypeId    String?
+  eventType      EventType?    @relation(fields: [eventTypeId], references: [id])
   bookingItems   BookingItem[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   @@index([categoryTypeId])
   @@index([packageId])
+  @@index([eventTypeId])
 }
 
 /// A package is just a name plus an ordered list of bulletins (categories)

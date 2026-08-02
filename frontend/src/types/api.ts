@@ -18,6 +18,8 @@ export interface Item {
   order: number;
   /** Restricts this item to only show up under this package; null shows for every package. */
   packageId: string | null;
+  /** Decoration items only: which event this decoration is for. */
+  eventTypeId: string | null;
 }
 
 export interface CategoryType {
@@ -39,6 +41,7 @@ export interface Category {
   imageUrl: string | null;
   pricingMode: PricingMode;
   isFood: boolean;
+  isDecoration: boolean;
   allowMultiple: boolean;
   isActive: boolean;
   order: number;

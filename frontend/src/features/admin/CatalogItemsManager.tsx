@@ -112,7 +112,10 @@ export function CatalogItemsManager({ foodOnly, title, subtitle, itemLabel, cate
   const [packageFilter, setPackageFilter] = useState(CUSTOM_FILTER);
 
   const categories = useMemo(
-    () => allCategories?.filter((c) => c.isFood === foodOnly) ?? [],
+    // Decoration gets its own dedicated admin tab (event-type-driven, not
+    // category/type-driven like everything else here), so it's excluded from
+    // both Menu and Services.
+    () => allCategories?.filter((c) => c.isFood === foodOnly && !c.isDecoration) ?? [],
     [allCategories, foodOnly],
   );
   const items = useMemo(() => {

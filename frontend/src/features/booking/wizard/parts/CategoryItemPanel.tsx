@@ -138,6 +138,54 @@ function ItemCard({ category, item }: { category: Category; item: Item }) {
   );
 }
 
+/** Decoration is shown as an image-forward 2-column gallery instead of the
+ * row layout everything else uses — the picture is the point. */
+function DecorationCard({ category, item }: { category: Category; item: Item }) {
+  const { tf } = useTranslation();
+  const selection = useBookingCartStore((s) => s.selectedItems.find((i) => i.itemId === item.id));
+  const toggleItem = useBookingCartStore((s) => s.toggleItem);
+  const selected = !!selection;
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  return (
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setDetailOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') setDetailOpen(true);
+        }}
+        className={cn(
+          'border-border bg-surface relative cursor-pointer overflow-hidden rounded-2xl border transition-colors',
+          selected && 'border-gold ring-gold ring-2',
+        )}
+      >
+        <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="aspect-[4/3] w-full object-cover" />
+        <div className="from-ink-black/80 absolute inset-x-0 bottom-0 bg-gradient-to-t to-transparent px-3 pt-8 pb-2.5">
+          <h4 className="truncate text-sm font-semibold text-white">{tf(item.name, item.nameTe)}</h4>
+        </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleItem(category.id, item.id, category.allowMultiple);
+          }}
+          aria-label={selected ? `Remove ${item.name}` : `Select ${item.name}`}
+          aria-pressed={selected}
+          className={cn(
+            'absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors',
+            selected ? 'bg-gold border-gold text-ink-black' : 'border-white/70 bg-black/30 text-white',
+          )}
+        >
+          {selected ? <Check size={14} /> : <Plus size={14} />}
+        </button>
+      </div>
+      <ItemDetailModal category={category} item={item} open={detailOpen} onClose={() => setDetailOpen(false)} />
+    </>
+  );
+}
+
 export function CategoryItemPanel({ category }: { category: Category }) {
   const { t, tf } = useTranslation();
   const dietaryPreference = useBookingCartStore((s) => s.dietaryPreference);
@@ -145,6 +193,7 @@ export function CategoryItemPanel({ category }: { category: Category }) {
   const clearCategorySelections = useBookingCartStore((s) => s.clearCategorySelections);
   const packageId = useBookingCartStore((s) => s.packageId);
   const isCustom = useBookingCartStore((s) => s.isCustom);
+  const eventTypeId = useBookingCartStore((s) => s.customer.eventTypeId);
   const { data: allTypes } = categoryTypeHooks.usePublicList();
   const { data: allItems, isLoading, isError, refetch } = itemHooks.usePublicList();
   const [activeType, setActiveType] = useState<string | null>(null);
@@ -153,16 +202,19 @@ export function CategoryItemPanel({ category }: { category: Category }) {
 
   const types = useMemo(() => allTypes?.filter((ty) => ty.categoryId === category.id) ?? [], [allTypes, category.id]);
   const typeIds = useMemo(() => new Set(types.map((ty) => ty.id)), [types]);
-  // Items tagged with a packageId (e.g. tiered "Elegant Decoration" under
-  // Gold) only show when that exact package is selected; untagged items
-  // always show, and Custom Package shows everything with no tier lock.
-  const categoryItems = useMemo(
-    () =>
-      allItems?.filter(
-        (i) => typeIds.has(i.categoryTypeId) && (!i.packageId || isCustom || i.packageId === packageId),
-      ) ?? [],
-    [allItems, typeIds, isCustom, packageId],
-  );
+  const categoryItems = useMemo(() => {
+    if (!allItems) return [];
+    const inCategory = allItems.filter((i) => typeIds.has(i.categoryTypeId));
+    // Decoration is curated per event ("Wedding" decorations, "Birthday"
+    // decorations...) regardless of package — a strict match, not a
+    // fallback/tier system.
+    if (category.isDecoration) return inCategory.filter((i) => i.eventTypeId === eventTypeId);
+    // Everything else: items tagged with a packageId (e.g. tiered "Elegant
+    // Decoration" under Gold) only show when that exact package is
+    // selected; untagged items always show, and Custom Package shows
+    // everything with no tier lock.
+    return inCategory.filter((i) => !i.packageId || isCustom || i.packageId === packageId);
+  }, [allItems, typeIds, category.isDecoration, eventTypeId, isCustom, packageId]);
   const selectedIds = useMemo(
     () => new Set(selectedItems.filter((s) => s.categoryId === category.id).map((s) => s.itemId)),
     [selectedItems, category.id],
@@ -283,10 +335,14 @@ export function CategoryItemPanel({ category }: { category: Category }) {
         minHeight="min-h-[15vh]"
         compact
       >
-        <div className="grid gap-4 lg:grid-cols-2">
-          {filteredItems.map((item) => (
-            <ItemCard key={item.id} category={category} item={item} />
-          ))}
+        <div className={category.isDecoration ? 'grid grid-cols-2 gap-4' : 'grid gap-4 lg:grid-cols-2'}>
+          {filteredItems.map((item) =>
+            category.isDecoration ? (
+              <DecorationCard key={item.id} category={category} item={item} />
+            ) : (
+              <ItemCard key={item.id} category={category} item={item} />
+            ),
+          )}
           {filteredItems.length === 0 && (
             <p className="text-text-muted col-span-full text-sm">{t('wizard.noOptionsAvailable')}</p>
           )}

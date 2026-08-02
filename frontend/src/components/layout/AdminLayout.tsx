@@ -6,6 +6,7 @@ import {
   CalendarHeart,
   ChevronDown,
   ExternalLink,
+  Flower2,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -39,6 +40,7 @@ const navItems: { to: string; labelKey: TranslationKey; icon: typeof LayoutDashb
   { to: '/admin/events', labelKey: 'admin.nav.eventTypes', icon: CalendarHeart },
   { to: '/admin/menu', labelKey: 'admin.nav.menu', icon: UtensilsCrossed },
   { to: '/admin/services', labelKey: 'admin.nav.services', icon: Wrench },
+  { to: '/admin/decorations', labelKey: 'admin.nav.decorations', icon: Flower2 },
   { to: '/admin/packages', labelKey: 'admin.nav.packages', icon: Package },
   { to: '/admin/settings', labelKey: 'admin.nav.settings', icon: Settings },
 ];

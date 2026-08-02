@@ -15,6 +15,8 @@ const itemShape = {
   // Null clears the restriction (item shows for every package). Undefined
   // (the key simply absent) leaves whatever it was already set to alone.
   packageId: z.string().nullable().optional(),
+  // Same null-clears/undefined-leaves-alone semantics, for Decoration items.
+  eventTypeId: z.string().nullable().optional(),
 };
 
 export const createItemSchema = z.object({

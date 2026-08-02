@@ -13,8 +13,13 @@ export function useUploadImage() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
+      // Videos are much bigger than the 20s default timeout allows for,
+      // especially over mobile data — give uploads room to actually finish
+      // instead of aborting (and surfacing a misleading "no connection")
+      // partway through a slow-but-working upload.
       const { data } = await api.post<UploadResult>('/admin/uploads', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 58_000,
       });
       return data;
     },
