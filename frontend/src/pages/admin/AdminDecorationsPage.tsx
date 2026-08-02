@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Pencil, RefreshCw, Trash2 } from 'lucide-react';
+import { Pencil, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ImageUploadField } from '@/features/admin/ImageUploadField';
@@ -10,6 +10,7 @@ import { categoryHooks, categoryTypeHooks, itemHooks, eventTypeHooks } from '@/l
 import { api } from '@/lib/axios';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
+import { cn } from '@/lib/cn';
 import type { Item } from '@/types/api';
 
 const inputClass =
@@ -74,14 +75,26 @@ export function AdminDecorationsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [form, setForm] = useState<DecorationFormState>(emptyForm);
+  const [search, setSearch] = useState('');
+  const [eventTypeFilter, setEventTypeFilter] = useState<string | null>(null);
 
   const decorationCategory = categories?.find((c) => c.isDecoration);
   const decorationTypeId = types?.find((ty) => ty.categoryId === decorationCategory?.id)?.id;
 
   const decorations = useMemo(
-    () => allItems?.filter((item) => item.categoryTypeId === decorationTypeId) ?? [],
+    // eventTypeId is required going forward — this also quietly hides any
+    // legacy pre-event-type rows still kept around for booking history.
+    () => allItems?.filter((item) => item.categoryTypeId === decorationTypeId && item.eventTypeId) ?? [],
     [allItems, decorationTypeId],
   );
+
+  const filteredDecorations = useMemo(() => {
+    let result = decorations;
+    if (eventTypeFilter) result = result.filter((item) => item.eventTypeId === eventTypeFilter);
+    const q = search.trim().toLowerCase();
+    if (q) result = result.filter((item) => item.name.toLowerCase().includes(q));
+    return result;
+  }, [decorations, eventTypeFilter, search]);
 
   function eventTypeName(item: Item) {
     const et = eventTypes?.find((e) => e.id === item.eventTypeId);
@@ -165,6 +178,45 @@ export function AdminDecorationsPage() {
         </Button>
       </div>
 
+      {!!decorations.length && (
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="relative w-full sm:w-72">
+            <Search size={15} className="text-text-muted absolute top-1/2 left-3.5 -translate-y-1/2" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('admin.searchPlaceholder')}
+              className="border-border bg-surface w-full rounded-lg border py-2.5 pr-3 pl-10 text-base outline-none"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setEventTypeFilter(null)}
+              className={cn(
+                'rounded-full border px-3.5 py-1.5 text-sm font-medium',
+                eventTypeFilter === null ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
+              )}
+            >
+              {t('common.all')}
+            </button>
+            {eventTypes?.map((et) => (
+              <button
+                key={et.id}
+                type="button"
+                onClick={() => setEventTypeFilter(et.id)}
+                className={cn(
+                  'rounded-full border px-3.5 py-1.5 text-sm font-medium',
+                  eventTypeFilter === et.id ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
+                )}
+              >
+                {tf(et.name, et.nameTe)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isLoading && <p className="text-text-muted py-10 text-center text-base">{t('common.loading')}</p>}
       {isError && (
         <div className="border-border bg-surface mt-5 rounded-2xl border p-6 text-center">
@@ -183,9 +235,14 @@ export function AdminDecorationsPage() {
           {t('admin.noItemsYet')}
         </div>
       )}
+      {!isLoading && !isError && !!decorations.length && filteredDecorations.length === 0 && (
+        <div className="border-border bg-surface text-text-muted mt-5 rounded-2xl border p-10 text-center text-base">
+          {t('admin.noSearchResults')}
+        </div>
+      )}
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {decorations.map((item) => (
+        {filteredDecorations.map((item) => (
           <div key={item.id} className="border-border bg-surface flex flex-col overflow-hidden rounded-2xl border">
             <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="aspect-[4/3] w-full object-cover" />
             <div className="flex flex-1 flex-col gap-1 p-4">

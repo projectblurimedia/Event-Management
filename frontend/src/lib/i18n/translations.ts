@@ -5,6 +5,7 @@ export const translations = {
     'nav.services': 'Services',
     'nav.packages': 'Packages',
     'nav.menu': 'Menu',
+    'nav.decorations': 'Decorations',
     'nav.eventTypes': 'Event Types',
     'nav.gallery': 'Gallery',
     'nav.faq': 'FAQ',
@@ -572,6 +573,12 @@ export const translations = {
       "Browse every category below — you'll pick your Veg, Non-Veg or Both preference and choose exact items with quantities during the booking wizard.",
     'page.menu.searchPlaceholder': 'Search dishes…',
     'page.menu.noSearchResults': 'No dishes found. Try a different search.',
+
+    'page.decorations.eyebrow': 'Styled By Occasion',
+    'page.decorations.title': 'Decoration Ideas',
+    'page.decorations.description': 'Browse decoration styles by event, then start your booking whenever you\'re ready.',
+    'page.decorations.searchPlaceholder': 'Search decorations…',
+    'page.decorations.noSearchResults': 'No decorations found. Try a different search.',
     'page.packages.eyebrow': 'Curated Packages',
     'page.packages.title': 'Our Packages',
     'page.packages.description':
@@ -732,6 +739,7 @@ export const translations = {
     'nav.services': 'సేవలు',
     'nav.packages': 'ప్యాకేజీలు',
     'nav.menu': 'మెనూ',
+    'nav.decorations': 'అలంకరణలు',
     'nav.eventTypes': 'ఈవెంట్ రకాలు',
     'nav.gallery': 'గ్యాలరీ',
     'nav.faq': 'తరచుగా అడిగే ప్రశ్నలు',
@@ -1287,6 +1295,12 @@ export const translations = {
       'క్రింద ప్రతి కేటగిరీని చూడండి — బుకింగ్ విజార్డ్‌లో మీరు వెజ్, నాన్-వెజ్ లేదా రెండూ ఎంపిక చేసుకుని, ఖచ్చితమైన అంశాలను పరిమాణాలతో ఎంచుకోవచ్చు.',
     'page.menu.searchPlaceholder': 'వంటకాలను శోధించండి…',
     'page.menu.noSearchResults': 'వంటకాలు కనుగొనబడలేదు. వేరే పదంతో శోధించండి.',
+
+    'page.decorations.eyebrow': 'సందర్భం ప్రకారం స్టైల్',
+    'page.decorations.title': 'అలంకరణ ఐడియాలు',
+    'page.decorations.description': 'ఈవెంట్ ప్రకారం అలంకరణ శైలులను బ్రౌజ్ చేయండి, ఆపై మీరు సిద్ధంగా ఉన్నప్పుడు మీ బుకింగ్‌ను ప్రారంభించండి.',
+    'page.decorations.searchPlaceholder': 'అలంకరణలను శోధించండి…',
+    'page.decorations.noSearchResults': 'అలంకరణలు కనుగొనబడలేదు. వేరే పదంతో శోధించండి.',
     'page.packages.eyebrow': 'ప్రత్యేక ప్యాకేజీలు',
     'page.packages.title': 'మా ప్యాకేజీలు',
     'page.packages.description':

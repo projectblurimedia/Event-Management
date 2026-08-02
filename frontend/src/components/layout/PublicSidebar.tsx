@@ -13,6 +13,7 @@ const navLinks: { to: string; labelKey: TranslationKey }[] = [
   { to: '/services', labelKey: 'nav.services' },
   { to: '/packages', labelKey: 'nav.packages' },
   { to: '/menu', labelKey: 'nav.menu' },
+  { to: '/decorations', labelKey: 'nav.decorations' },
   { to: '/event-types', labelKey: 'nav.eventTypes' },
   { to: '/contact', labelKey: 'nav.contact' },
 ];
