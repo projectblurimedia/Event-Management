@@ -9,7 +9,6 @@ import { FadeIn } from '@/components/ui/FadeIn';
 import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
 import { ContactModal } from '@/features/booking/ContactModal';
 import { useSettings } from '@/lib/api/settings';
-import { isVideoUrl } from '@/lib/cloudinary';
 import {
   packageHooks,
   testimonialHooks,
@@ -121,18 +120,12 @@ export function HomePage() {
       {/* Hero */}
       {settings.heroImageUrl ? (
         <section className="bg-[image:var(--gradient-luxury)] text-cream overflow-hidden">
-          {isVideoUrl(settings.heroImageUrl) ? (
-            <video
-              src={settings.heroImageUrl}
-              className="h-[45vh] w-full object-contain sm:h-[60vh]"
-              autoPlay
-              muted
-              loop
-              playsInline
-            />
-          ) : (
-            <img src={settings.heroImageUrl} alt="" className="h-[45vh] w-full object-contain sm:h-[60vh]" />
-          )}
+          <ImageOrPlaceholder
+            src={settings.heroImageUrl}
+            alt=""
+            objectFit="contain"
+            className="h-[45vh] w-full sm:h-[60vh]"
+          />
           <Container className="flex flex-col items-center gap-6 py-16 text-center">{heroContent}</Container>
         </section>
       ) : (
@@ -157,7 +150,8 @@ export function HomePage() {
                 <ImageOrPlaceholder
                   src={settings.businessIntroImageUrl}
                   alt={introTitle}
-                  className="aspect-[4/3] w-full rounded-2xl object-contain"
+                  objectFit="contain"
+                  className="aspect-[4/3] w-full rounded-2xl"
                 />
               </FadeIn>
               <FadeIn>
