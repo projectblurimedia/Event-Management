@@ -1,22 +1,19 @@
 import { Router } from 'express';
-import multer from 'multer';
 import { requireAuth } from '../../middlewares/requireAuth';
+import { validateRequest } from '../../middlewares/validateRequest';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { ApiError } from '../../utils/ApiError';
 import { cloudinary } from '../../config/cloudinary';
+import { env } from '../../config/env';
 import { prisma } from '../../config/prisma';
+import { signatureRequestSchema, confirmUploadSchema } from './uploads.validator';
 
 // Videos are far more expensive against Cloudinary's free-tier storage/
 // bandwidth credits than images, so they're capped sitewide (across every
 // field that can hold an uploaded URL — item images, hero image, intro
 // image, ...) rather than per-field.
 const VIDEO_LIMIT = 4;
-
-const upload = multer({
-  storage: multer.memoryStorage(),
-  // Generous enough for a short video clip, not just a photo.
-  limits: { fileSize: 50 * 1024 * 1024 },
-});
+const FOLDER = 'ms-wedding-planner';
 
 export const uploadsRouter = Router();
 uploadsRouter.use(requireAuth);
@@ -29,14 +26,19 @@ uploadsRouter.get(
   }),
 );
 
+// The file itself is uploaded straight from the browser to Cloudinary, not
+// routed through this backend — Vercel's Node.js Serverless Functions cap
+// the request body at ~4.5MB, which almost any real video exceeds, and the
+// resulting rejection surfaces to the customer as a misleading "no internet
+// connection" error. This endpoint only hands out a short-lived signature
+// (and enforces the sitewide video cap) — both tiny, ordinary JSON calls.
 uploadsRouter.post(
-  '/',
-  upload.single('file'),
+  '/signature',
+  validateRequest({ body: signatureRequestSchema }),
   asyncHandler(async (req, res) => {
-    if (!req.file) throw ApiError.badRequest('No file uploaded (expected form field "file")');
+    const { resourceType } = req.body as { resourceType: 'image' | 'video' };
 
-    const isVideo = req.file.mimetype.startsWith('video/');
-    if (isVideo) {
+    if (resourceType === 'video') {
       const videoCount = await prisma.mediaAsset.count({ where: { resourceType: 'VIDEO' } });
       if (videoCount >= VIDEO_LIMIT) {
         throw ApiError.badRequest(
@@ -45,26 +47,37 @@ uploadsRouter.post(
       }
     }
 
-    const result = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: 'ms-wedding-planner', resource_type: isVideo ? 'video' : 'image' },
-        (error, uploadResult) => {
-          if (error || !uploadResult) return reject(error ?? new Error('Upload failed'));
-          resolve(uploadResult);
-        },
-      );
-      stream.end(req.file!.buffer);
+    const timestamp = Math.round(Date.now() / 1000);
+    const signature = cloudinary.utils.api_sign_request({ timestamp, folder: FOLDER }, env.CLOUDINARY_API_SECRET);
+
+    res.json({
+      signature,
+      timestamp,
+      apiKey: env.CLOUDINARY_API_KEY,
+      cloudName: env.CLOUDINARY_CLOUD_NAME,
+      folder: FOLDER,
+      resourceType,
     });
+  }),
+);
+
+// Called after the browser's direct-to-Cloudinary upload succeeds, so we can
+// track it for the sitewide video cap (and clean it up later via delete).
+uploadsRouter.post(
+  '/confirm',
+  validateRequest({ body: confirmUploadSchema }),
+  asyncHandler(async (req, res) => {
+    const { publicId, url, resourceType } = req.body as {
+      publicId: string;
+      url: string;
+      resourceType: 'image' | 'video';
+    };
 
     await prisma.mediaAsset.create({
-      data: {
-        publicId: result.public_id,
-        url: result.secure_url,
-        resourceType: isVideo ? 'VIDEO' : 'IMAGE',
-      },
+      data: { publicId, url, resourceType: resourceType === 'video' ? 'VIDEO' : 'IMAGE' },
     });
 
-    res.status(201).json({ url: result.secure_url, publicId: result.public_id, resourceType: isVideo ? 'video' : 'image' });
+    res.status(201).json({ url, publicId, resourceType });
   }),
 );
 
