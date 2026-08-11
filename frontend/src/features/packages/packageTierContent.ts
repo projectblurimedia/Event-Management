@@ -65,3 +65,13 @@ export const PACKAGE_TIER_CONTENT: Record<string, PackageTierContent> = {
 export function getPackageTierContent(packageName: string): PackageTierContent | undefined {
   return PACKAGE_TIER_CONTENT[packageName.trim().toLowerCase()];
 }
+
+/** Same badge + tagline + feature-list shape as a real tier, for the
+ * "Custom Package" tile — it isn't a Package row from the API, so its
+ * content lives here instead of packageTierContent's lookup table. */
+export const CUSTOM_PACKAGE_CONTENT = {
+  badgeGradient: 'from-rose/30 via-rose/10 to-gold/30',
+  badgeAccent: 'text-rose',
+  tagline: 'BUILD YOUR OWN · FULLY FLEXIBLE',
+  features: ['Pick anything from every category', 'No package restrictions', 'Perfect for a one-of-a-kind event'],
+};

@@ -6,7 +6,7 @@ import { AsyncState } from '@/components/ui/AsyncState';
 import { EventTypePrompt } from '../parts/EventTypePrompt';
 import { GuestCountPrompt } from '../parts/GuestCountPrompt';
 import { CategoryItemPanel } from '../parts/CategoryItemPanel';
-import { packageHooks, categoryHooks } from '@/lib/api/resources';
+import { packageHooks, categoryHooks, categoryTypeHooks, itemHooks } from '@/lib/api/resources';
 import { useBookingCartStore } from '@/store/bookingCartStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Category } from '@/types/api';
@@ -71,6 +71,47 @@ function FixedPackageFlow({ packageId }: { packageId: string }) {
     () => (pkg ? [...pkg.categories].sort((a, b) => a.order - b.order).map((pc) => pc.category) : []),
     [pkg],
   );
+  // Only Food and Decoration involve an actual choice — everything else
+  // this package includes (Sound & Lighting, Event Manager, ...) is a
+  // fixed one-per-tier inclusion with nothing to pick, so it doesn't get
+  // its own accordion row; it's added to the cart automatically below.
+  const selectableCategories = useMemo(
+    () => sortedCategories.filter((c) => c.isFood || c.isDecoration),
+    [sortedCategories],
+  );
+  const bundledCategories = useMemo(
+    () => sortedCategories.filter((c) => !c.isFood && !c.isDecoration),
+    [sortedCategories],
+  );
+
+  const { data: allTypes } = categoryTypeHooks.usePublicList();
+  const { data: allItems } = itemHooks.usePublicList();
+  const toggleItem = useBookingCartStore((s) => s.toggleItem);
+  const setExpandedCategoryId = useBookingCartStore((s) => s.setExpandedCategoryId);
+
+  // Food has by far the most to browse — open it by default instead of
+  // making the customer expand it themselves on landing.
+  useEffect(() => {
+    if (selectableCategories.length === 0) return;
+    const food = selectableCategories.find((c) => c.isFood);
+    if (food && useBookingCartStore.getState().expandedCategoryId === null) setExpandedCategoryId(food.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectableCategories]);
+
+  useEffect(() => {
+    if (!allTypes || !allItems || bundledCategories.length === 0) return;
+    const currentlySelected = useBookingCartStore.getState().selectedItems;
+    for (const cat of bundledCategories) {
+      const typeIds = new Set(allTypes.filter((ty) => ty.categoryId === cat.id).map((ty) => ty.id));
+      const included = allItems.filter((i) => typeIds.has(i.categoryTypeId) && i.packageId === packageId);
+      for (const item of included) {
+        if (!currentlySelected.some((s) => s.categoryId === cat.id && s.itemId === item.id)) {
+          toggleItem(cat.id, item.id, cat.allowMultiple);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allTypes, allItems, bundledCategories, packageId]);
 
   return (
     <div>
@@ -88,7 +129,7 @@ function FixedPackageFlow({ packageId }: { packageId: string }) {
         minHeight="min-h-[20vh]"
         compact
       >
-        <CategoryAccordion categories={sortedCategories} />
+        <CategoryAccordion categories={selectableCategories} />
       </AsyncState>
     </div>
   );

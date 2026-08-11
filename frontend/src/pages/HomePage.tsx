@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Award, Clock, HeartHandshake, Mail, MapPin, Phone, ShieldCheck, Sparkles, Star } from 'lucide-react';
+import { Award, Clock, HeartHandshake, Mail, MapPin, Phone, ShieldCheck, Star } from 'lucide-react';
 import { LinkButton, Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -9,6 +9,7 @@ import { FadeIn } from '@/components/ui/FadeIn';
 import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
 import { ContactModal } from '@/features/booking/ContactModal';
 import { PackageCard } from '@/features/packages/PackageCard';
+import { CustomPackageCard } from '@/features/packages/CustomPackageCard';
 import { useSettings } from '@/lib/api/settings';
 import {
   packageHooks,
@@ -143,7 +144,7 @@ export function HomePage() {
       <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
 
       {/* About Our Business */}
-      <section className="pt-28 pb-20">
+      <section className="py-20">
         <Container>
           {settings.businessIntroImageUrl ? (
             <div className="grid items-center gap-10 lg:grid-cols-2">
@@ -256,16 +257,7 @@ export function HomePage() {
               {packages.slice(0, 3).map((pkg) => (
                 <PackageCard key={pkg.id} pkg={pkg} imageClassName="h-40" />
               ))}
-              <div className="border-border bg-surface flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-6 text-center">
-                <span className="bg-rose/10 text-rose flex h-11 w-11 items-center justify-center rounded-full">
-                  <Sparkles size={20} />
-                </span>
-                <h3 className="text-lg font-semibold">{t('wizard.customPackageTitle')}</h3>
-                <p className="text-text-muted text-sm">{t('wizard.customPackageDesc')}</p>
-                <LinkButton to="/booking?package=custom" variant="outline" className="mt-2 w-full">
-                  {t('packages.chooseThisPackage')}
-                </LinkButton>
-              </div>
+              <CustomPackageCard imageClassName="h-40" />
             </div>
           </Container>
         </section>

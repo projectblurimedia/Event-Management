@@ -1,10 +1,9 @@
 import { Helmet } from 'react-helmet-async';
-import { Sparkles } from 'lucide-react';
-import { LinkButton } from '@/components/ui/Button';
 import { PageHero } from '@/components/ui/PageHero';
 import { Container } from '@/components/ui/Container';
 import { AsyncState } from '@/components/ui/AsyncState';
 import { PackageCard } from '@/features/packages/PackageCard';
+import { CustomPackageCard } from '@/features/packages/CustomPackageCard';
 import { packageHooks } from '@/lib/api/resources';
 import { useSettings } from '@/lib/api/settings';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -36,16 +35,7 @@ export function PackagesPage() {
         >
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {packages?.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} imageClassName="h-44" />)}
-          <div className="border-border bg-surface flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-6 text-center">
-            <span className="bg-rose/10 text-rose flex h-11 w-11 items-center justify-center rounded-full">
-              <Sparkles size={20} />
-            </span>
-            <h3 className="text-xl font-semibold">{t('wizard.customPackageTitle')}</h3>
-            <p className="text-text-muted text-sm">{t('wizard.customPackageDesc')}</p>
-            <LinkButton to="/booking?package=custom" variant="outline" className="mt-2 w-full">
-              {t('packages.chooseThisPackage')}
-            </LinkButton>
-          </div>
+          <CustomPackageCard imageClassName="h-44" />
         </div>
         </AsyncState>
       </Container>

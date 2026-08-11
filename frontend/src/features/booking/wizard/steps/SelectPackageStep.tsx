@@ -1,11 +1,12 @@
 import { useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
-import { Check, Sparkles } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { packageHooks } from '@/lib/api/resources';
 import { useBookingCartStore } from '@/store/bookingCartStore';
 import { Button } from '@/components/ui/Button';
 import { AsyncState } from '@/components/ui/AsyncState';
 import { PackageBadge } from '@/features/packages/PackageBadge';
+import { getPackageTierContent, CUSTOM_PACKAGE_CONTENT } from '@/features/packages/packageTierContent';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/cn';
 
@@ -71,6 +72,7 @@ export function SelectPackageStep() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {packages?.map((pkg) => {
           const selected = packageId === pkg.id;
+          const tier = getPackageTierContent(pkg.name);
           return (
             <button
               key={pkg.id}
@@ -93,6 +95,7 @@ export function SelectPackageStep() {
                       </span>
                     )}
                     <h3 className="font-semibold">{tf(pkg.name, pkg.nameTe)}</h3>
+                    {tier && <p className="text-gold mt-0.5 text-[11px] font-semibold tracking-wide uppercase">{tier.tagline}</p>}
                   </div>
                   {selected && (
                     <span className="bg-gold text-ink-black flex h-5 w-5 shrink-0 items-center justify-center rounded-full">
@@ -101,12 +104,19 @@ export function SelectPackageStep() {
                   )}
                 </div>
                 <ul className="mt-3 space-y-1.5">
-                  {pkg.categories.map((pc) => (
-                    <li key={pc.id} className="text-text-muted flex items-start gap-1.5 text-sm">
-                      <Check size={12} className="text-gold mt-0.5 shrink-0" />
-                      {tf(pc.category.name, pc.category.nameTe)}
-                    </li>
-                  ))}
+                  {tier
+                    ? tier.features.map((f) => (
+                        <li key={f} className="text-text-muted flex items-start gap-1.5 text-sm">
+                          <Check size={12} className="text-gold mt-0.5 shrink-0" />
+                          {f}
+                        </li>
+                      ))
+                    : pkg.categories.map((pc) => (
+                        <li key={pc.id} className="text-text-muted flex items-start gap-1.5 text-sm">
+                          <Check size={12} className="text-gold mt-0.5 shrink-0" />
+                          {tf(pc.category.name, pc.category.nameTe)}
+                        </li>
+                      ))}
                 </ul>
               </div>
             </button>
@@ -117,20 +127,36 @@ export function SelectPackageStep() {
           type="button"
           onClick={() => selectPackage(null, true)}
           className={cn(
-            'border-border bg-surface flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-5 text-center transition-all',
+            'border-border bg-surface flex flex-col overflow-hidden rounded-2xl border border-dashed text-left transition-all',
             isCustom && 'border-gold ring-gold ring-2 border-solid',
           )}
         >
-          <span className="bg-rose/10 text-rose flex h-11 w-11 items-center justify-center rounded-full">
-            <Sparkles size={20} />
-          </span>
-          <h3 className="font-semibold">{t('wizard.customPackageTitle')}</h3>
-          <p className="text-text-muted text-sm">{t('wizard.customPackageDesc')}</p>
-          {isCustom && (
-            <span className="bg-gold text-ink-black flex h-5 w-5 items-center justify-center rounded-full">
-              <Check size={12} />
-            </span>
-          )}
+          <div className="bg-surface-muted flex h-36 w-full items-center justify-center">
+            <PackageBadge size="lg" />
+          </div>
+          <div className="flex flex-1 flex-col p-5">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h3 className="font-semibold">{t('wizard.customPackageTitle')}</h3>
+                <p className="text-gold mt-0.5 text-[11px] font-semibold tracking-wide uppercase">
+                  {CUSTOM_PACKAGE_CONTENT.tagline}
+                </p>
+              </div>
+              {isCustom && (
+                <span className="bg-gold text-ink-black flex h-5 w-5 shrink-0 items-center justify-center rounded-full">
+                  <Check size={12} />
+                </span>
+              )}
+            </div>
+            <ul className="mt-3 space-y-1.5">
+              {CUSTOM_PACKAGE_CONTENT.features.map((f) => (
+                <li key={f} className="text-text-muted flex items-start gap-1.5 text-sm">
+                  <Check size={12} className="text-gold mt-0.5 shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
         </button>
       </div>
 
