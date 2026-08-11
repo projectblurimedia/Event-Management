@@ -196,19 +196,24 @@ export function CategoryItemPanel({ category }: { category: Category }) {
   const eventTypeId = useBookingCartStore((s) => s.customer.eventTypeId);
   const { data: allTypes } = categoryTypeHooks.usePublicList();
   const { data: allItems, isLoading, isError, refetch } = itemHooks.usePublicList();
-  const [activeType, setActiveType] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const selectedItems = useBookingCartStore((s) => s.selectedItems);
 
-  const types = useMemo(() => allTypes?.filter((ty) => ty.categoryId === category.id) ?? [], [allTypes, category.id]);
-  const typeIds = useMemo(() => new Set(types.map((ty) => ty.id)), [types]);
+  const typeIds = useMemo(
+    () => new Set((allTypes ?? []).filter((ty) => ty.categoryId === category.id).map((ty) => ty.id)),
+    [allTypes, category.id],
+  );
   const categoryItems = useMemo(() => {
     if (!allItems) return [];
     const inCategory = allItems.filter((i) => typeIds.has(i.categoryTypeId));
     // Decoration is curated per event ("Wedding" decorations, "Birthday"
-    // decorations...) regardless of package — a strict match, not a
-    // fallback/tier system.
-    if (category.isDecoration) return inCategory.filter((i) => i.eventTypeId === eventTypeId);
+    // decorations...) where possible — but if nothing's tagged for the
+    // chosen event yet, showing an empty section is worse than showing
+    // everything, so fall back to the full gallery instead.
+    if (category.isDecoration) {
+      const forThisEvent = inCategory.filter((i) => i.eventTypeId === eventTypeId);
+      return forThisEvent.length > 0 ? forThisEvent : inCategory;
+    }
     // Everything else: items tagged with a packageId (e.g. tiered "Elegant
     // Decoration" under Gold) only show when that exact package is
     // selected; untagged items always show, and Custom Package shows
@@ -247,7 +252,6 @@ export function CategoryItemPanel({ category }: { category: Category }) {
     // items explicitly marked one way or the other get filtered.
     if (category.isFood && dietaryPreference === 'VEG') result = result.filter((i) => i.isVeg !== false);
     if (category.isFood && dietaryPreference === 'NON_VEG') result = result.filter((i) => i.isVeg !== true);
-    if (activeType) result = result.filter((i) => i.categoryTypeId === activeType);
     const q = search.trim().toLowerCase();
     if (q) {
       result = result.filter(
@@ -257,7 +261,7 @@ export function CategoryItemPanel({ category }: { category: Category }) {
     // Stable sort: already-selected items float to the top so the customer
     // can see their picks at a glance in long lists.
     return [...result].sort((a, b) => Number(selectedIds.has(b.id)) - Number(selectedIds.has(a.id)));
-  }, [categoryItems, dietaryPreference, activeType, category.isFood, search, selectedIds]);
+  }, [categoryItems, dietaryPreference, category.isFood, search, selectedIds]);
 
   if (category.isFood && !dietaryPreference) {
     return (
@@ -318,34 +322,6 @@ export function CategoryItemPanel({ category }: { category: Category }) {
             placeholder={t('wizard.searchItems')}
             className="border-border bg-bg focus:border-gold w-full rounded-lg border py-2.5 pr-3 pl-10 text-sm outline-none"
           />
-        </div>
-      )}
-
-      {types.length > 1 && (
-        <div className="mb-5 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveType(null)}
-            className={cn(
-              'rounded-full border px-3.5 py-1.5 text-sm font-medium',
-              activeType === null ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
-            )}
-          >
-            {t('common.all')}
-          </button>
-          {types.map((ty) => (
-            <button
-              key={ty.id}
-              type="button"
-              onClick={() => setActiveType(ty.id)}
-              className={cn(
-                'rounded-full border px-3.5 py-1.5 text-sm font-medium',
-                activeType === ty.id ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
-              )}
-            >
-              {tf(ty.name, ty.nameTe)}
-            </button>
-          ))}
         </div>
       )}
 
