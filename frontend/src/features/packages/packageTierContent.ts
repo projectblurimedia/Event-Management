@@ -6,52 +6,58 @@
  * category list. Falls back to the dynamic category list for any package
  * name that isn't one of these three (e.g. a future custom tier). */
 export interface PackageTierContent {
-  emoji: string;
+  /** Tailwind gradient classes for the medallion background. */
+  badgeGradient: string;
+  /** Tailwind text color class for the medallion's ring/icon/text. */
+  badgeAccent: string;
   tagline: string;
-  features: { emoji: string; text: string }[];
+  features: string[];
 }
 
 export const PACKAGE_TIER_CONTENT: Record<string, PackageTierContent> = {
   silver: {
-    emoji: '🥈',
+    badgeGradient: 'from-slate-200 via-slate-100 to-slate-400',
+    badgeAccent: 'text-slate-600',
     tagline: 'SIMPLE · ELEGANT · MEMORABLE',
     features: [
-      { emoji: '🍽️', text: 'Delicious Food Menu' },
-      { emoji: '🎨', text: 'Basic Decoration' },
-      { emoji: '🥤', text: 'Welcome Drinks' },
-      { emoji: '🔊', text: 'Sound System' },
-      { emoji: '🧑‍💼', text: 'Event Manager' },
-      { emoji: '✨', text: 'Clean & Premium Service' },
+      'Delicious Food Menu',
+      'Basic Decoration',
+      'Welcome Drinks',
+      'Sound System',
+      'Event Manager',
+      'Clean & Premium Service',
     ],
   },
   gold: {
-    emoji: '🥇',
+    badgeGradient: 'from-amber-200 via-yellow-300 to-amber-500',
+    badgeAccent: 'text-amber-700',
     tagline: 'PREMIUM · STYLISH · PERFECT',
     features: [
-      { emoji: '🍽️', text: 'Premium Food Menu' },
-      { emoji: '🎨', text: 'Elegant Decoration' },
-      { emoji: '🍹', text: 'Welcome Drinks & Mocktails' },
-      { emoji: '💡', text: 'Sound & Lighting' },
-      { emoji: '🎤', text: 'Anchoring' },
-      { emoji: '📸', text: 'Photography' },
-      { emoji: '🧑‍💼', text: 'Event Manager' },
-      { emoji: '✨', text: 'Clean & Premium Service' },
+      'Premium Food Menu',
+      'Elegant Decoration',
+      'Welcome Drinks & Mocktails',
+      'Sound & Lighting',
+      'Anchoring',
+      'Photography',
+      'Event Manager',
+      'Clean & Premium Service',
     ],
   },
   platinum: {
-    emoji: '💎',
+    badgeGradient: 'from-zinc-300 via-neutral-100 to-zinc-500',
+    badgeAccent: 'text-zinc-700',
     tagline: 'LUXURY · GRAND · UNFORGETTABLE',
     features: [
-      { emoji: '🍽️', text: 'Royal Food Menu (Multi Cuisine)' },
-      { emoji: '🎨', text: 'Grand Decoration & Theme' },
-      { emoji: '🍹', text: 'Welcome Drinks, Mocktails & Live Counters' },
-      { emoji: '💡', text: 'Sound, Lighting & LED Setup' },
-      { emoji: '🎤', text: 'Professional Anchoring' },
-      { emoji: '📸', text: 'Photography & Videography' },
-      { emoji: '🎉', text: 'Entertainment (Live Acts/DJ)' },
-      { emoji: '👰', text: 'Bridal Services Support' },
-      { emoji: '🧑‍💼', text: 'Event Manager (Full Support)' },
-      { emoji: '🧹', text: 'Clean, Premium & Luxury Service' },
+      'Royal Food Menu (Multi Cuisine)',
+      'Grand Decoration & Theme',
+      'Welcome Drinks, Mocktails & Live Counters',
+      'Sound, Lighting & LED Setup',
+      'Professional Anchoring',
+      'Photography & Videography',
+      'Entertainment (Live Acts/DJ)',
+      'Bridal Services Support',
+      'Event Manager (Full Support)',
+      'Clean, Premium & Luxury Service',
     ],
   },
 };

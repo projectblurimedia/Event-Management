@@ -6,10 +6,45 @@ import { Container } from '@/components/ui/Container';
 import { LinkButton } from '@/components/ui/Button';
 import { AsyncState } from '@/components/ui/AsyncState';
 import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
+import { Modal } from '@/components/ui/Modal';
 import { categoryHooks, categoryTypeHooks, itemHooks, eventTypeHooks } from '@/lib/api/resources';
 import { useSettings } from '@/lib/api/settings';
 import { useTranslation } from '@/hooks/useTranslation';
-import { cn } from '@/lib/cn';
+import type { EventType, Item } from '@/types/api';
+
+function DecorationModal({
+  item,
+  eventType,
+  open,
+  onClose,
+}: {
+  item: Item;
+  eventType: EventType | undefined;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const { t, tf } = useTranslation();
+  if (!item) return null;
+
+  const bookHref = `/booking?package=custom&decoration=${item.id}${item.eventTypeId ? `&eventType=${item.eventTypeId}` : ''}`;
+
+  return (
+    <Modal open={open} onClose={onClose} title={tf(item.name, item.nameTe)} size="lg">
+      <div className="flex flex-col gap-4">
+        <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="aspect-[4/3] w-full rounded-xl object-cover" />
+        {eventType && (
+          <span className="text-gold w-fit text-xs font-semibold tracking-wide uppercase">
+            {tf(eventType.name, eventType.nameTe)}
+          </span>
+        )}
+        {item.description && <p className="text-text-muted text-sm">{item.description}</p>}
+        <LinkButton to={bookHref} variant="primary" className="w-full">
+          {t('page.decorations.bookThis')}
+        </LinkButton>
+      </div>
+    </Modal>
+  );
+}
 
 export function DecorationsPage() {
   const { t, tf } = useTranslation();
@@ -20,6 +55,7 @@ export function DecorationsPage() {
   const { data: eventTypes } = eventTypeHooks.usePublicList();
   const [activeEventType, setActiveEventType] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [openItem, setOpenItem] = useState<Item | null>(null);
 
   const decorationCategory = categories?.find((c) => c.isDecoration);
   const decorationTypeIds = useMemo(
@@ -63,43 +99,32 @@ export function DecorationsPage() {
       />
 
       <Container className="py-12">
-        <div className="relative mx-auto mb-6 w-full max-w-md">
-          <Search size={16} className="text-text-muted absolute top-1/2 left-4 -translate-y-1/2" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('page.decorations.searchPlaceholder')}
-            className="border-border bg-surface w-full rounded-full border py-3 pr-4 pl-11 text-sm outline-none focus:border-gold"
-          />
-        </div>
-
-        {filterableEventTypes.length > 1 && (
-          <div className="flex flex-wrap justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveEventType(null)}
-              className={cn(
-                'rounded-full border px-4 py-1.5 text-sm font-medium tracking-wide uppercase',
-                activeEventType === null ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
-              )}
-            >
-              {t('common.all')}
-            </button>
-            {filterableEventTypes.map((et) => (
-              <button
-                key={et.id}
-                type="button"
-                onClick={() => setActiveEventType(et.id)}
-                className={cn(
-                  'rounded-full border px-4 py-1.5 text-sm font-medium tracking-wide uppercase',
-                  activeEventType === et.id ? 'bg-gold text-ink-black border-gold' : 'border-border text-text-muted',
-                )}
-              >
-                {tf(et.name, et.nameTe)}
-              </button>
-            ))}
+        <div className="mx-auto mb-6 flex w-full max-w-md flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <Search size={16} className="text-text-muted absolute top-1/2 left-4 -translate-y-1/2" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('page.decorations.searchPlaceholder')}
+              className="border-border bg-surface w-full rounded-full border py-3 pr-4 pl-11 text-sm outline-none focus:border-gold"
+            />
           </div>
-        )}
+
+          {filterableEventTypes.length > 1 && (
+            <select
+              value={activeEventType ?? ''}
+              onChange={(e) => setActiveEventType(e.target.value || null)}
+              className="border-border bg-surface focus:border-gold rounded-full border px-4 py-3 text-sm outline-none sm:w-52"
+            >
+              <option value="">{t('common.all')}</option>
+              {filterableEventTypes.map((et) => (
+                <option key={et.id} value={et.id}>
+                  {tf(et.name, et.nameTe)}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
 
         <AsyncState
           isLoading={isLoading}
@@ -115,14 +140,19 @@ export function DecorationsPage() {
               {filteredDecorations.map((item) => {
                 const et = eventTypes?.find((e) => e.id === item.eventTypeId);
                 return (
-                  <div key={item.id} className="border-border bg-surface flex flex-col overflow-hidden rounded-2xl border">
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setOpenItem(item)}
+                    className="border-border bg-surface flex flex-col overflow-hidden rounded-2xl border text-left transition-transform hover:-translate-y-0.5"
+                  >
                     <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="aspect-[4/3] w-full object-cover" iconSize={24} />
                     <div className="flex flex-1 flex-col gap-1 p-4">
                       {et && <span className="text-gold text-xs font-semibold tracking-wide uppercase">{tf(et.name, et.nameTe)}</span>}
                       <h3 className="text-sm font-semibold">{tf(item.name, item.nameTe)}</h3>
                       {item.description && <p className="text-text-muted mt-0.5 text-sm">{item.description}</p>}
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -135,6 +165,15 @@ export function DecorationsPage() {
           </LinkButton>
         </div>
       </Container>
+
+      {openItem && (
+        <DecorationModal
+          item={openItem}
+          eventType={eventTypes?.find((e) => e.id === openItem.eventTypeId)}
+          open={!!openItem}
+          onClose={() => setOpenItem(null)}
+        />
+      )}
     </>
   );
 }

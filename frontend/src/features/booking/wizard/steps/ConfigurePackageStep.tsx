@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { AsyncState } from '@/components/ui/AsyncState';
@@ -97,6 +98,32 @@ function CustomPackageFlow() {
   const { t } = useTranslation();
   const { data: categories, isLoading, isError, refetch } = categoryHooks.usePublicList();
   const sortedCategories = useMemo(() => [...(categories ?? [])].sort((a, b) => a.order - b.order), [categories]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const toggleItem = useBookingCartStore((s) => s.toggleItem);
+  const selectedItems = useBookingCartStore((s) => s.selectedItems);
+  const setExpandedCategoryId = useBookingCartStore((s) => s.setExpandedCategoryId);
+
+  // Arriving from the public Decorations page's "Book This Decoration"
+  // button carries ?decoration=<itemId> — add it to the cart and jump
+  // straight to that section so the customer sees it already picked.
+  useEffect(() => {
+    const decorationId = searchParams.get('decoration');
+    if (!decorationId || !categories) return;
+    const decorationCategory = categories.find((c) => c.isDecoration);
+    if (!decorationCategory) return;
+    const alreadySelected = selectedItems.some((i) => i.itemId === decorationId);
+    if (!alreadySelected) toggleItem(decorationCategory.id, decorationId, decorationCategory.allowMultiple);
+    setExpandedCategoryId(decorationCategory.id);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('decoration');
+        return next;
+      },
+      { replace: true },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories]);
 
   return (
     <div>

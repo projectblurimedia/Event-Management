@@ -5,7 +5,7 @@ import { packageHooks } from '@/lib/api/resources';
 import { useBookingCartStore } from '@/store/bookingCartStore';
 import { Button } from '@/components/ui/Button';
 import { AsyncState } from '@/components/ui/AsyncState';
-import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
+import { PackageBadge } from '@/features/packages/PackageBadge';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/cn';
 
@@ -81,7 +81,9 @@ export function SelectPackageStep() {
                 selected && 'border-gold ring-gold ring-2',
               )}
             >
-              <ImageOrPlaceholder src={pkg.imageUrl} alt={pkg.name} className="h-36 w-full object-cover" />
+              <div className="bg-surface-muted flex h-36 w-full items-center justify-center">
+                <PackageBadge packageName={pkg.name} size="lg" />
+              </div>
               <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-start justify-between gap-2">
                   <div>

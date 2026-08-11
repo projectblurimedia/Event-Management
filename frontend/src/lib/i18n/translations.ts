@@ -580,6 +580,7 @@ export const translations = {
     'page.decorations.description': 'Browse decoration styles by event, then start your booking whenever you\'re ready.',
     'page.decorations.searchPlaceholder': 'Search decorations…',
     'page.decorations.noSearchResults': 'No decorations found. Try a different search.',
+    'page.decorations.bookThis': 'Book This Decoration',
     'page.packages.eyebrow': 'Curated Packages',
     'page.packages.title': 'Our Packages',
     'page.packages.description':
@@ -1303,6 +1304,7 @@ export const translations = {
     'page.decorations.description': 'ఈవెంట్ ప్రకారం అలంకరణ శైలులను బ్రౌజ్ చేయండి, ఆపై మీరు సిద్ధంగా ఉన్నప్పుడు మీ బుకింగ్‌ను ప్రారంభించండి.',
     'page.decorations.searchPlaceholder': 'అలంకరణలను శోధించండి…',
     'page.decorations.noSearchResults': 'అలంకరణలు కనుగొనబడలేదు. వేరే పదంతో శోధించండి.',
+    'page.decorations.bookThis': 'ఈ అలంకరణను బుక్ చేయండి',
     'page.packages.eyebrow': 'ప్రత్యేక ప్యాకేజీలు',
     'page.packages.title': 'మా ప్యాకేజీలు',
     'page.packages.description':

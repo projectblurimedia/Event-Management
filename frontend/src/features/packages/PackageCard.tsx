@@ -4,6 +4,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/cn';
 import type { Package } from '@/types/api';
 import { getPackageTierContent } from './packageTierContent';
+import { PackageBadge } from './PackageBadge';
 
 interface PackageCardProps {
   pkg: Package;
@@ -22,12 +23,7 @@ export function PackageCard({ pkg, imageClassName }: PackageCardProps) {
       )}
     >
       <div className={cn('bg-surface-muted flex items-center justify-center', imageClassName)}>
-        <span
-          className="border-gold/40 bg-bg flex h-20 w-20 items-center justify-center rounded-full border-2 text-4xl"
-          aria-hidden
-        >
-          {tier?.emoji ?? '🎉'}
-        </span>
+        <PackageBadge packageName={pkg.name} />
       </div>
       <div className="flex flex-1 flex-col p-6">
         {pkg.isFeatured && (
@@ -40,9 +36,9 @@ export function PackageCard({ pkg, imageClassName }: PackageCardProps) {
         <ul className="mt-5 flex-1 space-y-2.5">
           {tier
             ? tier.features.map((f) => (
-                <li key={f.text} className="flex items-start gap-2 text-sm">
-                  <span aria-hidden>{f.emoji}</span>
-                  {f.text}
+                <li key={f} className="flex items-start gap-2 text-sm">
+                  <Check size={16} className="text-gold mt-0.5 shrink-0" />
+                  {f}
                 </li>
               ))
             : pkg.categories.map((pc) => (
