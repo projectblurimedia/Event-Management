@@ -197,12 +197,11 @@ export function CategoryItemPanel({ category }: { category: Category }) {
   const { data: allTypes } = categoryTypeHooks.usePublicList();
   const { data: allItems, isLoading, isError, refetch } = itemHooks.usePublicList();
   const [search, setSearch] = useState('');
+  const [activeType, setActiveType] = useState<string | null>(null);
   const selectedItems = useBookingCartStore((s) => s.selectedItems);
 
-  const typeIds = useMemo(
-    () => new Set((allTypes ?? []).filter((ty) => ty.categoryId === category.id).map((ty) => ty.id)),
-    [allTypes, category.id],
-  );
+  const types = useMemo(() => (allTypes ?? []).filter((ty) => ty.categoryId === category.id), [allTypes, category.id]);
+  const typeIds = useMemo(() => new Set(types.map((ty) => ty.id)), [types]);
   const categoryItems = useMemo(() => {
     if (!allItems) return [];
     const inCategory = allItems.filter((i) => typeIds.has(i.categoryTypeId));
@@ -252,6 +251,7 @@ export function CategoryItemPanel({ category }: { category: Category }) {
     // items explicitly marked one way or the other get filtered.
     if (category.isFood && dietaryPreference === 'VEG') result = result.filter((i) => i.isVeg !== false);
     if (category.isFood && dietaryPreference === 'NON_VEG') result = result.filter((i) => i.isVeg !== true);
+    if (activeType) result = result.filter((i) => i.categoryTypeId === activeType);
     const q = search.trim().toLowerCase();
     if (q) {
       result = result.filter(
@@ -261,7 +261,7 @@ export function CategoryItemPanel({ category }: { category: Category }) {
     // Stable sort: already-selected items float to the top so the customer
     // can see their picks at a glance in long lists.
     return [...result].sort((a, b) => Number(selectedIds.has(b.id)) - Number(selectedIds.has(a.id)));
-  }, [categoryItems, dietaryPreference, category.isFood, search, selectedIds]);
+  }, [categoryItems, dietaryPreference, category.isFood, activeType, search, selectedIds]);
 
   if (category.isFood && !dietaryPreference) {
     return (
@@ -312,16 +312,34 @@ export function CategoryItemPanel({ category }: { category: Category }) {
         category.allowMultiple && <p className="text-gold mb-4 text-sm font-medium">{t('wizard.allowMultipleHint')}</p>
       )}
 
-      {categoryItems.length > 6 && (
-        <div className="relative mb-4">
-          <Search size={15} className="text-text-muted absolute top-1/2 left-3.5 -translate-y-1/2" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('wizard.searchItems')}
-            className="border-border bg-bg focus:border-gold w-full rounded-lg border py-2.5 pr-3 pl-10 text-sm outline-none"
-          />
+      {(categoryItems.length > 6 || types.length > 1) && (
+        <div className="mb-4 flex flex-col gap-2.5 sm:flex-row">
+          {categoryItems.length > 6 && (
+            <div className="relative flex-1">
+              <Search size={15} className="text-text-muted absolute top-1/2 left-3.5 -translate-y-1/2" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('wizard.searchItems')}
+                className="border-border bg-bg focus:border-gold w-full rounded-lg border py-2.5 pr-3 pl-10 text-sm outline-none"
+              />
+            </div>
+          )}
+          {types.length > 1 && (
+            <select
+              value={activeType ?? ''}
+              onChange={(e) => setActiveType(e.target.value || null)}
+              className="border-border bg-bg focus:border-gold rounded-lg border px-3.5 py-2.5 text-sm outline-none sm:w-48"
+            >
+              <option value="">{t('common.all')}</option>
+              {types.map((ty) => (
+                <option key={ty.id} value={ty.id}>
+                  {tf(ty.name, ty.nameTe)}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       )}
 

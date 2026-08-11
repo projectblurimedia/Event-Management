@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { Pencil, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { ImageUploadField } from '@/features/admin/ImageUploadField';
+import { MultiImageUploadField } from '@/features/admin/MultiImageUploadField';
 import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
 import { categoryHooks, categoryTypeHooks, itemHooks, eventTypeHooks } from '@/lib/api/resources';
 import { useIsUploadingMedia } from '@/lib/api/uploads';
@@ -22,7 +22,7 @@ interface DecorationFormState {
   name: string;
   eventTypeId: string;
   description: string;
-  imageUrl: string;
+  images: string[];
   isAvailable: boolean;
   order: string;
 }
@@ -41,7 +41,7 @@ const emptyForm: DecorationFormState = {
   name: '',
   eventTypeId: '',
   description: '',
-  imageUrl: '',
+  images: [],
   isAvailable: true,
   order: '0',
 };
@@ -115,7 +115,7 @@ export function AdminDecorationsPage() {
       name: item.name,
       eventTypeId: item.eventTypeId ?? '',
       description: item.description ?? '',
-      imageUrl: item.images[0] ?? '',
+      images: item.images,
       isAvailable: item.isAvailable,
       order: String(item.order),
     });
@@ -138,7 +138,7 @@ export function AdminDecorationsPage() {
       categoryTypeId: decorationTypeId,
       name: form.name,
       description: form.description || undefined,
-      images: form.imageUrl ? [form.imageUrl] : [],
+      images: form.images,
       isAvailable: form.isAvailable,
       order: Number(form.order),
       eventTypeId: form.eventTypeId,
@@ -308,7 +308,7 @@ export function AdminDecorationsPage() {
 
           <div>
             <label className={labelClass}>{t('admin.decorations.image')}</label>
-            <ImageUploadField value={form.imageUrl} onChange={(imageUrl) => setForm((f) => ({ ...f, imageUrl }))} />
+            <MultiImageUploadField value={form.images} onChange={(images) => setForm((f) => ({ ...f, images }))} />
           </div>
 
           <div>

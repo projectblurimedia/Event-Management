@@ -77,11 +77,10 @@ export function DecorationsPage() {
     return result;
   }, [decorations, activeEventType, search]);
 
-  const usedEventTypeIds = useMemo(() => new Set(decorations.map((i) => i.eventTypeId).filter(Boolean)), [decorations]);
-  const filterableEventTypes = useMemo(
-    () => eventTypes?.filter((et) => usedEventTypeIds.has(et.id)) ?? [],
-    [eventTypes, usedEventTypeIds],
-  );
+  // Lists every event type, not just ones with decorations uploaded yet —
+  // gating this behind "has photos already" is why the filter disappeared
+  // entirely while only Wedding had any.
+  const filterableEventTypes = useMemo(() => eventTypes ?? [], [eventTypes]);
 
   return (
     <>
@@ -110,7 +109,7 @@ export function DecorationsPage() {
             />
           </div>
 
-          {filterableEventTypes.length > 1 && (
+          {filterableEventTypes.length > 0 && (
             <select
               value={activeEventType ?? ''}
               onChange={(e) => setActiveEventType(e.target.value || null)}

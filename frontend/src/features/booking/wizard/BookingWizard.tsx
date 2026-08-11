@@ -20,7 +20,6 @@ const VALID_STEPS: WizardStep[] = ['PACKAGE', 'CONFIGURE', 'REVIEW', 'DETAILS', 
 export function BookingWizard() {
   const step = useBookingCartStore((s) => s.step);
   const goToStep = useBookingCartStore((s) => s.goToStep);
-  const expandedCategoryId = useBookingCartStore((s) => s.expandedCategoryId);
   const reset = useBookingCartStore((s) => s.reset);
   const setCustomerField = useBookingCartStore((s) => s.setCustomerField);
   const navigate = useNavigate();
@@ -80,10 +79,13 @@ export function BookingWizard() {
   // Wizard steps swap content in place (no route change), so the browser
   // keeps whatever scroll position the user was at — which can land near
   // the bottom of a shorter new step. Scroll back to the top on every step
-  // or Configure sub-section change so each screen starts where it loads.
+  // change so each screen starts where it loads. Deliberately excludes
+  // expandedCategoryId — opening/closing an accordion section within the
+  // same step shouldn't yank the page back to the top.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step, expandedCategoryId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   function confirmCancel() {
     reset();
