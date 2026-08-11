@@ -125,6 +125,10 @@ export const useBookingCartStore = create<BookingWizardState>()(
 
       reset: () => set({ ...initialState, customer: emptyCustomer }),
     }),
-    { name: 'event-management-booking-wizard-v4' },
+    // Bumped v4 -> v5: the catalogue's category structure changed (Welcome
+    // Drinks/Snacks/Ice Creams split out of Food), so a stale persisted
+    // wizard session from before that could reference/expand categories
+    // that no longer mean the same thing. Force a clean slate.
+    { name: 'event-management-booking-wizard-v5' },
   ),
 );
