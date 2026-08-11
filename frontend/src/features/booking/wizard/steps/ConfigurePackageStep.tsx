@@ -9,6 +9,7 @@ import { CategoryItemPanel } from '../parts/CategoryItemPanel';
 import { packageHooks, categoryHooks, categoryTypeHooks, itemHooks } from '@/lib/api/resources';
 import { useBookingCartStore } from '@/store/bookingCartStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getPackageTierRank } from '@/features/packages/packageTierContent';
 import type { Category } from '@/types/api';
 
 /** Expandable, one-section-at-a-time list of categories — used for both a
@@ -138,11 +139,59 @@ function FixedPackageFlow({ packageId }: { packageId: string }) {
 function CustomPackageFlow() {
   const { t } = useTranslation();
   const { data: categories, isLoading, isError, refetch } = categoryHooks.usePublicList();
+  const { data: packages } = packageHooks.usePublicList();
+  const { data: allTypes } = categoryTypeHooks.usePublicList();
+  const { data: allItems } = itemHooks.usePublicList();
   const sortedCategories = useMemo(() => [...(categories ?? [])].sort((a, b) => a.order - b.order), [categories]);
+  // Same split as a fixed package: Food/Welcome Drinks/Snacks/Ice Creams/
+  // Decoration are real choices; Sound & Lighting, Anchoring, Event
+  // Manager, etc. are just naming for the same underlying inclusion at
+  // different tiers, so they'd otherwise show as 2-3 near-duplicate
+  // "options" with nothing to actually tell apart.
+  const selectableCategories = useMemo(
+    () => sortedCategories.filter((c) => c.isFood || c.isDecoration),
+    [sortedCategories],
+  );
+  const bundledCategories = useMemo(
+    () => sortedCategories.filter((c) => !c.isFood && !c.isDecoration),
+    [sortedCategories],
+  );
   const [searchParams, setSearchParams] = useSearchParams();
   const toggleItem = useBookingCartStore((s) => s.toggleItem);
   const selectedItems = useBookingCartStore((s) => s.selectedItems);
   const setExpandedCategoryId = useBookingCartStore((s) => s.setExpandedCategoryId);
+
+  // Custom Package has no single tier to lock these to, so instead of
+  // adding every tier's variant (duplicate-looking "Sound System" +
+  // "Sound & Lighting" + "Sound, Lighting & LED Setup" all at once), add
+  // just the single richest one available per category.
+  useEffect(() => {
+    if (!allTypes || !allItems || !packages || bundledCategories.length === 0) return;
+    const currentlySelected = useBookingCartStore.getState().selectedItems;
+    for (const cat of bundledCategories) {
+      const typeIds = new Set(allTypes.filter((ty) => ty.categoryId === cat.id).map((ty) => ty.id));
+      const candidates = allItems.filter((i) => typeIds.has(i.categoryTypeId) && i.packageId);
+      if (candidates.length === 0) continue;
+      const best = candidates.reduce((a, b) => {
+        const rankA = getPackageTierRank(packages.find((p) => p.id === a.packageId)?.name ?? '');
+        const rankB = getPackageTierRank(packages.find((p) => p.id === b.packageId)?.name ?? '');
+        return rankB > rankA ? b : a;
+      });
+      if (!currentlySelected.some((s) => s.categoryId === cat.id && s.itemId === best.id)) {
+        toggleItem(cat.id, best.id, cat.allowMultiple);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allTypes, allItems, packages, bundledCategories]);
+
+  // Food has by far the most to browse — open it by default instead of
+  // making the customer expand it themselves on landing.
+  useEffect(() => {
+    if (selectableCategories.length === 0) return;
+    const food = selectableCategories.find((c) => c.isFood);
+    if (food && useBookingCartStore.getState().expandedCategoryId === null) setExpandedCategoryId(food.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectableCategories]);
 
   // Arriving from the public Decorations page's "Book This Decoration"
   // button carries ?decoration=<itemId> — add it to the cart and jump
@@ -182,7 +231,7 @@ function CustomPackageFlow() {
         minHeight="min-h-[15vh]"
         compact
       >
-        <CategoryAccordion categories={sortedCategories} />
+        <CategoryAccordion categories={selectableCategories} />
       </AsyncState>
     </div>
   );

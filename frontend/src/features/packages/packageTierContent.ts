@@ -66,6 +66,16 @@ export function getPackageTierContent(packageName: string): PackageTierContent |
   return PACKAGE_TIER_CONTENT[packageName.trim().toLowerCase()];
 }
 
+/** Lowest-to-highest tier order — used to pick the single richest
+ * tier-tagged item (e.g. "Sound, Lighting & LED Setup" over "Sound
+ * System") when a category's items need collapsing to one, such as for
+ * Custom Package, where there's no one tier to lock the choice to. */
+export const PACKAGE_TIER_ORDER = ['silver', 'gold', 'platinum'];
+
+export function getPackageTierRank(packageName: string): number {
+  return PACKAGE_TIER_ORDER.indexOf(packageName.trim().toLowerCase());
+}
+
 /** Same badge + tagline + feature-list shape as a real tier, for the
  * "Custom Package" tile — it isn't a Package row from the API, so its
  * content lives here instead of packageTierContent's lookup table. */
