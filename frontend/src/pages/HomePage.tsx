@@ -143,7 +143,7 @@ export function HomePage() {
       <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
 
       {/* About Our Business */}
-      <section className="py-20">
+      <section className="pt-28 pb-20">
         <Container>
           {settings.businessIntroImageUrl ? (
             <div className="grid items-center gap-10 lg:grid-cols-2">

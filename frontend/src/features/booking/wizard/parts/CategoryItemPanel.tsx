@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Check, Plus, Search } from 'lucide-react';
 import { categoryTypeHooks, itemHooks } from '@/lib/api/resources';
 import { useBookingCartStore } from '@/store/bookingCartStore';
@@ -220,10 +220,33 @@ export function CategoryItemPanel({ category }: { category: Category }) {
     [selectedItems, category.id],
   );
 
+  const toggleItem = useBookingCartStore((s) => s.toggleItem);
+  // Package-tier-locked items (e.g. "Sound System" under Silver) are
+  // inclusions, not choices — pre-select them the moment they're known to
+  // apply so the customer sees them already included, no click needed.
+  // Reads selection state fresh instead of depending on it, so a customer
+  // manually removing one afterward doesn't get immediately re-added.
+  useEffect(() => {
+    if (isCustom || !packageId) return;
+    const currentlySelected = useBookingCartStore.getState().selectedItems;
+    for (const item of categoryItems) {
+      if (
+        item.packageId === packageId &&
+        !currentlySelected.some((s) => s.categoryId === category.id && s.itemId === item.id)
+      ) {
+        toggleItem(category.id, item.id, category.allowMultiple);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryItems, isCustom, packageId, category.id, category.allowMultiple]);
+
   const filteredItems = useMemo(() => {
     let result = categoryItems;
-    if (category.isFood && dietaryPreference === 'VEG') result = result.filter((i) => i.isVeg);
-    if (category.isFood && dietaryPreference === 'NON_VEG') result = result.filter((i) => !i.isVeg);
+    // isVeg === null means "not applicable" (drinks, bundled services) —
+    // those items should never be hidden by a veg/non-veg choice, only
+    // items explicitly marked one way or the other get filtered.
+    if (category.isFood && dietaryPreference === 'VEG') result = result.filter((i) => i.isVeg !== false);
+    if (category.isFood && dietaryPreference === 'NON_VEG') result = result.filter((i) => i.isVeg !== true);
     if (activeType) result = result.filter((i) => i.categoryTypeId === activeType);
     const q = search.trim().toLowerCase();
     if (q) {
