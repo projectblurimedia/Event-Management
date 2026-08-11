@@ -19,14 +19,22 @@ export function MultiImageUploadField({ value, onChange }: MultiImageUploadField
   const { data: usage } = useUploadUsage();
   const atLimit = value.length >= MAX_IMAGES;
 
-  async function handleFile(file: File | undefined) {
-    if (!file) return;
-    if (atLimit) return;
-    try {
-      const result = await upload.mutateAsync(file);
-      onChange([...value, result.url]);
-    } catch (error) {
-      toast.error(getErrorMessage(error, t('errors.imageUploadFailed')));
+  async function handleFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    // Uploads happen one at a time (not Promise.all) so `value` stays
+    // consistent across awaits instead of every upload racing off the same
+    // stale array and clobbering each other's result.
+    let current = value;
+    const room = MAX_IMAGES - current.length;
+    const toUpload = Array.from(files).slice(0, room);
+    for (const file of toUpload) {
+      try {
+        const result = await upload.mutateAsync(file);
+        current = [...current, result.url];
+        onChange(current);
+      } catch (error) {
+        toast.error(getErrorMessage(error, t('errors.imageUploadFailed')));
+      }
     }
   }
 
@@ -73,9 +81,10 @@ export function MultiImageUploadField({ value, onChange }: MultiImageUploadField
             <input
               type="file"
               accept="image/*,video/*"
+              multiple
               className="hidden"
               disabled={upload.isPending}
-              onChange={(e) => handleFile(e.target.files?.[0])}
+              onChange={(e) => handleFiles(e.target.files)}
             />
           </label>
         )}

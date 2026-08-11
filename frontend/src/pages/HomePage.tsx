@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Award, Check, Clock, HeartHandshake, Mail, MapPin, Phone, ShieldCheck, Sparkles, Star } from 'lucide-react';
+import { Award, Clock, HeartHandshake, Mail, MapPin, Phone, ShieldCheck, Sparkles, Star } from 'lucide-react';
 import { LinkButton, Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { FadeIn } from '@/components/ui/FadeIn';
 import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
 import { ContactModal } from '@/features/booking/ContactModal';
+import { PackageCard } from '@/features/packages/PackageCard';
 import { useSettings } from '@/lib/api/settings';
 import {
   packageHooks,
@@ -253,38 +254,7 @@ export function HomePage() {
             </FadeIn>
             <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {packages.slice(0, 3).map((pkg) => (
-                <div
-                  key={pkg.id}
-                  className={cn(
-                    'border-border bg-surface flex flex-col overflow-hidden rounded-2xl border',
-                    pkg.isFeatured && 'border-gold shadow-xl shadow-gold/10 lg:-translate-y-3',
-                  )}
-                >
-                  <ImageOrPlaceholder src={pkg.imageUrl} alt={pkg.name} className="h-40 w-full object-cover" />
-                  <div className="flex flex-1 flex-col p-6">
-                    {pkg.isFeatured && (
-                      <span className="bg-gold text-ink-black mb-2 w-fit rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase">
-                        {t('packages.mostPopular')}
-                      </span>
-                    )}
-                    <h3 className="mt-1 text-lg font-semibold">{tf(pkg.name, pkg.nameTe)}</h3>
-                    <ul className="mt-4 flex-1 space-y-2">
-                      {pkg.categories.map((pc) => (
-                        <li key={pc.id} className="flex items-start gap-2 text-sm">
-                          <Check size={14} className="text-gold mt-0.5 shrink-0" />
-                          {tf(pc.category.name, pc.category.nameTe)}
-                        </li>
-                      ))}
-                    </ul>
-                    <LinkButton
-                      to={`/booking?package=${pkg.id}`}
-                      variant={pkg.isFeatured ? 'gold' : 'outline'}
-                      className="mt-5 w-full"
-                    >
-                      {t('packages.chooseThisPackage')}
-                    </LinkButton>
-                  </div>
-                </div>
+                <PackageCard key={pkg.id} pkg={pkg} imageClassName="h-40" />
               ))}
               <div className="border-border bg-surface flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-6 text-center">
                 <span className="bg-rose/10 text-rose flex h-11 w-11 items-center justify-center rounded-full">
