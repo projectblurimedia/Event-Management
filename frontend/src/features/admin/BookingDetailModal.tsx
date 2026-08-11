@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { CheckCircle2, Download, MessageCircle, Phone, RefreshCw, XCircle } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
 import { useAdminBooking, useUpdateBookingStatus, quotationDownloadUrl } from '@/lib/api/bookings';
 import { useSettings } from '@/lib/api/settings';
 import { callHref, whatsappHref } from '@/lib/contactActions';
@@ -32,12 +33,12 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
 
   const groupedItems = useMemo(() => {
     if (!booking) return [];
-    const groups = new Map<string, { name: string; nameTe: string | null }[]>();
+    const groups = new Map<string, { name: string; nameTe: string | null; images: string[] }[]>();
     for (const sel of booking.items) {
       const category = sel.item.categoryType?.category;
       const categoryName = category ? tf(category.name, category.nameTe) : '—';
       const list = groups.get(categoryName) ?? [];
-      list.push({ name: sel.item.name, nameTe: sel.item.nameTe });
+      list.push({ name: sel.item.name, nameTe: sel.item.nameTe, images: sel.item.images });
       groups.set(categoryName, list);
     }
     return Array.from(groups.entries());
@@ -177,7 +178,10 @@ export function BookingDetailModal({ bookingId, onClose }: BookingDetailModalPro
               <h3 className="text-text-muted mb-2 text-sm font-semibold tracking-wide uppercase">{categoryName}</h3>
               <ul className="border-border divide-border divide-y rounded-xl border text-sm">
                 {items.map((item, i) => (
-                  <li key={i} className="px-4 py-2.5">
+                  <li key={i} className="flex items-center gap-2.5 px-4 py-2.5">
+                    {item.images.length > 0 && (
+                      <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="h-9 w-9 shrink-0 rounded-lg object-cover" />
+                    )}
                     {tf(item.name, item.nameTe)}
                   </li>
                 ))}

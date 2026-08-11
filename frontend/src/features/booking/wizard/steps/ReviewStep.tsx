@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
+import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
 import { useBookingCartStore } from '@/store/bookingCartStore';
 import { packageHooks, categoryHooks, itemHooks, eventTypeHooks } from '@/lib/api/resources';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -89,9 +90,12 @@ export function ReviewStep() {
                 {t('common.edit')}
               </button>
             </div>
-            <ul className="space-y-1">
+            <ul className="space-y-2">
               {group.items.map((item) => (
-                <li key={item.id} className="text-sm">
+                <li key={item.id} className="flex items-center gap-2.5 text-sm">
+                  {item.images.length > 0 && (
+                    <ImageOrPlaceholder src={item.images[0] ?? null} alt={item.name} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+                  )}
                   {tf(item.name, item.nameTe)}
                 </li>
               ))}
