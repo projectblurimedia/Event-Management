@@ -8,9 +8,11 @@ import { isVideoUrl, extractCloudinaryPublicId } from '@/lib/cloudinary';
 interface ImageUploadFieldProps {
   value: string;
   onChange: (url: string) => void;
+  /** Logo/hero fields are image-only — video doesn't fit their small, fixed-aspect display slots. */
+  allowVideo?: boolean;
 }
 
-export function ImageUploadField({ value, onChange }: ImageUploadFieldProps) {
+export function ImageUploadField({ value, onChange, allowVideo = true }: ImageUploadFieldProps) {
   const { t } = useTranslation();
   const upload = useUploadImage();
   const deleteUpload = useDeleteUpload();
@@ -66,16 +68,16 @@ export function ImageUploadField({ value, onChange }: ImageUploadFieldProps) {
           </div>
         )}
         <label className="border-border hover:border-gold flex-1 cursor-pointer rounded-lg border px-3 py-2.5 text-center text-xs">
-          {upload.isPending ? t('admin.uploading') : t('admin.uploadImage')}
+          {upload.isPending ? t('admin.uploading') : allowVideo ? t('admin.uploadImage') : t('admin.uploadImageOnly')}
           <input
             type="file"
-            accept="image/*,video/*"
+            accept={allowVideo ? 'image/*,video/*' : 'image/*'}
             className="hidden"
             onChange={(e) => handleFile(e.target.files?.[0])}
           />
         </label>
       </div>
-      {usage && (
+      {allowVideo && usage && (
         <p className="text-text-muted text-xs">
           {t('admin.videoUsageHint')} {usage.videoCount}/{usage.videoLimit}
         </p>

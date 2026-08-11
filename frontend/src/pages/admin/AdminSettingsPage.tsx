@@ -160,7 +160,7 @@ export function AdminSettingsPage() {
           </div>
           <div>
             <label className={labelClass}>{t('admin.settings.logo')}</label>
-            <ImageUploadField value={form.logoUrl ?? ''} onChange={(url) => updateForm({ logoUrl: url })} />
+            <ImageUploadField value={form.logoUrl ?? ''} onChange={(url) => updateForm({ logoUrl: url })} allowVideo={false} />
           </div>
         </div>
 
@@ -178,7 +178,7 @@ export function AdminSettingsPage() {
           </div>
           <div>
             <label className={labelClass}>{t('admin.settings.heroImage')}</label>
-            <ImageUploadField value={form.heroImageUrl ?? ''} onChange={(url) => updateForm({ heroImageUrl: url })} />
+            <ImageUploadField value={form.heroImageUrl ?? ''} onChange={(url) => updateForm({ heroImageUrl: url })} allowVideo={false} />
           </div>
         </div>
 
