@@ -18,8 +18,13 @@ export function ImageUploadField({ value, onChange, allowVideo = true }: ImageUp
   const deleteUpload = useDeleteUpload();
   const { data: usage } = useUploadUsage();
 
-  async function handleFile(file: File | undefined) {
+  async function handleFiles(files: FileList | null) {
+    const file = files?.[0];
     if (!file) return;
+    // This field holds exactly one image/video — if more than one was
+    // picked, say so explicitly instead of silently dropping the rest,
+    // which reads as "upload is broken" rather than "as designed".
+    if (files.length > 1) toast(t('admin.singleImageOnlyHint'));
     const previousValue = value;
     try {
       const result = await upload.mutateAsync(file);
@@ -79,7 +84,7 @@ export function ImageUploadField({ value, onChange, allowVideo = true }: ImageUp
             // use the first file, rather than silently uploading nothing.
             multiple
             className="hidden"
-            onChange={(e) => handleFile(e.target.files?.[0])}
+            onChange={(e) => handleFiles(e.target.files)}
           />
         </label>
       </div>

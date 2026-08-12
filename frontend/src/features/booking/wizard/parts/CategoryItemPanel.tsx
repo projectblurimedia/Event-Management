@@ -312,7 +312,11 @@ export function CategoryItemPanel({ category }: { category: Category }) {
         category.allowMultiple && <p className="text-gold mb-4 text-sm font-medium">{t('wizard.allowMultipleHint')}</p>
       )}
 
-      {(categoryItems.length > 6 || types.length > 1) && (
+      {/* Decoration is already filtered by the customer's own event type
+       * automatically — its CategoryType split (Marriage/Haldi/...) is an
+       * internal admin grouping the customer never chose, so it doesn't
+       * belong here as a second, confusing filter. */}
+      {(categoryItems.length > 6 || (!category.isDecoration && types.length > 1)) && (
         <div className="mb-4 flex flex-col gap-2.5 sm:flex-row">
           {categoryItems.length > 6 && (
             <div className="relative flex-1">
@@ -326,7 +330,7 @@ export function CategoryItemPanel({ category }: { category: Category }) {
               />
             </div>
           )}
-          {types.length > 1 && (
+          {!category.isDecoration && types.length > 1 && (
             <select
               value={activeType ?? ''}
               onChange={(e) => setActiveType(e.target.value || null)}

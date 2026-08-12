@@ -92,7 +92,11 @@ export function AdminDecorationsPage() {
     [types, decorationCategory?.id],
   );
   const decorationTypeIds = useMemo(() => new Set(decorationTypes.map((ty) => ty.id)), [decorationTypes]);
-  const createTypeId = decorationTypes.find((ty) => ty.name === 'Decorations')?.id ?? decorationTypes[0]?.id;
+  // Fixed id rather than a name lookup — CategoryType.name is just an
+  // internal label an admin could rename later without meaning to change
+  // where new decorations go.
+  const createTypeId =
+    decorationTypes.find((ty) => ty.id === 'catype_marriage_deco')?.id ?? decorationTypes[0]?.id;
 
   const decorations = useMemo(
     // eventTypeId is required going forward — this also quietly hides any
