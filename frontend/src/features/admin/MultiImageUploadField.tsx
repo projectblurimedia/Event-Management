@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast';
-import { UploadCloud, X } from 'lucide-react';
+import { UploadCloud, Video, X } from 'lucide-react';
 import { useUploadImage, useDeleteUpload, useUploadUsage } from '@/lib/api/uploads';
 import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -56,7 +56,16 @@ export function MultiImageUploadField({ value, onChange, maxImages = DEFAULT_MAX
         {value.map((url, i) => (
           <div key={url} className="relative">
             {isVideoUrl(url) ? (
-              <video src={url} className="h-14 w-20 rounded-lg object-cover" muted />
+              <>
+                {/* preload="metadata" gets the browser to paint the first
+                 * frame as a static poster — without it (and without
+                 * autoplay, too heavy for a thumbnail strip) most browsers
+                 * just render a blank black box here. */}
+                <video src={url} preload="metadata" muted className="h-14 w-20 rounded-lg object-cover" />
+                <span className="bg-ink-black/70 text-cream pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg">
+                  <Video size={16} />
+                </span>
+              </>
             ) : (
               <img src={url} alt="" className="h-14 w-14 rounded-lg object-cover" />
             )}

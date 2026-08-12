@@ -11,8 +11,9 @@ import { signatureRequestSchema, confirmUploadSchema } from './uploads.validator
 // Videos are far more expensive against Cloudinary's free-tier storage/
 // bandwidth credits than images, so they're capped sitewide (across every
 // field that can hold an uploaded URL — item images, hero image, intro
-// image, ...) rather than per-field.
-const VIDEO_LIMIT = 4;
+// gallery, ...) rather than per-field. Raised from 4: the intro gallery
+// alone allows up to 10 slots, any of which could be a video.
+const VIDEO_LIMIT = 20;
 const FOLDER = 'ms-wedding-planner';
 
 export const uploadsRouter = Router();
