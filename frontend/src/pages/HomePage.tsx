@@ -146,7 +146,25 @@ export function HomePage() {
       {/* About Our Business */}
       <section className="border-border border-t py-20">
         <Container>
-          {settings.businessIntroImageUrl ? (
+          {settings.businessIntroImages.length > 0 ? (
+            <div className="grid items-start gap-10 lg:grid-cols-2">
+              <FadeIn>
+                <div className={cn('grid gap-3', settings.businessIntroImages.length === 1 ? 'grid-cols-1' : 'grid-cols-2')}>
+                  {settings.businessIntroImages.map((src, i) => (
+                    <ImageOrPlaceholder
+                      key={src}
+                      src={src}
+                      alt={`${introTitle} ${i + 1}`}
+                      className="aspect-square w-full rounded-xl"
+                    />
+                  ))}
+                </div>
+              </FadeIn>
+              <FadeIn>
+                <SectionHeading eyebrow={t('home.aboutUs')} title={introTitle} description={introText} align="left" />
+              </FadeIn>
+            </div>
+          ) : settings.businessIntroImageUrl ? (
             <div className="grid items-center gap-10 lg:grid-cols-2">
               <FadeIn>
                 <ImageOrPlaceholder

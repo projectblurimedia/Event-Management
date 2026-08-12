@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { Check, MapPin, RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ImageUploadField } from '@/features/admin/ImageUploadField';
+import { MultiImageUploadField } from '@/features/admin/MultiImageUploadField';
 import { useSettings, useUpdateSettings } from '@/lib/api/settings';
 import { useIsUploadingMedia } from '@/lib/api/uploads';
 import { getErrorMessage } from '@/lib/errorMessage';
@@ -196,9 +197,10 @@ export function AdminSettingsPage() {
           </div>
           <div>
             <label className={labelClass}>{t('admin.settings.introImage')}</label>
-            <ImageUploadField
-              value={form.businessIntroImageUrl ?? ''}
-              onChange={(url) => updateForm({ businessIntroImageUrl: url })}
+            <MultiImageUploadField
+              value={form.businessIntroImages ?? []}
+              onChange={(images) => updateForm({ businessIntroImages: images })}
+              maxImages={10}
             />
           </div>
         </div>

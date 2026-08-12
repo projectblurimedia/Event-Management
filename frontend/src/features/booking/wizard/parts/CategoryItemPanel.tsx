@@ -223,6 +223,12 @@ export function CategoryItemPanel({ category }: { category: Category }) {
     () => new Set(selectedItems.filter((s) => s.categoryId === category.id).map((s) => s.itemId)),
     [selectedItems, category.id],
   );
+  // Welcome Drinks/Snacks/Ice Creams are isFood (so they show under Menu in
+  // admin, and belong to the shared package bulletin), but none of their
+  // items are ever tagged veg/non-veg — so unlike the real Food category,
+  // there's no reason to ask the question or filter by it here.
+  const hasVegDistinction = useMemo(() => categoryItems.some((i) => i.isVeg !== null), [categoryItems]);
+  const isDietaryGated = category.isFood && hasVegDistinction;
 
   const toggleItem = useBookingCartStore((s) => s.toggleItem);
   // Package-tier-locked items (e.g. "Sound System" under Silver) are
@@ -249,8 +255,8 @@ export function CategoryItemPanel({ category }: { category: Category }) {
     // isVeg === null means "not applicable" (drinks, bundled services) —
     // those items should never be hidden by a veg/non-veg choice, only
     // items explicitly marked one way or the other get filtered.
-    if (category.isFood && dietaryPreference === 'VEG') result = result.filter((i) => i.isVeg !== false);
-    if (category.isFood && dietaryPreference === 'NON_VEG') result = result.filter((i) => i.isVeg !== true);
+    if (isDietaryGated && dietaryPreference === 'VEG') result = result.filter((i) => i.isVeg !== false);
+    if (isDietaryGated && dietaryPreference === 'NON_VEG') result = result.filter((i) => i.isVeg !== true);
     if (activeType) result = result.filter((i) => i.categoryTypeId === activeType);
     const q = search.trim().toLowerCase();
     if (q) {
@@ -261,9 +267,14 @@ export function CategoryItemPanel({ category }: { category: Category }) {
     // Stable sort: already-selected items float to the top so the customer
     // can see their picks at a glance in long lists.
     return [...result].sort((a, b) => Number(selectedIds.has(b.id)) - Number(selectedIds.has(a.id)));
-  }, [categoryItems, dietaryPreference, category.isFood, activeType, search, selectedIds]);
+  }, [categoryItems, dietaryPreference, isDietaryGated, activeType, search, selectedIds]);
 
-  if (category.isFood && !dietaryPreference) {
+  const showSearch = categoryItems.length > 6 && !category.isDecoration;
+
+  // While items are still loading, hasVegDistinction can't be known yet —
+  // default to gating (matching Food's real behavior) rather than flash
+  // the question in and then yank it back out once data arrives.
+  if (category.isFood && !dietaryPreference && (isLoading || hasVegDistinction)) {
     return (
       <div className="mx-auto flex max-w-sm flex-col items-center gap-5 py-6 text-center">
         <h3 className="text-lg font-semibold">{t('wizard.dietaryQuestion')}</h3>
@@ -289,7 +300,7 @@ export function CategoryItemPanel({ category }: { category: Category }) {
         <p className="text-text-muted mb-5 text-sm">{tf(category.description, category.descriptionTe)}</p>
       )}
 
-      {category.isFood ? (
+      {isDietaryGated && dietaryPreference ? (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-text-muted text-sm">
             {t('wizard.dietary')}:{' '}
@@ -312,13 +323,12 @@ export function CategoryItemPanel({ category }: { category: Category }) {
         category.allowMultiple && <p className="text-gold mb-4 text-sm font-medium">{t('wizard.allowMultipleHint')}</p>
       )}
 
-      {/* Decoration is already filtered by the customer's own event type
-       * automatically — its CategoryType split (Marriage/Haldi/...) is an
-       * internal admin grouping the customer never chose, so it doesn't
-       * belong here as a second, confusing filter. */}
-      {(categoryItems.length > 6 || (!category.isDecoration && types.length > 1)) && (
+      {/* Decoration gets the type dropdown (Marriage/Haldi/...) instead of
+       * the search box — with photos, browsing by style reads better than
+       * typing a name, and the group names are now real, meaningful ones. */}
+      {(showSearch || types.length > 1) && (
         <div className="mb-4 flex flex-col gap-2.5 sm:flex-row">
-          {categoryItems.length > 6 && (
+          {showSearch && (
             <div className="relative flex-1">
               <Search size={15} className="text-text-muted absolute top-1/2 left-3.5 -translate-y-1/2" />
               <input
@@ -330,7 +340,7 @@ export function CategoryItemPanel({ category }: { category: Category }) {
               />
             </div>
           )}
-          {!category.isDecoration && types.length > 1 && (
+          {types.length > 1 && (
             <select
               value={activeType ?? ''}
               onChange={(e) => setActiveType(e.target.value || null)}

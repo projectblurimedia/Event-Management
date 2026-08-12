@@ -5,19 +5,21 @@ import { getErrorMessage } from '@/lib/errorMessage';
 import { useTranslation } from '@/hooks/useTranslation';
 import { isVideoUrl, extractCloudinaryPublicId } from '@/lib/cloudinary';
 
-const MAX_IMAGES = 4;
+const DEFAULT_MAX_IMAGES = 4;
 
 interface MultiImageUploadFieldProps {
   value: string[];
   onChange: (urls: string[]) => void;
+  /** Defaults to 4 (catalog item galleries); business intro uses more. */
+  maxImages?: number;
 }
 
-export function MultiImageUploadField({ value, onChange }: MultiImageUploadFieldProps) {
+export function MultiImageUploadField({ value, onChange, maxImages = DEFAULT_MAX_IMAGES }: MultiImageUploadFieldProps) {
   const { t } = useTranslation();
   const upload = useUploadImage();
   const deleteUpload = useDeleteUpload();
   const { data: usage } = useUploadUsage();
-  const atLimit = value.length >= MAX_IMAGES;
+  const atLimit = value.length >= maxImages;
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -25,7 +27,7 @@ export function MultiImageUploadField({ value, onChange }: MultiImageUploadField
     // consistent across awaits instead of every upload racing off the same
     // stale array and clobbering each other's result.
     let current = value;
-    const room = MAX_IMAGES - current.length;
+    const room = maxImages - current.length;
     const toUpload = Array.from(files).slice(0, room);
     for (const file of toUpload) {
       try {
@@ -90,7 +92,7 @@ export function MultiImageUploadField({ value, onChange }: MultiImageUploadField
         )}
       </div>
       <p className="text-text-muted mt-1.5 text-xs">
-        {value.length}/{MAX_IMAGES} {t('admin.imagesUploaded')}
+        {value.length}/{maxImages} {t('admin.imagesUploaded')}
         {usage && (
           <>
             {' · '}

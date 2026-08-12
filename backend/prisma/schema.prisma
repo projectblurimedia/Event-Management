@@ -263,6 +263,11 @@ model SiteSettings {
   businessIntroText    String
   businessIntroTextTe  String?
   businessIntroImageUrl String?
+  /// Up to 10 image/video URLs (Cloudinary) shown as a gallery in the About
+  /// section — businessIntroImageUrl above is legacy single-image storage
+  /// from before this existed, kept only as a fallback for sites that never
+  /// re-saved Settings since the switch.
+  businessIntroImages  String[] @default([])
   updatedAt            DateTime @updatedAt
 }
 
