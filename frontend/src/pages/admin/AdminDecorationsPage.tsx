@@ -81,13 +81,24 @@ export function AdminDecorationsPage() {
   const [eventTypeFilter, setEventTypeFilter] = useState<string | null>(null);
 
   const decorationCategory = categories?.find((c) => c.isDecoration);
-  const decorationTypeId = types?.find((ty) => ty.categoryId === decorationCategory?.id)?.id;
+  // A decoration's grouping is its event type, not its CategoryType — the
+  // CategoryType is just a required parent-of-Item container underneath.
+  // There can be more than one of those (some left over from earlier data
+  // imports), so every item under the Decoration category has to be read
+  // to see them all; new items always go into a single canonical one so
+  // "add decoration" never has to ask the admin to pick a bucket.
+  const decorationTypes = useMemo(
+    () => types?.filter((ty) => ty.categoryId === decorationCategory?.id) ?? [],
+    [types, decorationCategory?.id],
+  );
+  const decorationTypeIds = useMemo(() => new Set(decorationTypes.map((ty) => ty.id)), [decorationTypes]);
+  const createTypeId = decorationTypes.find((ty) => ty.name === 'Decorations')?.id ?? decorationTypes[0]?.id;
 
   const decorations = useMemo(
     // eventTypeId is required going forward — this also quietly hides any
     // legacy pre-event-type rows still kept around for booking history.
-    () => allItems?.filter((item) => item.categoryTypeId === decorationTypeId && item.eventTypeId) ?? [],
-    [allItems, decorationTypeId],
+    () => allItems?.filter((item) => decorationTypeIds.has(item.categoryTypeId) && item.eventTypeId) ?? [],
+    [allItems, decorationTypeIds],
   );
 
   const filteredDecorations = useMemo(() => {
@@ -124,7 +135,7 @@ export function AdminDecorationsPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!decorationTypeId) return;
+    if (!createTypeId) return;
     if (!form.name.trim()) {
       toast.error(`${t('admin.decorations.name')} ${t('admin.isRequiredSuffix')}`);
       return;
@@ -135,7 +146,7 @@ export function AdminDecorationsPage() {
     }
 
     const payload: DecorationPayload = {
-      categoryTypeId: decorationTypeId,
+      categoryTypeId: createTypeId,
       name: form.name,
       description: form.description || undefined,
       images: form.images,
@@ -175,7 +186,7 @@ export function AdminDecorationsPage() {
           <h1 className="text-2xl font-semibold">{t('admin.decorations.title')}</h1>
           <p className="text-text-muted mt-1 text-base">{t('admin.decorations.desc')}</p>
         </div>
-        <Button onClick={openCreate} disabled={!decorationTypeId}>
+        <Button onClick={openCreate} disabled={!createTypeId}>
           {t('common.addNew')}
         </Button>
       </div>

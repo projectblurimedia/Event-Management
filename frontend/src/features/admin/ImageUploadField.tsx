@@ -72,6 +72,12 @@ export function ImageUploadField({ value, onChange, allowVideo = true }: ImageUp
           <input
             type="file"
             accept={allowVideo ? 'image/*,video/*' : 'image/*'}
+            // This field only ever holds one image, but some mobile browsers'
+            // gallery picker returns an empty selection entirely (not just
+            // the first file) if `multiple` isn't set and the user picks
+            // more than one — so accept the multi-select gesture and just
+            // use the first file, rather than silently uploading nothing.
+            multiple
             className="hidden"
             onChange={(e) => handleFile(e.target.files?.[0])}
           />
